@@ -72,4 +72,21 @@ namespace HackUtils\list {
   function reduce($list, $f, $initial) {
     return \array_reduce($list, $f, $initial);
   }
+  function zip($a, $b) {
+    $r = array();
+    $l = \min(\count($a), \count($b));
+    for ($i = 0; $i < $l; $i++) {
+      $r[] = array($a[$i], $b[$i]);
+    }
+    return $r;
+  }
+  function unzip($x) {
+    $a = array();
+    $b = array();
+    foreach ($x as $p) {
+      $a[] = $p[0];
+      $b[] = $p[1];
+    }
+    return array($a, $b);
+  }
 }
