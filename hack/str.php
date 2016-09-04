@@ -60,9 +60,9 @@ function split(
   // \explode() doesn't accept an empty delimiter
   if ($delimiter === '') {
     $ret = \str_split($string);
-    // Try to avoid the overhead of \array_slice() if the limit wasn't given.
+    // Try to avoid the overhead of list\slice() if the limit wasn't given.
     if ($limit != \PHP_INT_MAX) {
-      $ret = \array_slice($ret, $limit);
+      $ret = list\slice($ret, 0, $limit);
     }
     return $ret;
   }

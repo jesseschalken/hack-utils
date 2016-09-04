@@ -13,9 +13,8 @@ namespace HackUtils\list {
   function repeat($value, $count) {
     return \array_fill(0, $count, $value);
   }
-  function concat(...$lists) {
-    return
-      \hacklib_cast_as_boolean($lists) ? \array_merge(...$lists) : array();
+  function concat($a, $b) {
+    return \array_merge($a, $b);
   }
   function pad($list, $size, $value) {
     return \array_pad($list, $size, $value);

@@ -43,7 +43,7 @@ namespace HackUtils\str {
     if ($delimiter === "") {
       $ret = \str_split($string);
       if (\hacklib_not_equals($limit, \PHP_INT_MAX)) {
-        $ret = \array_slice($ret, $limit);
+        $ret = list\slice($ret, 0, $limit);
       }
       return $ret;
     }
