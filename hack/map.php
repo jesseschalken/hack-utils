@@ -44,16 +44,8 @@ function fixkeys(list<key> $keys): list<string> {
   return $ret;
 }
 
-function column<T>(
-  list<map<T>> $maps,
-  key $val_key,
-  ?key $idx_key = null,
-): list<T> {
-  if ($idx_key === null) {
-    return \array_column($maps, $val_key);
-  } else {
-    return \array_column($maps, $val_key, $idx_key);
-  }
+function column<T>(list<map<T>> $maps, key $key): list<T> {
+  return \array_column($maps, $key);
 }
 
 function combine<T>(list<key> $keys, list<T> $values): map<T> {
