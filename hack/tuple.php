@@ -2,7 +2,7 @@
 
 namespace HackUtils\tuple;
 
-use HackUtils\list;
+use HackUtils\vector;
 use HackUtils\key;
 use HackUtils\map;
 use HackUtils\set;

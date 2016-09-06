@@ -2,7 +2,7 @@
 
 namespace HackUtils;
 
-type list<T> = array<T>;
+type vector<T> = array<T>;
 type map<T> = array<mapkey, T>;
 type mapkey = arraykey;
 type setvalue = arraykey;

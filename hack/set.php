@@ -2,17 +2,17 @@
 
 namespace HackUtils\set;
 
-use HackUtils\list;
+use HackUtils\vector;
 use HackUtils\map;
 use HackUtils\set;
 
 type value = arraykey;
 
-function create(list<value> $values = []): set {
+function create(array<value> $values = []): set {
   return $values ? \array_fill_keys($values, true) : [];
 }
 
-function values(set $set): list<value> {
+function values(set $set): vector<value> {
   return \array_keys($set);
 }
 

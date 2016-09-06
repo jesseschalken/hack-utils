@@ -1,9 +1,21 @@
 <?php
-namespace HackUtils\list {
+namespace HackUtils\vector {
   require_once ($GLOBALS["HACKLIB_ROOT"]);
-  use \HackUtils\list;
+  use \HackUtils\vector;
   use \HackUtils\map;
   use \HackUtils\set;
+  function is_vector($x) {
+    if (!\hacklib_cast_as_boolean(\is_array($x))) {
+      return false;
+    }
+    $i = 0;
+    foreach ($x as $k => $v) {
+      if ($k !== ($i++)) {
+        return false;
+      }
+    }
+    return true;
+  }
   function chunk($map, $size) {
     return \array_chunk($map, $size, false);
   }

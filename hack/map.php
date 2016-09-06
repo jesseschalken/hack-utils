@@ -2,13 +2,13 @@
 
 namespace HackUtils\map;
 
-use HackUtils\list;
+use HackUtils\vector;
 use HackUtils\map;
 use HackUtils\set;
 
 type key = arraykey;
 
-function to_pairs<T>(map<T> $map): list<(key, T)> {
+function to_pairs<T>(map<T> $map): vector<(key, T)> {
   $r = [];
   foreach ($map as $k => $v) {
     $r[] = tuple($k, $v);
@@ -16,7 +16,7 @@ function to_pairs<T>(map<T> $map): list<(key, T)> {
   return $r;
 }
 
-function from_pairs<T>(list<(key, T)> $pairs): map<T> {
+function from_pairs<T>(vector<(key, T)> $pairs): map<T> {
   $r = [];
   foreach ($pairs as $p) {
     $r[$p[0]] = $p[1];
@@ -24,7 +24,7 @@ function from_pairs<T>(list<(key, T)> $pairs): map<T> {
   return $r;
 }
 
-function chunk<T>(map<T> $map, int $size): list<map<T>> {
+function chunk<T>(map<T> $map, int $size): vector<map<T>> {
   return \array_chunk($map, $size, true);
 }
 
@@ -36,7 +36,7 @@ function fixkey(key $key): string {
   return (string) $key;
 }
 
-function fixkeys(list<key> $keys): list<string> {
+function fixkeys(vector<key> $keys): vector<string> {
   $ret = [];
   foreach ($keys as $key) {
     $ret[] = fixkey($key);
@@ -44,15 +44,15 @@ function fixkeys(list<key> $keys): list<string> {
   return $ret;
 }
 
-function column<T>(list<map<T>> $maps, key $key): list<T> {
+function column<T>(vector<map<T>> $maps, key $key): vector<T> {
   return \array_column($maps, $key);
 }
 
-function combine<T>(list<key> $keys, list<T> $values): map<T> {
+function combine<T>(vector<key> $keys, vector<T> $values): map<T> {
   return \array_combine($keys, $values);
 }
 
-function separate<T>(map<T> $map): (list<key>, list<T>) {
+function separate<T>(map<T> $map): (vector<key>, vector<T>) {
   $ks = [];
   $vs = [];
   foreach ($map as $k => $v) {
@@ -62,7 +62,7 @@ function separate<T>(map<T> $map): (list<key>, list<T>) {
   return tuple($ks, $vs);
 }
 
-function fill_keys<T>(list<key> $keys, T $value): map<T> {
+function fill_keys<T>(vector<key> $keys, T $value): map<T> {
   return \array_fill_keys($keys, $value);
 }
 
@@ -74,15 +74,15 @@ function has_key(map<mixed> $map, key $key): bool {
   return \array_key_exists($key, $map);
 }
 
-function keys(map<mixed> $map): list<key> {
+function keys(map<mixed> $map): vector<key> {
   return \array_keys($map);
 }
 
-function values<T>(map<T> $map): list<T> {
+function values<T>(map<T> $map): vector<T> {
   return \array_values($map);
 }
 
-function value_keys<T>(map<T> $map, T $value): list<key> {
+function value_keys<T>(map<T> $map, T $value): vector<key> {
   return \array_keys($map, $value, true);
 }
 
@@ -111,8 +111,8 @@ function contains<T>(map<T> $map, T $value): bool {
   return \in_array($value, $map, true);
 }
 
-function sort_keys<T>(map<T> $map): map<T> {
-  \ksort($map, \SORT_STRING);
+function sort_keys<T>(map<T> $map, (function(key, key): int) $cmp): map<T> {
+  \uksort($map, $cmp);
   return $map;
 }
 
@@ -121,10 +121,8 @@ function sort<T>(map<T> $map, (function(T, T): int) $cmp): map<T> {
   return $map;
 }
 
-function filter<T>(map<T> $map, (function(T, key): bool) $f): map<T> {
-  /* HH_IGNORE_ERROR[4105] */
-  /* HH_IGNORE_ERROR[4041] */
-  return \array_filter($map, $f, 1 /*ARRAY_FILTER_USE_BOTH*/);
+function filter<T>(map<T> $map, (function(T): bool) $f): map<T> {
+  return \array_filter($map, $f);
 }
 
 function map<Tin, Tout>(map<Tin> $map, (function(Tin): Tout) $f): map<Tout> {

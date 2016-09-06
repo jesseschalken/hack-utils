@@ -1,7 +1,7 @@
 <?php
 namespace HackUtils\map {
   require_once ($GLOBALS["HACKLIB_ROOT"]);
-  use \HackUtils\list;
+  use \HackUtils\vector;
   use \HackUtils\map;
   use \HackUtils\set;
   function to_pairs($map) {
@@ -31,12 +31,8 @@ namespace HackUtils\map {
     }
     return $ret;
   }
-  function column($maps, $val_key, $idx_key = null) {
-    if ($idx_key === null) {
-      return \array_column($maps, $val_key);
-    } else {
-      return \array_column($maps, $val_key, $idx_key);
-    }
+  function column($maps, $key) {
+    return \array_column($maps, $key);
   }
   function combine($keys, $values) {
     return \array_combine($keys, $values);
@@ -87,8 +83,8 @@ namespace HackUtils\map {
   function contains($map, $value) {
     return \in_array($value, $map, true);
   }
-  function sort_keys($map) {
-    \ksort($map, \SORT_STRING);
+  function sort_keys($map, $cmp) {
+    \uksort($map, $cmp);
     return $map;
   }
   function sort($map, $cmp) {
@@ -96,7 +92,7 @@ namespace HackUtils\map {
     return $map;
   }
   function filter($map, $f) {
-    return \array_filter($map, $f, 1);
+    return \array_filter($map, $f);
   }
   function map($map, $f) {
     return \array_map($f, $map);
