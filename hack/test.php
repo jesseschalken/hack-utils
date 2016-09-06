@@ -135,6 +135,30 @@ function run_tests(): void {
   assert_eqaul(str\find('abc', 'c', -2), 2);
   assert_eqaul(str\find('abbb', 'bb'), 1);
   assert_eqaul(str\find('abbb', 'bb', 2), 2);
+
+  assert_eqaul(str\rfind('a', 'a'), 0);
+  assert_eqaul(str\rfind('a', 'a', 1), null);
+  assert_eqaul(str\rfind('a', 'a', -1), 0);
+  assert_eqaul(str\rfind('aba', 'a'), 2);
+  assert_eqaul(str\rfind('aba', 'b'), 1);
+  assert_eqaul(str\rfind('aba', 'c'), null);
+  assert_eqaul(str\rfind('aba', 'a', -2), 2);
+  assert_eqaul(str\rfind('aba', 'b', -2), 1);
+  assert_eqaul(str\rfind('aba', 'c', -2), null);
+  assert_eqaul(str\rfind('abbb', 'bb'), 2);
+  assert_eqaul(str\rfind('abbb', 'bb', 2), 2);
+
+  assert_eqaul(str\ends_with('abbb', 'bb'), true);
+  assert_eqaul(str\ends_with('abbb', 'ba'), false);
+  assert_eqaul(str\ends_with('abbb', ''), true);
+  assert_eqaul(str\ends_with('', ''), true);
+  assert_eqaul(str\ends_with('', 'a'), false);
+
+  assert_eqaul(str\starts_with('abbb', 'ab'), true);
+  assert_eqaul(str\starts_with('abbb', 'bb'), false);
+  assert_eqaul(str\starts_with('abbb', ''), true);
+  assert_eqaul(str\starts_with('', ''), true);
+  assert_eqaul(str\starts_with('', 'a'), false);
 }
 
 /* HH_IGNORE_ERROR[1002] */
