@@ -82,6 +82,29 @@ function split_at(string $string, int $offset): (string, string) {
   return tuple(slice($string, 0, $offset), slice($string, $offset));
 }
 
+/**
+ * Split a string into lines terminated by \n or \r\n.
+ * A final line terminator is optional.
+ */
+function lines(string $string): vector<string> {
+  $lines = split($string, "\n");
+  // Remove a final \r at the end of any lines
+  foreach ($lines as $i => $line) {
+    if (slice($line, -1) === "\r") {
+      $lines[$i] = slice($line, 0, -1);
+    }
+  }
+  // Remove a final empty line
+  if ($lines && $lines[vector\count($lines) - 1] === '') {
+    $lines = vector\slice($lines, 0, -1);
+  }
+  return $lines;
+}
+
+function is_empty(string $string): bool {
+  return $string === '';
+}
+
 function chunk(string $string, int $size): vector<string> {
   if ($size < 1) {
     throw new \Exception("Chunk size must be >= 1");
