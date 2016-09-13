@@ -77,6 +77,11 @@ function split(
   return \explode($delimiter, $string, $limit);
 }
 
+function split_at(string $string, int $offset): (string, string) {
+  $offset = _fix_offset($string, $offset);
+  return tuple(slice($string, 0, $offset), slice($string, $offset));
+}
+
 function chunk(string $string, int $size): vector<string> {
   if ($size < 1) {
     throw new \Exception("Chunk size must be >= 1");
