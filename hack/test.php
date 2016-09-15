@@ -21,13 +21,13 @@ function run_tests(): void {
   assert_eqaul(str\from_hex("00ff20"), "\x00\xff\x20");
   assert_eqaul(str\from_hex("00Ff20"), "\x00\xff\x20");
 
-  assert_eqaul(str\len(str\shuffle("abc")), 3);
+  assert_eqaul(str\length(str\shuffle("abc")), 3);
 
   assert_eqaul(str\reverse("abc"), 'cba');
   assert_eqaul(str\reverse(""), '');
 
-  assert_eqaul(str\lower("ABC.1.2.3"), "abc.1.2.3");
-  assert_eqaul(str\upper("abc.1.2.3"), "ABC.1.2.3");
+  assert_eqaul(str\to_lower("ABC.1.2.3"), "abc.1.2.3");
+  assert_eqaul(str\to_upper("abc.1.2.3"), "ABC.1.2.3");
 
   assert_eqaul(str\split(''), []);
   assert_eqaul(str\split('a'), ['a']);
@@ -77,52 +77,52 @@ function run_tests(): void {
   assert_eqaul(str\pad('1', 3, 'ab'), 'a1a');
   assert_eqaul(str\pad('1', 4, 'ab'), 'a1ab');
 
-  assert_eqaul(str\lpad('abc', 3), 'abc');
-  assert_eqaul(str\lpad('abc', 4), ' abc');
-  assert_eqaul(str\lpad('abc', 5), '  abc');
-  assert_eqaul(str\lpad('abc', 6), '   abc');
-  assert_eqaul(str\lpad('1', 3, 'ab'), 'ab1');
-  assert_eqaul(str\lpad('1', 4, 'ab'), 'aba1');
+  assert_eqaul(str\pad_left('abc', 3), 'abc');
+  assert_eqaul(str\pad_left('abc', 4), ' abc');
+  assert_eqaul(str\pad_left('abc', 5), '  abc');
+  assert_eqaul(str\pad_left('abc', 6), '   abc');
+  assert_eqaul(str\pad_left('1', 3, 'ab'), 'ab1');
+  assert_eqaul(str\pad_left('1', 4, 'ab'), 'aba1');
 
-  assert_eqaul(str\rpad('abc', 3), 'abc');
-  assert_eqaul(str\rpad('abc', 4), 'abc ');
-  assert_eqaul(str\rpad('abc', 5), 'abc  ');
-  assert_eqaul(str\rpad('abc', 6), 'abc   ');
-  assert_eqaul(str\rpad('1', 3, 'ab'), '1ab');
-  assert_eqaul(str\rpad('1', 4, 'ab'), '1aba');
+  assert_eqaul(str\pad_right('abc', 3), 'abc');
+  assert_eqaul(str\pad_right('abc', 4), 'abc ');
+  assert_eqaul(str\pad_right('abc', 5), 'abc  ');
+  assert_eqaul(str\pad_right('abc', 6), 'abc   ');
+  assert_eqaul(str\pad_right('1', 3, 'ab'), '1ab');
+  assert_eqaul(str\pad_right('1', 4, 'ab'), '1aba');
 
   assert_eqaul(str\repeat('123', 3), '123123123');
 
-  assert_eqaul(str\chr(128), "\x80");
-  assert_eqaul(str\chr(0), "\x00");
-  assert_eqaul(str\chr(255), "\xFF");
+  assert_eqaul(str\from_code(128), "\x80");
+  assert_eqaul(str\from_code(0), "\x00");
+  assert_eqaul(str\from_code(255), "\xFF");
 
-  assert_eqaul(str\ord('a'), 97);
-  assert_eqaul(str\ord('a99'), 97);
+  assert_eqaul(str\get_code_at('a'), 97);
+  assert_eqaul(str\get_code_at('a99'), 97);
 
-  assert_eqaul(str\cmp('a', 'a'), 0);
-  assert_eqaul(str\cmp('a', 'A'), 1);
-  assert_eqaul(str\cmp('', ''), 0);
-  assert_eqaul(str\cmp('', 'a'), -1);
-  assert_eqaul(str\cmp('a', ''), 1);
+  assert_eqaul(str\compare('a', 'a'), 0);
+  assert_eqaul(str\compare('a', 'A'), 1);
+  assert_eqaul(str\compare('', ''), 0);
+  assert_eqaul(str\compare('', 'a'), -1);
+  assert_eqaul(str\compare('a', ''), 1);
 
-  assert_eqaul(str\icmp('a', 'a'), 0);
-  assert_eqaul(str\icmp('a', 'A'), 0);
-  assert_eqaul(str\icmp('', ''), 0);
-  assert_eqaul(str\icmp('', 'a'), -1);
-  assert_eqaul(str\icmp('a', ''), 1);
+  assert_eqaul(str\icompare('a', 'a'), 0);
+  assert_eqaul(str\icompare('a', 'A'), 0);
+  assert_eqaul(str\icompare('', ''), 0);
+  assert_eqaul(str\icompare('', 'a'), -1);
+  assert_eqaul(str\icompare('a', ''), 1);
 
-  assert_eqaul(str\eq('a', 'a'), true);
-  assert_eqaul(str\eq('a', 'A'), false);
-  assert_eqaul(str\eq('', ''), true);
-  assert_eqaul(str\eq('', 'a'), false);
-  assert_eqaul(str\eq('a', ''), false);
+  assert_eqaul(str\equal('a', 'a'), true);
+  assert_eqaul(str\equal('a', 'A'), false);
+  assert_eqaul(str\equal('', ''), true);
+  assert_eqaul(str\equal('', 'a'), false);
+  assert_eqaul(str\equal('a', ''), false);
 
-  assert_eqaul(str\ieq('a', 'a'), true);
-  assert_eqaul(str\ieq('a', 'A'), true);
-  assert_eqaul(str\ieq('', ''), true);
-  assert_eqaul(str\ieq('', 'a'), false);
-  assert_eqaul(str\ieq('a', ''), false);
+  assert_eqaul(str\iequal('a', 'a'), true);
+  assert_eqaul(str\iequal('a', 'A'), true);
+  assert_eqaul(str\iequal('', ''), true);
+  assert_eqaul(str\iequal('', 'a'), false);
+  assert_eqaul(str\iequal('a', ''), false);
 
   assert_eqaul(str\find('a', 'a'), 0);
   assert_eqaul(str\find('a', 'a', 1), null);
@@ -136,17 +136,17 @@ function run_tests(): void {
   assert_eqaul(str\find('abbb', 'bb'), 1);
   assert_eqaul(str\find('abbb', 'bb', 2), 2);
 
-  assert_eqaul(str\rfind('a', 'a'), 0);
-  assert_eqaul(str\rfind('a', 'a', 1), null);
-  assert_eqaul(str\rfind('a', 'a', -1), 0);
-  assert_eqaul(str\rfind('aba', 'a'), 2);
-  assert_eqaul(str\rfind('aba', 'b'), 1);
-  assert_eqaul(str\rfind('aba', 'c'), null);
-  assert_eqaul(str\rfind('aba', 'a', -2), 2);
-  assert_eqaul(str\rfind('aba', 'b', -2), 1);
-  assert_eqaul(str\rfind('aba', 'c', -2), null);
-  assert_eqaul(str\rfind('abbb', 'bb'), 2);
-  assert_eqaul(str\rfind('abbb', 'bb', 2), 2);
+  assert_eqaul(str\find_last('a', 'a'), 0);
+  assert_eqaul(str\find_last('a', 'a', 1), null);
+  assert_eqaul(str\find_last('a', 'a', -1), 0);
+  assert_eqaul(str\find_last('aba', 'a'), 2);
+  assert_eqaul(str\find_last('aba', 'b'), 1);
+  assert_eqaul(str\find_last('aba', 'c'), null);
+  assert_eqaul(str\find_last('aba', 'a', -2), 2);
+  assert_eqaul(str\find_last('aba', 'b', -2), 1);
+  assert_eqaul(str\find_last('aba', 'c', -2), null);
+  assert_eqaul(str\find_last('abbb', 'bb'), 2);
+  assert_eqaul(str\find_last('abbb', 'bb', 2), 2);
 
   assert_eqaul(str\ends_with('abbb', 'bb'), true);
   assert_eqaul(str\ends_with('abbb', 'ba'), false);
