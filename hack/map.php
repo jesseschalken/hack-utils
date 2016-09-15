@@ -86,8 +86,12 @@ function value_keys<T>(map<T> $map, T $value): vector<key> {
   return \array_keys($map, $value, true);
 }
 
-function replace<T>(map<T> $a, map<T> $b): map<T> {
+function merge<T>(map<T> $a, map<T> $b): map<T> {
   return \array_replace($a, $b);
+}
+
+function merge_all<T>(vector<map<T>> $maps): map<T> {
+  return \call_user_func_array('array_replace', $maps);
 }
 
 function reverse<T>(map<T> $map): map<T> {

@@ -35,6 +35,10 @@ function concat<T>(vector<T> $a, vector<T> $b): vector<T> {
   return \array_merge($a, $b);
 }
 
+function concat_all<T>(vector<vector<T>> $vectors): vector<T> {
+  return \call_user_func_array('array_merge', $vectors);
+}
+
 function pad<T>(vector<T> $list, int $size, T $value): vector<T> {
   return \array_pad($list, $size, $value);
 }

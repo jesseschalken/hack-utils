@@ -20,6 +20,10 @@ function union(set $a, set $b): set {
   return \array_replace($a, $b);
 }
 
+function union_all(vector<set> $sets): set {
+  return \call_user_func_array('array_replace', $sets);
+}
+
 function intersect(set $a, set $b): set {
   return \array_intersect_key($a, $b);
 }
@@ -28,7 +32,7 @@ function diff(set $a, set $b): set {
   return \array_diff_key($a, $b);
 }
 
-function equals(set $a, set $b): bool {
+function equal(set $a, set $b): bool {
   return !\array_diff_key($a, $b) && !\array_diff_key($b, $a);
 }
 
