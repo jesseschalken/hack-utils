@@ -19,10 +19,10 @@ namespace HackUtils\str {
   function reverse($string) {
     return \strrev($string);
   }
-  function lower($string) {
+  function to_lower($string) {
     return \strtolower($string);
   }
-  function upper($string) {
+  function to_upper($string) {
     return \strtoupper($string);
   }
   const SPACE_CHARS = " \t\r\n\013\014";
@@ -30,10 +30,10 @@ namespace HackUtils\str {
   function trim($string, $chars = TRIM_CHARS) {
     return \trim($string, $chars);
   }
-  function ltrim($string, $chars = TRIM_CHARS) {
+  function trim_left($string, $chars = TRIM_CHARS) {
     return \ltrim($string, $chars);
   }
-  function rtrim($string, $chars = TRIM_CHARS) {
+  function trim_right($string, $chars = TRIM_CHARS) {
     return \rtrim($string, $chars);
   }
   function split($string, $delimiter = "", $limit = 0x7FFFFFFF) {
@@ -47,7 +47,7 @@ namespace HackUtils\str {
       if (\hacklib_equals($limit, 1)) {
         return array($string);
       }
-      if (len($string) > $limit) {
+      if (length($string) > $limit) {
         $ret = \str_split(slice($string, 0, $limit - 1));
         $ret[] = slice($string, $limit - 1);
         return $ret;
@@ -55,6 +55,26 @@ namespace HackUtils\str {
       return \str_split($string);
     }
     return \explode($delimiter, $string, $limit);
+  }
+  function split_at($string, $offset) {
+    $offset = _fix_offset($string, $offset);
+    return array(slice($string, 0, $offset), slice($string, $offset));
+  }
+  function lines($string) {
+    $lines = split($string, "\n");
+    foreach ($lines as $i => $line) {
+      if (slice($line, -1) === "\r") {
+        $lines[$i] = slice($line, 0, -1);
+      }
+    }
+    if (\hacklib_cast_as_boolean($lines) &&
+        ($lines[vector\count($lines) - 1] === "")) {
+      $lines = vector\slice($lines, 0, -1);
+    }
+    return $lines;
+  }
+  function is_empty($string) {
+    return $string === "";
   }
   function chunk($string, $size) {
     if ($size < 1) {
@@ -98,32 +118,44 @@ namespace HackUtils\str {
   function pad($string, $length, $pad = " ") {
     return \str_pad($string, $length, $pad, \STR_PAD_BOTH);
   }
-  function lpad($string, $length, $pad = " ") {
+  function pad_left($string, $length, $pad = " ") {
     return \str_pad($string, $length, $pad, \STR_PAD_LEFT);
   }
-  function rpad($string, $length, $pad = " ") {
+  function pad_right($string, $length, $pad = " ") {
     return \str_pad($string, $length, $pad, \STR_PAD_RIGHT);
   }
   function repeat($string, $times) {
     return \str_repeat($string, $times);
   }
-  function chr($ascii) {
+  function from_code($ascii) {
     if (($ascii < 0) || ($ascii >= 256)) {
-      throw new \Exception("ASCII character code out of bounds: ".$ascii);
+      throw new \Exception(
+        "ASCII character code must be >= 0 and < 256: ".$ascii
+      );
     }
     return \chr($ascii);
   }
-  function ord($char) {
-    if ($char === "") {
-      throw new \Exception("String given to ord() must not be empty");
+  function get_code_at($string, $offset = 0) {
+    $length = length($string);
+    if ($offset < 0) {
+      $length += $length;
     }
-    return \ord($char);
+    if (($offset < 0) || ($offset >= $length)) {
+      throw new \Exception(
+        \sprintf(
+          "Offset %d out of bounds in string \"%s\"",
+          $offset,
+          $string
+        )
+      );
+    }
+    return \ord($string[$offset]);
   }
-  function cmp($a, $b) {
+  function compare($a, $b) {
     $ret = \strcmp($a, $b);
     return ($ret > 0) ? 1 : (($ret < 0) ? (-1) : 0);
   }
-  function icmp($a, $b) {
+  function icompare($a, $b) {
     $ret = \strcasecmp($a, $b);
     return ($ret > 0) ? 1 : (($ret < 0) ? (-1) : 0);
   }
@@ -135,11 +167,11 @@ namespace HackUtils\str {
     $ret = \stripos($haystack, $needle, _fix_offset($haystack, $offset));
     return ($ret === false) ? null : $ret;
   }
-  function rfind($haystack, $needle, $offset = 0) {
+  function find_last($haystack, $needle, $offset = 0) {
     $ret = \strrpos($haystack, $needle, _fix_offset($haystack, $offset));
     return ($ret === false) ? null : $ret;
   }
-  function irfind($haystack, $needle, $offset = 0) {
+  function ifind_last($haystack, $needle, $offset = 0) {
     $ret = \strripos($haystack, $needle, _fix_offset($haystack, $offset));
     return ($ret === false) ? null : $ret;
   }
@@ -149,29 +181,30 @@ namespace HackUtils\str {
   function contains($haystack, $needle, $offset = 0) {
     return find($haystack, $needle, $offset) !== null;
   }
-  function len($string) {
+  function length($string) {
     return \strlen($string);
   }
-  function eq($a, $b) {
-    return cmp($a, $b) === 0;
+  function equal($a, $b) {
+    return compare($a, $b) === 0;
   }
-  function ieq($a, $b) {
-    return icmp($a, $b) === 0;
+  function iequal($a, $b) {
+    return icompare($a, $b) === 0;
   }
   function starts_with($string, $prefix) {
-    return slice($string, 0, len($prefix)) === $prefix;
+    return slice($string, 0, length($prefix)) === $prefix;
   }
   function ends_with($string, $suffix) {
     if ($suffix === "") {
       return true;
     }
-    return slice($string, -len($suffix)) === $suffix;
+    return slice($string, -length($suffix)) === $suffix;
   }
   function _fix_offset($string, $offset) {
-    return _fix_bounds($offset, len($string));
+    return _fix_bounds($offset, length($string));
   }
   function _fix_length($string, $offset, $length) {
-    return _fix_bounds($length, len($string) - _fix_offset($string, $offset));
+    return
+      _fix_bounds($length, length($string) - _fix_offset($string, $offset));
   }
   function _fix_bounds($num, $max) {
     if ($num < 0) {

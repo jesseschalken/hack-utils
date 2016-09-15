@@ -28,6 +28,9 @@ namespace HackUtils\vector {
   function concat($a, $b) {
     return \array_merge($a, $b);
   }
+  function concat_all($vectors) {
+    return \call_user_func_array("array_merge", $vectors);
+  }
   function pad($list, $size, $value) {
     return \array_pad($list, $size, $value);
   }

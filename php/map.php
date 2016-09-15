@@ -64,8 +64,11 @@ namespace HackUtils\map {
   function value_keys($map, $value) {
     return \array_keys($map, $value, true);
   }
-  function replace($a, $b) {
+  function merge($a, $b) {
     return \array_replace($a, $b);
+  }
+  function merge_all($maps) {
+    return \call_user_func_array("array_replace", $maps);
   }
   function reverse($map) {
     return \array_reverse($map, true);

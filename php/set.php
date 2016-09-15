@@ -16,13 +16,16 @@ namespace HackUtils\set {
   function union($a, $b) {
     return \array_replace($a, $b);
   }
+  function union_all($sets) {
+    return \call_user_func_array("array_replace", $sets);
+  }
   function intersect($a, $b) {
     return \array_intersect_key($a, $b);
   }
   function diff($a, $b) {
     return \array_diff_key($a, $b);
   }
-  function equals($a, $b) {
+  function equal($a, $b) {
     return
       (!\hacklib_cast_as_boolean(\array_diff_key($a, $b))) &&
       (!\hacklib_cast_as_boolean(\array_diff_key($b, $a)));
