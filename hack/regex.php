@@ -112,14 +112,14 @@ final class _EscapeCache {
 
   public static function escape(string $regex): string {
     $escaped = self::$cache[$regex] ?? new_null();
-    if ($escaped === null) {
-      // Dumb cache policy, but it works.
-      if (count(self::$cache) >= 10000) {
-        self::$cache = [];
-      }
-      $escaped = self::$cache[$regex] = _escape($regex);
+    if ($escaped !== null) {
+      return $escaped;
     }
-    return $escaped;
+    // Dumb cache policy, but it works.
+    if (map\count(self::$cache) >= 10000) {
+      self::$cache = [];
+    }
+    return (self::$cache[$regex] = _escape($regex));
   }
 }
 
