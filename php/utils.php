@@ -13,4 +13,16 @@ namespace HackUtils {
   function if_null($x, $y) {
     return ($x === null) ? $y : $x;
   }
+  final class ref {
+    private $value;
+    public function __construct($value) {
+      $this->value = $value;
+    }
+    public function get() {
+      return $this->value;
+    }
+    public function set($value) {
+      $this->value = $value;
+    }
+  }
 }

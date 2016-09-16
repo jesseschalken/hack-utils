@@ -25,3 +25,15 @@ function null_throws<T>(?T $value): T {
 function if_null<T>(?T $x, T $y): T {
   return $x === null ? $y : $x;
 }
+
+final class ref<T> {
+  public function __construct(private T $value) {}
+
+  public function get(): T {
+    return $this->value;
+  }
+
+  public function set(T $value): void {
+    $this->value = $value;
+  }
+}
