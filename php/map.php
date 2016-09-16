@@ -112,4 +112,22 @@ namespace HackUtils\map {
       }
     );
   }
+  function zip($a, $b) {
+    $ret = array();
+    foreach ($a as $k => $v) {
+      if (\hacklib_cast_as_boolean(has_key($b, $k))) {
+        $ret[$k] = array($v, $b[$k]);
+      }
+    }
+    return $ret;
+  }
+  function unzip($map) {
+    $a = array();
+    $b = array();
+    foreach ($map as $k => $v) {
+      $a[$k] = $v[0];
+      $b[$k] = $v[1];
+    }
+    return array($a, $b);
+  }
 }

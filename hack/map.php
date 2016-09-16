@@ -143,3 +143,23 @@ function reduce<Tin, Tout>(
 function select<T>(map<T> $map, vector<key> $keys): vector<T> {
   return vector\map($keys, $key ==> $map[$key]);
 }
+
+function zip<Ta, Tb>(map<Ta> $a, map<Tb> $b): map<(Ta, Tb)> {
+  $ret = [];
+  foreach ($a as $k => $v) {
+    if (has_key($b, $k)) {
+      $ret[$k] = tuple($v, $b[$k]);
+    }
+  }
+  return $ret;
+}
+
+function unzip<Ta, Tb>(map<(Ta, Tb)> $map): (map<Ta>, map<Tb>) {
+  $a = [];
+  $b = [];
+  foreach ($map as $k => $v) {
+    $a[$k] = $v[0];
+    $b[$k] = $v[1];
+  }
+  return tuple($a, $b);
+}
