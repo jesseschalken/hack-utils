@@ -37,11 +37,7 @@ function fixkey(key $key): string {
 }
 
 function fixkeys(vector<key> $keys): vector<string> {
-  $ret = [];
-  foreach ($keys as $key) {
-    $ret[] = fixkey($key);
-  }
-  return $ret;
+  return vector\map($keys, $key ==> (string) $key);
 }
 
 function column<T>(vector<map<T>> $maps, key $key): vector<T> {
@@ -139,4 +135,11 @@ function reduce<Tin, Tout>(
   Tout $initial,
 ): Tout {
   return \array_reduce($map, $f, $initial);
+}
+
+/**
+ * Extract multiple keys from a map at once.
+ */
+function select<T>(map<T> $map, vector<key> $keys): vector<T> {
+  return vector\map($keys, $key ==> $map[$key]);
 }

@@ -25,11 +25,12 @@ namespace HackUtils\map {
     return (string) $key;
   }
   function fixkeys($keys) {
-    $ret = array();
-    foreach ($keys as $key) {
-      $ret[] = fixkey($key);
-    }
-    return $ret;
+    return vector\map(
+      $keys,
+      function($key) {
+        return (string) $key;
+      }
+    );
   }
   function column($maps, $key) {
     return \array_column($maps, $key);
@@ -102,5 +103,13 @@ namespace HackUtils\map {
   }
   function reduce($map, $f, $initial) {
     return \array_reduce($map, $f, $initial);
+  }
+  function select($map, $keys) {
+    return vector\map(
+      $keys,
+      function($key) use ($map) {
+        return $map[$key];
+      }
+    );
   }
 }
