@@ -80,7 +80,9 @@ function rad2deg(float $number): float {
   return \rad2deg($number);
 }
 
-function pow<T as num>(mixed $base, mixed $exp): mixed;
+function pow(float $base, float $exp): float {
+  return \pow($base, $exp);
+}
 
 function exp(float $arg): float {
   return \exp($arg);
