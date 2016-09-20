@@ -87,7 +87,7 @@ namespace HackUtils\regex {
       if ($escaped !== null) {
         return $escaped;
       }
-      if (map\count(self::$cache) >= 10000) {
+      if (map\size(self::$cache) >= 10000) {
         self::$cache = array();
       }
       return self::$cache[$regex] = _escape($regex);

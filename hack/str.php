@@ -96,7 +96,7 @@ function lines(string $string): vector<string> {
     }
   }
   // Remove a final empty line
-  if ($lines && $lines[vector\count($lines) - 1] === '') {
+  if ($lines && $lines[vector\length($lines) - 1] === '') {
     $lines = vector\slice($lines, 0, -1);
   }
   return $lines;

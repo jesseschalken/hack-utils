@@ -116,7 +116,7 @@ final class _EscapeCache {
       return $escaped;
     }
     // Dumb cache policy, but it works.
-    if (map\count(self::$cache) >= 10000) {
+    if (map\size(self::$cache) >= 10000) {
       self::$cache = [];
     }
     return (self::$cache[$regex] = _escape($regex));

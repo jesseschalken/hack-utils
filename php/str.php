@@ -69,7 +69,7 @@ namespace HackUtils\str {
       }
     }
     if (\hacklib_cast_as_boolean($lines) &&
-        ($lines[vector\count($lines) - 1] === "")) {
+        ($lines[vector\length($lines) - 1] === "")) {
       $lines = vector\slice($lines, 0, -1);
     }
     return $lines;

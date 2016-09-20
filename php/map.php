@@ -65,10 +65,10 @@ namespace HackUtils\map {
   function value_keys($map, $value) {
     return \array_keys($map, $value, true);
   }
-  function merge($a, $b) {
+  function union($a, $b) {
     return \array_replace($a, $b);
   }
-  function merge_all($maps) {
+  function union_all($maps) {
     return \call_user_func_array("array_replace", $maps);
   }
   function reverse($map) {
@@ -81,7 +81,7 @@ namespace HackUtils\map {
   function slice($map, $offset, $length = null) {
     return \array_slice($map, $offset, $length, true);
   }
-  function count($map) {
+  function size($map) {
     return \count($map);
   }
   function contains($map, $value) {

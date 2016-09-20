@@ -82,7 +82,7 @@ function shuffle<T>(vector<T> $list): vector<T> {
   return $list;
 }
 
-function count(vector<mixed> $list): int {
+function length(vector<mixed> $list): int {
   return \count($list);
 }
 

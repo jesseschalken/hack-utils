@@ -8,7 +8,7 @@ use HackUtils\set;
 
 type value = arraykey;
 
-function create(array<value> $values = []): set {
+function create(vector<value> $values = []): set {
   return $values ? \array_fill_keys($values, true) : [];
 }
 
@@ -40,6 +40,6 @@ function reverse(set $set): set {
   return \array_reverse($set, true);
 }
 
-function count(set $set): int {
+function size(set $set): int {
   return \count($set);
 }

@@ -82,11 +82,11 @@ function value_keys<T>(map<T> $map, T $value): vector<key> {
   return \array_keys($map, $value, true);
 }
 
-function merge<T>(map<T> $a, map<T> $b): map<T> {
+function union<T>(map<T> $a, map<T> $b): map<T> {
   return \array_replace($a, $b);
 }
 
-function merge_all<T>(vector<map<T>> $maps): map<T> {
+function union_all<T>(vector<map<T>> $maps): map<T> {
   return \call_user_func_array('array_replace', $maps);
 }
 
@@ -103,7 +103,7 @@ function slice<T>(map<T> $map, int $offset, ?int $length = null): map<T> {
   return \array_slice($map, $offset, $length, true);
 }
 
-function count(map<mixed> $map): int {
+function size(map<mixed> $map): int {
   return \count($map);
 }
 

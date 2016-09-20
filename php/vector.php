@@ -55,7 +55,7 @@ namespace HackUtils\vector {
     \shuffle($list);
     return $list;
   }
-  function count($list) {
+  function length($list) {
     return \count($list);
   }
   function contains($list, $value) {

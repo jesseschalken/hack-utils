@@ -33,7 +33,7 @@ namespace HackUtils\set {
   function reverse($set) {
     return \array_reverse($set, true);
   }
-  function count($set) {
+  function size($set) {
     return \count($set);
   }
 }
