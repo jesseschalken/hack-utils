@@ -3,6 +3,7 @@ namespace HackUtils\str {
   require_once ($GLOBALS["HACKLIB_ROOT"]);
   use \HackUtils\vector;
   use \HackUtils\str;
+  use \HackUtils\math;
   function to_hex($string) {
     return \bin2hex($string);
   }
@@ -152,12 +153,10 @@ namespace HackUtils\str {
     return \ord($string[$offset]);
   }
   function compare($a, $b) {
-    $ret = \strcmp($a, $b);
-    return ($ret > 0) ? 1 : (($ret < 0) ? (-1) : 0);
+    return math\sign(\strcmp($a, $b));
   }
   function icompare($a, $b) {
-    $ret = \strcasecmp($a, $b);
-    return ($ret > 0) ? 1 : (($ret < 0) ? (-1) : 0);
+    return math\sign(\strcasecmp($a, $b));
   }
   function find($haystack, $needle, $offset = 0) {
     $ret = \strpos($haystack, $needle, _fix_offset($haystack, $offset));

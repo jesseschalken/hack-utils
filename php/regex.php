@@ -84,13 +84,13 @@ namespace HackUtils\regex {
     private static $cache = array();
     public static function escape($regex) {
       $escaped = self::$cache[$regex] ?? new_null();
-      if ($escaped === null) {
-        if (count(self::$cache) >= 10000) {
-          self::$cache = array();
-        }
-        $escaped = self::$cache[$regex] = _escape($regex);
+      if ($escaped !== null) {
+        return $escaped;
       }
-      return $escaped;
+      if (map\count(self::$cache) >= 10000) {
+        self::$cache = array();
+      }
+      return self::$cache[$regex] = _escape($regex);
     }
   }
   function _escape($regex) {

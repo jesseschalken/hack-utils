@@ -60,7 +60,9 @@ namespace HackUtils\math {
   function rad2deg($number) {
     return \rad2deg($number);
   }
-  function pow($base, $exp) {}
+  function pow($base, $exp) {
+    return \pow($base, $exp);
+  }
   function exp($arg) {
     return \exp($arg);
   }
