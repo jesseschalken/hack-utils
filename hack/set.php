@@ -8,7 +8,7 @@ use HackUtils\set;
 
 type value = arraykey;
 
-function create(vector<value> $values = []): set {
+function create(array<value> $values = []): set {
   return $values ? \array_fill_keys($values, true) : [];
 }
 
