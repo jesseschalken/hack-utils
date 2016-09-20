@@ -26,7 +26,7 @@ function if_null<T>(?T $x, T $y): T {
   return $x === null ? $y : $x;
 }
 
-final class ref<T> {
+final class Ref<T> {
   public function __construct(private T $value) {}
 
   public function get(): T {
