@@ -1,5 +1,7 @@
 <?hh // strict
 
+namespace HackUtils;
+
 final class Rational {
   private static function gcd(int $a, int $b): int {
     while ($b) {
