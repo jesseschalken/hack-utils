@@ -5,6 +5,7 @@ namespace HackUtils\map;
 use HackUtils\vector;
 use HackUtils\map;
 use HackUtils\set;
+use function HackUtils\new_null;
 
 type key = arraykey;
 
@@ -26,6 +27,14 @@ function from_pairs<T>(vector<(key, T)> $pairs): map<T> {
 
 function chunk<T>(map<T> $map, int $size): vector<map<T>> {
   return \array_chunk($map, $size, true);
+}
+
+function soft_get<T>(map<T> $map, key $key): ?T {
+  return $map[$key] ?? new_null();
+}
+
+function get_default<T>(map<T> $map, key $key, T $default): T {
+  return has_key($map, $key) ? $map[$key] : $default;
 }
 
 /**

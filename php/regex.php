@@ -83,7 +83,7 @@ namespace HackUtils\regex {
   final class _EscapeCache {
     private static $cache = array();
     public static function escape($regex) {
-      $escaped = self::$cache[$regex] ?? new_null();
+      $escaped = map\soft_get(self::$cache, $regex);
       if ($escaped !== null) {
         return $escaped;
       }

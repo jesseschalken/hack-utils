@@ -4,6 +4,7 @@ namespace HackUtils\map {
   use \HackUtils\vector;
   use \HackUtils\map;
   use \HackUtils\set;
+  use function \HackUtils\new_null;
   function to_pairs($map) {
     $r = array();
     foreach ($map as $k => $v) {
@@ -20,6 +21,13 @@ namespace HackUtils\map {
   }
   function chunk($map, $size) {
     return \array_chunk($map, $size, true);
+  }
+  function soft_get($map, $key) {
+    return $map[$key] ?? new_null();
+  }
+  function get_default($map, $key, $default) {
+    return
+      \hacklib_cast_as_boolean(has_key($map, $key)) ? $map[$key] : $default;
   }
   function fixkey($key) {
     return (string) $key;

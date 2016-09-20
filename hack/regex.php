@@ -111,7 +111,7 @@ final class _EscapeCache {
   private static map<string> $cache = [];
 
   public static function escape(string $regex): string {
-    $escaped = self::$cache[$regex] ?? new_null();
+    $escaped = map\soft_get(self::$cache, $regex);
     if ($escaped !== null) {
       return $escaped;
     }
