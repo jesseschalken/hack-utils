@@ -15,9 +15,9 @@ function new_null<T>(): ?T {
  * Convert a nullable value into a non-nullable value, throwing an exception
  * in the case of null.
  */
-function null_throws<T>(?T $value): T {
+function null_throws<T>(?T $value, string $message = "Unexpected null"): T {
   if ($value === null) {
-    throw new \Exception("Unexpected null");
+    throw new \Exception($message);
   }
   return $value;
 }

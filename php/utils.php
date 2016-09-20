@@ -4,9 +4,9 @@ namespace HackUtils {
   function new_null() {
     return null;
   }
-  function null_throws($value) {
+  function null_throws($value, $message = "Unexpected null") {
     if ($value === null) {
-      throw new \Exception("Unexpected null");
+      throw new \Exception($message);
     }
     return $value;
   }
