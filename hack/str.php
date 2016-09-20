@@ -4,6 +4,7 @@ namespace HackUtils\str;
 
 use HackUtils\vector;
 use HackUtils\str;
+use HackUtils\math;
 
 function to_hex(string $string): string {
   return \bin2hex($string);
@@ -204,13 +205,11 @@ function get_code_at(string $string, int $offset = 0): int {
 }
 
 function compare(string $a, string $b): int {
-  $ret = \strcmp($a, $b);
-  return $ret > 0 ? 1 : ($ret < 0 ? -1 : 0);
+  return math\sign(\strcmp($a, $b));
 }
 
 function icompare(string $a, string $b): int {
-  $ret = \strcasecmp($a, $b);
-  return $ret > 0 ? 1 : ($ret < 0 ? -1 : 0);
+  return math\sign(\strcasecmp($a, $b));
 }
 
 function find(string $haystack, string $needle, int $offset = 0): ?int {
