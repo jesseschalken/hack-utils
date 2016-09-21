@@ -3,6 +3,7 @@
 namespace HackUtils;
 
 type map<T> = array<arraykey, T>;
-type intmap<T> = array<int, T>;
 type vector<T> = array<T>;
-type set = map<mixed>;
+type set = array<arraykey, mixed>;
+type intmap<T> = array<int, T>;
+type intset = array<int, mixed>;
