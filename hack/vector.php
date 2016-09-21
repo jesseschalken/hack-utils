@@ -19,44 +19,40 @@ function is_vector(mixed $x): bool {
   return true;
 }
 
-function chunk<T>(vector<T> $map, int $size): vector<vector<T>> {
+function chunk<T>(array<T> $map, int $size): array<array<T>> {
   return \array_chunk($map, $size, false);
 }
 
-function count_values(vector<map\key> $values): map<int> {
+function count_values(array<map\key> $values): map<int> {
   return \array_count_values($values);
 }
 
-function repeat<T>(T $value, int $count): vector<T> {
+function repeat<T>(T $value, int $count): array<T> {
   return \array_fill(0, $count, $value);
 }
 
-function concat<T>(vector<T> $a, vector<T> $b): vector<T> {
+function concat<T>(array<T> $a, array<T> $b): array<T> {
   return \array_merge($a, $b);
 }
 
-function concat_all<T>(vector<vector<T>> $vectors): vector<T> {
+function concat_all<T>(array<array<T>> $vectors): array<T> {
   return \call_user_func_array('array_merge', $vectors);
 }
 
-function pad<T>(vector<T> $list, int $size, T $value): vector<T> {
+function pad<T>(array<T> $list, int $size, T $value): array<T> {
   return \array_pad($list, $size, $value);
 }
 
-function reverse<T>(vector<T> $list): vector<T> {
+function reverse<T>(array<T> $list): array<T> {
   return \array_reverse($list, false);
 }
 
-function find<T>(vector<T> $list, T $value): ?int {
+function find<T>(array<T> $list, T $value): ?int {
   $ret = \array_search($list, $value, true);
   return $ret === false ? null : $ret;
 }
 
-function slice<T>(
-  vector<T> $list,
-  int $offset,
-  ?int $length = null,
-): vector<T> {
+function slice<T>(array<T> $list, int $offset, ?int $length = null): array<T> {
   return \array_slice($list, $offset, $length);
 }
 
@@ -64,50 +60,50 @@ function slice<T>(
  * Returns a pair of (new list, removed elements).
  */
 function splice<T>(
-  vector<T> $list,
+  array<T> $list,
   int $offset,
   ?int $length = null,
   array<T> $replacement = [],
-): (vector<T>, vector<T>) {
+): (array<T>, array<T>) {
   $ret = \array_splice($list, $offset, $length, $replacement);
   return tuple($list, $ret);
 }
 
-function unique<T as map\key>(vector<T> $list): vector<T> {
+function unique<T as map\key>(array<T> $list): array<T> {
   return \array_unique($list);
 }
 
-function shuffle<T>(vector<T> $list): vector<T> {
+function shuffle<T>(array<T> $list): array<T> {
   \shuffle($list);
   return $list;
 }
 
-function length(vector<mixed> $list): int {
+function length(array<mixed> $list): int {
   return \count($list);
 }
 
-function contains<T>(vector<T> $list, T $value): bool {
+function contains<T>(array<T> $list, T $value): bool {
   return \in_array($value, $list, true);
 }
 
-function range(int $start, int $end, int $step = 1): vector<int> {
+function range(int $start, int $end, int $step = 1): array<int> {
   return \range($start, $end, $step);
 }
 
-function sum<T as num>(vector<T> $list): T {
+function sum<T as num>(array<T> $list): T {
   return \array_sum($list);
 }
 
-function product<T as num>(vector<T> $list): T {
+function product<T as num>(array<T> $list): T {
   return \array_product($list);
 }
 
-function sort<T>(vector<T> $list, (function(T, T): int) $cmp): vector<T> {
+function sort<T>(array<T> $list, (function(T, T): int) $cmp): array<T> {
   usort($list, $cmp);
   return $list;
 }
 
-function filter<T>(vector<T> $list, (function(T): bool) $f): vector<T> {
+function filter<T>(array<T> $list, (function(T): bool) $f): array<T> {
   $ret = \array_filter($list, $f);
   // array_filter() preserves keys, so if some elements were removed,
   // renumber keys 0,1...N.
@@ -118,21 +114,21 @@ function filter<T>(vector<T> $list, (function(T): bool) $f): vector<T> {
 }
 
 function map<Tin, Tout>(
-  vector<Tin> $list,
+  array<Tin> $list,
   (function(Tin): Tout) $f,
-): vector<Tout> {
+): array<Tout> {
   return \array_map($f, $list);
 }
 
 function reduce<Tin, Tout>(
-  vector<Tin> $list,
+  array<Tin> $list,
   (function(Tout, Tin): Tout) $f,
   Tout $initial,
 ): Tout {
   return \array_reduce($list, $f, $initial);
 }
 
-function zip<Ta, Tb>(vector<Ta> $a, vector<Tb> $b): vector<(Ta, Tb)> {
+function zip<Ta, Tb>(array<Ta> $a, array<Tb> $b): array<(Ta, Tb)> {
   $r = [];
   $l = \min(\count($a), \count($b));
   for ($i = 0; $i < $l; $i++) {
@@ -141,7 +137,7 @@ function zip<Ta, Tb>(vector<Ta> $a, vector<Tb> $b): vector<(Ta, Tb)> {
   return $r;
 }
 
-function unzip<Ta, Tb>(vector<(Ta, Tb)> $x): (vector<Ta>, vector<Tb>) {
+function unzip<Ta, Tb>(array<(Ta, Tb)> $x): (array<Ta>, array<Tb>) {
   $a = [];
   $b = [];
   foreach ($x as $p) {

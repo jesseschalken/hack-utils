@@ -9,7 +9,7 @@ use function HackUtils\new_null;
 
 type key = arraykey;
 
-function to_pairs<T>(map<T> $map): vector<(key, T)> {
+function to_pairs<T>(map<T> $map): array<(key, T)> {
   $r = [];
   foreach ($map as $k => $v) {
     $r[] = tuple($k, $v);
@@ -17,7 +17,7 @@ function to_pairs<T>(map<T> $map): vector<(key, T)> {
   return $r;
 }
 
-function from_pairs<T>(vector<(key, T)> $pairs): map<T> {
+function from_pairs<T>(array<(key, T)> $pairs): map<T> {
   $r = [];
   foreach ($pairs as $p) {
     $r[$p[0]] = $p[1];
@@ -25,7 +25,7 @@ function from_pairs<T>(vector<(key, T)> $pairs): map<T> {
   return $r;
 }
 
-function chunk<T>(map<T> $map, int $size): vector<map<T>> {
+function chunk<T>(map<T> $map, int $size): array<map<T>> {
   return \array_chunk($map, $size, true);
 }
 
@@ -45,19 +45,19 @@ function fixkey(key $key): string {
   return (string) $key;
 }
 
-function fixkeys(vector<key> $keys): vector<string> {
+function fixkeys(array<key> $keys): array<string> {
   return vector\map($keys, $key ==> (string) $key);
 }
 
-function column<T>(vector<map<T>> $maps, key $key): vector<T> {
+function column<T>(array<map<T>> $maps, key $key): array<T> {
   return \array_column($maps, $key);
 }
 
-function combine<T>(vector<key> $keys, vector<T> $values): map<T> {
+function combine<T>(array<key> $keys, array<T> $values): map<T> {
   return \array_combine($keys, $values);
 }
 
-function separate<T>(map<T> $map): (vector<key>, vector<T>) {
+function separate<T>(map<T> $map): (array<key>, array<T>) {
   $ks = [];
   $vs = [];
   foreach ($map as $k => $v) {
@@ -67,7 +67,7 @@ function separate<T>(map<T> $map): (vector<key>, vector<T>) {
   return tuple($ks, $vs);
 }
 
-function fill_keys<T>(vector<key> $keys, T $value): map<T> {
+function fill_keys<T>(array<key> $keys, T $value): map<T> {
   return \array_fill_keys($keys, $value);
 }
 
@@ -79,15 +79,15 @@ function has_key(map<mixed> $map, key $key): bool {
   return \array_key_exists($key, $map);
 }
 
-function keys(map<mixed> $map): vector<key> {
+function keys(map<mixed> $map): array<key> {
   return \array_keys($map);
 }
 
-function values<T>(map<T> $map): vector<T> {
+function values<T>(map<T> $map): array<T> {
   return \array_values($map);
 }
 
-function value_keys<T>(map<T> $map, T $value): vector<key> {
+function value_keys<T>(map<T> $map, T $value): array<key> {
   return \array_keys($map, $value, true);
 }
 
@@ -95,7 +95,7 @@ function union<T>(map<T> $a, map<T> $b): map<T> {
   return \array_replace($a, $b);
 }
 
-function union_all<T>(vector<map<T>> $maps): map<T> {
+function union_all<T>(array<map<T>> $maps): map<T> {
   return \call_user_func_array('array_replace', $maps);
 }
 
@@ -149,7 +149,7 @@ function reduce<Tin, Tout>(
 /**
  * Extract multiple keys from a map at once.
  */
-function select<T>(map<T> $map, vector<key> $keys): vector<T> {
+function select<T>(map<T> $map, array<key> $keys): array<T> {
   return vector\map($keys, $key ==> $map[$key]);
 }
 

@@ -12,7 +12,7 @@ function create(array<value> $values = []): set {
   return $values ? \array_fill_keys($values, true) : [];
 }
 
-function values(set $set): vector<value> {
+function values(set $set): array<value> {
   return \array_keys($set);
 }
 
@@ -20,7 +20,7 @@ function union(set $a, set $b): set {
   return \array_replace($a, $b);
 }
 
-function union_all(vector<set> $sets): set {
+function union_all(array<set> $sets): set {
   return \call_user_func_array('array_replace', $sets);
 }
 

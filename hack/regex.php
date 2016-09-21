@@ -46,7 +46,7 @@ function match_all(
   string $subject,
   string $options,
   int $offset = 0,
-): vector<match> {
+): array<match> {
   $matches = [];
   \preg_match_all(
     _compose($regex, $options),
@@ -88,7 +88,7 @@ function split(
   string $subject,
   ?int $limit = null,
   string $options = '',
-): vector<string> {
+): array<string> {
   $pieces = \preg_split(
     _compose($regex, $options),
     $subject,

@@ -53,7 +53,7 @@ function split(
   string $string,
   string $delimiter = '',
   int $limit = 0x7FFFFFFF,
-): vector<string> {
+): array<string> {
   if ($limit < 1) {
     throw new \Exception("Limit must be >= 1");
   }
@@ -87,7 +87,7 @@ function split_at(string $string, int $offset): (string, string) {
  * Split a string into lines terminated by \n or \r\n.
  * A final line terminator is optional.
  */
-function lines(string $string): vector<string> {
+function lines(string $string): array<string> {
   $lines = split($string, "\n");
   // Remove a final \r at the end of any lines
   foreach ($lines as $i => $line) {
@@ -106,7 +106,7 @@ function is_empty(string $string): bool {
   return $string === '';
 }
 
-function chunk(string $string, int $size): vector<string> {
+function chunk(string $string, int $size): array<string> {
   if ($size < 1) {
     throw new \Exception("Chunk size must be >= 1");
   }
@@ -117,7 +117,7 @@ function chunk(string $string, int $size): vector<string> {
   return $ret;
 }
 
-function join(vector<string> $strings, string $delimiter = ''): string {
+function join(array<string> $strings, string $delimiter = ''): string {
   return \implode($delimiter, $strings);
 }
 
