@@ -114,14 +114,57 @@ function is_empty(string $string): bool {
   return $string === '';
 }
 
-function sort<T as arraykey>(array<T> $strings): array<T> {
-  \sort($strings, \SORT_STRING);
+function sort<T as arraykey>(
+  array<T> $strings,
+  bool $caseInsensitive = false,
+  bool $natural = false,
+  bool $reverse = false,
+): array<T> {
+  $flags = _sort_flags($caseInsensitive, $natural);
+  if ($reverse) {
+    \rsort($strings, $flags);
+  } else {
+    \sort($strings, $flags);
+  }
   return $strings;
 }
 
-function isort<T as arraykey>(array<T> $strings): array<T> {
-  \sort($strings, \SORT_STRING | \SORT_FLAG_CASE);
+function sort_map<Tk, Tv as arraykey>(
+  array<Tk, Tv> $strings,
+  bool $caseInsensitive = false,
+  bool $natural = false,
+  bool $reverse = false,
+): array<Tk, Tv> {
+  $flags = _sort_flags($caseInsensitive, $natural);
+  if ($reverse) {
+    \arsort($strings, $flags);
+  } else {
+    \asort($strings, $flags);
+  }
   return $strings;
+}
+
+function sort_map_keys<Tk as arraykey, Tv>(
+  array<Tk, Tv> $map,
+  bool $caseInsensitive = false,
+  bool $natural = false,
+  bool $reverse = false,
+): array<Tk, Tv> {
+  $flags = _sort_flags($caseInsensitive, $natural);
+  if ($reverse) {
+    \krsort($map, $flags);
+  } else {
+    \ksort($map, $flags);
+  }
+  return $map;
+}
+
+function _sort_flags(bool $caseInsensitive, bool $natural): int {
+  $flags = $natural ? \SORT_NATURAL | \SORT_STRING;
+  if ($caseInsensitive) {
+    $flags |= \SORT_FLAG_CASE;
+  }
+  return $flags;
 }
 
 function chunk(string $string, int $size): array<string> {
@@ -143,24 +186,16 @@ function replace(
   string $subject,
   string $search,
   string $replace,
+  bool $castInsensitive = false,
 ): (string, int) {
   $count = 0;
-  $result = \str_replace($search, $replace, $subject, $count);
-  if (!\is_string($result)) {
-    throw new \Exception('str_replace() failed');
+  if ($caseInsensitive) {
+    $result = \str_ireplace($search, $replace, $subject, $count);
+  } else {
+    $result = \str_replace($search, $replace, $subject, $count);
   }
-  return tuple($result, $count);
-}
-
-function ireplace(
-  string $subject,
-  string $search,
-  string $replace,
-): (string, int) {
-  $count = 0;
-  $result = \str_ireplace($search, $replace, $subject, $count);
   if (!\is_string($result)) {
-    throw new \Exception('str_ireplace() failed');
+    throw new \Exception('str_{i,}replace() failed');
   }
   return tuple($result, $count);
 }
@@ -222,36 +257,57 @@ function get_code_at(string $string, int $offset = 0): int {
   return \ord($string[$offset]);
 }
 
-function compare(string $a, string $b): int {
-  return math\sign(\strcmp($a, $b));
+function compare(
+  string $a,
+  string $b,
+  bool $caseInsensitive = false,
+  bool $natural = false,
+): int {
+  $ret = $caseInsensitive
+    ? ($natural
+      ? \strnatcasecmp($a, $b)
+      : \strcasecmp($a, $b)
+    )
+    : ($natural
+      ? \strnatcmp($a, $b)
+      : \strcmp($a, $b)
+    );
+  return math\sign($ret);
 }
 
-function icompare(string $a, string $b): int {
-  return math\sign(\strcasecmp($a, $b));
-}
-
-function find(string $haystack, string $needle, int $offset = 0): ?int {
-  $ret = \strpos($haystack, $needle, _fix_offset($haystack, $offset));
+function find(
+  string $haystack,
+  string $needle,
+  int $offset = 0,
+  bool $caseInsensitive = false,
+): ?int {
+  $offset = _fix_offset($haystack, $offset);
+  if ($caseInsensitive) {
+    $ret = \stripos($haystack, $needle, $offset);
+  } else {
+    $ret = \strpos($haystack, $needle, $offset);
+  }
   return $ret === false ? null : $ret;
 }
 
-function ifind(string $haystack, string $needle, int $offset = 0): ?int {
-  $ret = \stripos($haystack, $needle, _fix_offset($haystack, $offset));
-  return $ret === false ? null : $ret;
-}
-
-function find_last(string $haystack, string $needle, int $offset = 0): ?int {
-  $ret = \strrpos($haystack, $needle, _fix_offset($haystack, $offset));
-  return $ret === false ? null : $ret;
-}
-
-function ifind_last(string $haystack, string $needle, int $offset = 0): ?int {
-  $ret = \strripos($haystack, $needle, _fix_offset($haystack, $offset));
+function find_last(
+  string $haystack,
+  string $needle,
+  int $offset = 0,
+  bool $caseInsensitive = false,
+): ?int {
+  $offset = _fix_offset($haystack, $offset);
+  if ($caseInsensitive) {
+    $ret = \strripos($haystack, $needle, $offset);
+  } else {
+    $ret = \strrpos($haystack, $needle, $offset);
+  }
   return $ret === false ? null : $ret;
 }
 
 function count(string $haystack, string $needle, int $offset = 0): int {
-  return \substr_count($haystack, $needle, _fix_offset($haystack, $offset));
+  $offset = _fix_offset($haystack, $offset);
+  return \substr_count($haystack, $needle, $offset);
 }
 
 function contains(string $haystack, string $needle, int $offset = 0): bool {
@@ -262,12 +318,13 @@ function length(string $string): int {
   return \strlen($string);
 }
 
-function equal(string $a, string $b): bool {
-  return compare($a, $b) === 0;
-}
-
-function iequal(string $a, string $b): bool {
-  return icompare($a, $b) === 0;
+function equal(
+  string $a,
+  string $b,
+  bool $caseInsensitive = false,
+  bool $natural = false,
+): bool {
+  return compare($a, $b, $caseInsensitive, $natural) == 0;
 }
 
 function starts_with(string $string, string $prefix): bool {
