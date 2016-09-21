@@ -74,6 +74,9 @@ namespace HackUtils\str {
     }
     return $lines;
   }
+  function unlines($lines, $nl = "\n") {
+    return \hacklib_cast_as_boolean($lines) ? (join($lines, $nl).$nl) : "";
+  }
   function is_empty($string) {
     return $string === "";
   }

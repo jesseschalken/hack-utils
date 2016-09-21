@@ -102,6 +102,14 @@ function lines(string $string): array<string> {
   return $lines;
 }
 
+/**
+ * Join lines back together with the given line separator. A final
+ * separator is included in the output.
+ */
+function unlines(array<string> $lines, string $nl = "\n"): string {
+  return $lines ? join($lines, $nl).$nl : '';
+}
+
 function is_empty(string $string): bool {
   return $string === '';
 }
