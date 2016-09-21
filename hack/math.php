@@ -172,6 +172,13 @@ function intdiv(int $numerator, int $divisor): int {
   return \intdiv($numerator, $divisor);
 }
 
+function intpow(int $base, int $exp): int {
+  if ($exp < 0) {
+    throw new \Exception('Exponent must not be < 0');
+  }
+  return \pow($base, $exp);
+}
+
 function sort<T as num>(array<T> $nums): array<T> {
   \sort($nums, \SORT_NUMERIC);
   return $nums;

@@ -129,6 +129,12 @@ namespace HackUtils\math {
   function intdiv($numerator, $divisor) {
     return \intdiv($numerator, $divisor);
   }
+  function intpow($base, $exp) {
+    if ($exp < 0) {
+      throw new \Exception("Exponent must not be < 0");
+    }
+    return \pow($base, $exp);
+  }
   function sort($nums) {
     \sort($nums, \SORT_NUMERIC);
     return $nums;
