@@ -106,6 +106,16 @@ function is_empty(string $string): bool {
   return $string === '';
 }
 
+function sort<T as arraykey>(array<T> $strings): array<T> {
+  \sort($strings, \SORT_STRING);
+  return $strings;
+}
+
+function isort<T as arraykey>(array<T> $strings): array<T> {
+  \sort($strings, \SORT_STRING | \SORT_FLAG_CASE);
+  return $strings;
+}
+
 function chunk(string $string, int $size): array<string> {
   if ($size < 1) {
     throw new \Exception("Chunk size must be >= 1");

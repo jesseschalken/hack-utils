@@ -71,7 +71,7 @@ namespace HackUtils\vector {
     return \array_product($list);
   }
   function sort($list, $cmp) {
-    usort($list, $cmp);
+    \usort($list, $cmp);
     return $list;
   }
   function filter($list, $f) {

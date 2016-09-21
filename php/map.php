@@ -95,8 +95,12 @@ namespace HackUtils\map {
   function contains($map, $value) {
     return \in_array($value, $map, true);
   }
-  function sort_keys($map, $cmp) {
-    \uksort($map, $cmp);
+  function sort_keys($map, $cmp = null) {
+    if ($cmp !== null) {
+      \uksort($map, $cmp);
+    } else {
+      \ksort($map, \SORT_STRING);
+    }
     return $map;
   }
   function sort($map, $cmp) {

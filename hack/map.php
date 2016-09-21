@@ -120,8 +120,15 @@ function contains<T>(map<T> $map, T $value): bool {
   return \in_array($value, $map, true);
 }
 
-function sort_keys<T>(map<T> $map, (function(key, key): int) $cmp): map<T> {
-  \uksort($map, $cmp);
+function sort_keys<T>(
+  map<T> $map,
+  ?(function(key, key): int) $cmp = null,
+): map<T> {
+  if ($cmp !== null) {
+    \uksort($map, $cmp);
+  } else {
+    \ksort($map, \SORT_STRING);
+  }
   return $map;
 }
 

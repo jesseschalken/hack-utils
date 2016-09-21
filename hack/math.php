@@ -171,3 +171,8 @@ function sqrt(float $arg): float {
 function intdiv(int $numerator, int $divisor): int {
   return \intdiv($numerator, $divisor);
 }
+
+function sort<T as num>(array<T> $nums): array<T> {
+  \sort($nums, \SORT_NUMERIC);
+  return $nums;
+}

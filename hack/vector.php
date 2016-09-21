@@ -99,7 +99,7 @@ function product<T as num>(array<T> $list): T {
 }
 
 function sort<T>(array<T> $list, (function(T, T): int) $cmp): array<T> {
-  usort($list, $cmp);
+  \usort($list, $cmp);
   return $list;
 }
 

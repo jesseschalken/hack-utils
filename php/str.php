@@ -77,6 +77,14 @@ namespace HackUtils\str {
   function is_empty($string) {
     return $string === "";
   }
+  function sort($strings) {
+    \sort($strings, \SORT_STRING);
+    return $strings;
+  }
+  function isort($strings) {
+    \sort($strings, \SORT_STRING | \SORT_FLAG_CASE);
+    return $strings;
+  }
   function chunk($string, $size) {
     if ($size < 1) {
       throw new \Exception("Chunk size must be >= 1");
