@@ -179,7 +179,29 @@ function intpow(int $base, int $exp): int {
   return \pow($base, $exp);
 }
 
-function sort<T as num>(array<T> $nums): array<T> {
-  \sort($nums, \SORT_NUMERIC);
+function sort<T as num>(array<T> $nums, bool $reverse = false): array<T> {
+  if ($reverse) {
+    \rsort($nums, \SORT_NUMERIC);
+  } else {
+    \sort($nums, \SORT_NUMERIC);
+  }
   return $nums;
+}
+
+function sort_map<Tk, Tv as num>(array<Tk, Tv> $nums, bool $reverse = false): array<Tk, Tv> {
+  if ($reverse) {
+    \arsort($nums, \SORT_NUMERIC);
+  } else {
+    \asort($nums, \SORT_NUMERIC);
+  }
+  return $nums;
+}
+
+function sort_keys<Tv>(array<int, Tv> $map, bool $reverse = false): array<int, Tv> {
+  if ($reverse) {
+    \krsort($map, \SORT_NUMERIC);
+  } else {
+    \ksort($map, \SORT_NUMERIC);
+  }
+  return $map;
 }
