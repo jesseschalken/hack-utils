@@ -36,4 +36,7 @@ namespace HackUtils\set {
   function size($set) {
     return \count($set);
   }
+  function contains($set, $value) {
+    return \array_key_exists($value, $set);
+  }
 }
