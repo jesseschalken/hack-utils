@@ -43,3 +43,7 @@ function reverse(set $set): set {
 function size(set $set): int {
   return \count($set);
 }
+
+function contains(set $set, value $value): bool {
+  return \array_key_exists($value, $set);
+}
