@@ -197,7 +197,7 @@ function sort_map<Tk, Tv as num>(array<Tk, Tv> $nums, bool $reverse = false): ar
   return $nums;
 }
 
-function sort_keys<Tv>(array<int, Tv> $map, bool $reverse = false): array<int, Tv> {
+function sort_map_keys<Tk as num, Tv>(array<Tk, Tv> $map, bool $reverse = false): array<Tk, Tv> {
   if ($reverse) {
     \krsort($map, \SORT_NUMERIC);
   } else {
