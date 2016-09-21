@@ -146,3 +146,11 @@ function unzip<Ta, Tb>(array<(Ta, Tb)> $x): (array<Ta>, array<Tb>) {
   }
   return tuple($a, $b);
 }
+
+function diff<T as arraykey>(array<T> $a, array<T> $b): array<T> {
+  return \array_values(\array_diff($a, $b));
+}
+
+function intersect<T as arraykey>(array<T> $a, array<T> $b): array<T> {
+  return \array_values(\array_intersect($a, $b));
+}

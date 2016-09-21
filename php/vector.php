@@ -104,4 +104,10 @@ namespace HackUtils\vector {
     }
     return array($a, $b);
   }
+  function diff($a, $b) {
+    return \array_values(\array_diff($a, $b));
+  }
+  function intersect($a, $b) {
+    return \array_values(\array_intersect($a, $b));
+  }
 }
