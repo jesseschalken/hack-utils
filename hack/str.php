@@ -241,7 +241,7 @@ function from_code(int $ascii): string {
 function get_code_at(string $string, int $offset = 0): int {
   $length = length($string);
   if ($offset < 0) {
-    $length += $length;
+    $offset += $length;
   }
   if ($offset < 0 || $offset >= $length) {
     throw new \Exception(
