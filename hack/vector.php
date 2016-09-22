@@ -146,3 +146,21 @@ function diff<T as arraykey>(array<T> $a, array<T> $b): array<T> {
 function intersect<T as arraykey>(array<T> $a, array<T> $b): array<T> {
   return \array_values(\array_intersect($a, $b));
 }
+
+function any<T>(array<T> $a, (function(T): bool) $f): bool {
+  foreach ($a as $x) {
+    if ($f($x)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function all<T>(array<T> $a, (function(T): bool) $f): bool {
+  foreach ($a as $x) {
+    if (!$f($x)) {
+      return false;
+    }
+  }
+  return true;
+}

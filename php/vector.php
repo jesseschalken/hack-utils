@@ -107,4 +107,20 @@ namespace HackUtils\vector {
   function intersect($a, $b) {
     return \array_values(\array_intersect($a, $b));
   }
+  function any($a, $f) {
+    foreach ($a as $x) {
+      if (\hacklib_cast_as_boolean($f($x))) {
+        return true;
+      }
+    }
+    return false;
+  }
+  function all($a, $f) {
+    foreach ($a as $x) {
+      if (!\hacklib_cast_as_boolean($f($x))) {
+        return false;
+      }
+    }
+    return true;
+  }
 }
