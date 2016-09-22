@@ -135,8 +135,34 @@ namespace HackUtils\math {
     }
     return \pow($base, $exp);
   }
-  function sort($nums) {
-    \sort($nums, \SORT_NUMERIC);
+  function sort($nums, $reverse = false) {
+    if (\hacklib_cast_as_boolean($reverse)) {
+      \rsort($nums, \SORT_NUMERIC);
+    } else {
+      \sort($nums, \SORT_NUMERIC);
+    }
     return $nums;
+  }
+  function sort_map($nums, $reverse = false) {
+    if (\hacklib_cast_as_boolean($reverse)) {
+      \arsort($nums, \SORT_NUMERIC);
+    } else {
+      \asort($nums, \SORT_NUMERIC);
+    }
+    return $nums;
+  }
+  function sort_map_keys($map, $reverse = false) {
+    if (\hacklib_cast_as_boolean($reverse)) {
+      \krsort($map, \SORT_NUMERIC);
+    } else {
+      \ksort($map, \SORT_NUMERIC);
+    }
+    return $map;
+  }
+  function sum($list) {
+    return \array_sum($list);
+  }
+  function product($list) {
+    return \array_product($list);
   }
 }

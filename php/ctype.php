@@ -1,53 +1,70 @@
 <?php
 namespace HackUtils\ctype {
   require_once ($GLOBALS["HACKLIB_ROOT"]);
-  function isalnum($s, $i = 0) {
-    return \ctype_alnum(_char($s, $i));
+  use function \HackUtils\str\is_empty;
+  function alnum($s) {
+    return
+      \hacklib_cast_as_boolean(is_empty($s)) ||
+      \hacklib_cast_as_boolean(\ctype_alnum($s));
   }
-  function isblank($s, $i = 0) {
-    $c = _char($s, $i);
-    return ($c === "\t") || ($c === " ");
-  }
-  function isapha($s, $i = 0) {
-    return \ctype_alpha(_char($s, $i));
-  }
-  function iscntrl($s, $i = 0) {
-    return \ctype_cntrl(_char($s, $i));
-  }
-  function isdigit($s, $i = 0) {
-    return \ctype_digit(_char($s, $i));
-  }
-  function isgraph($s, $i = 0) {
-    return \ctype_graph(_char($s, $i));
-  }
-  function islower($s, $i = 0) {
-    return \ctype_lower(_char($s, $i));
-  }
-  function isprint($s, $i = 0) {
-    return \ctype_print(_char($s, $i));
-  }
-  function ispunct($s, $i = 0) {
-    return \ctype_punct(_char($s, $i));
-  }
-  function isspace($s, $i = 0) {
-    return \ctype_space(_char($s, $i));
-  }
-  function isupper($s, $i = 0) {
-    return \ctype_upper(_char($s, $i));
-  }
-  function isxdigit($s, $i = 0) {
-    return \ctype_xdigit(_char($s, $i));
-  }
-  function _char($s, $i) {
+  function blank($s) {
     $l = \strlen($s);
-    if ($i < 0) {
-      $i += $l;
+    for ($i = 0; $i < $l; $i++) {
+      $c = $s[$i];
+      if (($c !== "\t") && ($c !== " ")) {
+        return false;
+      }
     }
-    if (($i < 0) || ($i >= $l)) {
-      throw new \Exception(
-        "Byte offset ".$i." out of bounds in string '".$s."'"
-      );
-    }
-    return $s[$i];
+    return true;
+  }
+  function alpha($s) {
+    return
+      \hacklib_cast_as_boolean(is_empty($s)) ||
+      \hacklib_cast_as_boolean(\ctype_alpha($s));
+  }
+  function cntrl($s) {
+    return
+      \hacklib_cast_as_boolean(is_empty($s)) ||
+      \hacklib_cast_as_boolean(\ctype_cntrl($s));
+  }
+  function digit($s) {
+    return
+      \hacklib_cast_as_boolean(is_empty($s)) ||
+      \hacklib_cast_as_boolean(\ctype_digit($s));
+  }
+  function graph($s) {
+    return
+      \hacklib_cast_as_boolean(is_empty($s)) ||
+      \hacklib_cast_as_boolean(\ctype_graph($s));
+  }
+  function lower($s) {
+    return
+      \hacklib_cast_as_boolean(is_empty($s)) ||
+      \hacklib_cast_as_boolean(\ctype_lower($s));
+  }
+  function print($s) {
+    return
+      \hacklib_cast_as_boolean(is_empty($s)) ||
+      \hacklib_cast_as_boolean(\ctype_print($s));
+  }
+  function punct($s) {
+    return
+      \hacklib_cast_as_boolean(is_empty($s)) ||
+      \hacklib_cast_as_boolean(\ctype_punct($s));
+  }
+  function space($s) {
+    return
+      \hacklib_cast_as_boolean(is_empty($s)) ||
+      \hacklib_cast_as_boolean(\ctype_space($s));
+  }
+  function upper($s) {
+    return
+      \hacklib_cast_as_boolean(is_empty($s)) ||
+      \hacklib_cast_as_boolean(\ctype_upper($s));
+  }
+  function xdigit($s) {
+    return
+      \hacklib_cast_as_boolean(is_empty($s)) ||
+      \hacklib_cast_as_boolean(\ctype_xdigit($s));
   }
 }

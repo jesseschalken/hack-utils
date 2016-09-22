@@ -80,20 +80,59 @@ namespace HackUtils\str {
   function is_empty($string) {
     return $string === "";
   }
-  function sort($strings) {
-    \sort($strings, \SORT_STRING);
+  function sort(
+    $strings,
+    $caseInsensitive = false,
+    $natural = false,
+    $reverse = false
+  ) {
+    $flags = _sort_flags($caseInsensitive, $natural);
+    if (\hacklib_cast_as_boolean($reverse)) {
+      \rsort($strings, $flags);
+    } else {
+      \sort($strings, $flags);
+    }
     return $strings;
   }
-  function isort($strings) {
-    \sort($strings, \SORT_STRING | \SORT_FLAG_CASE);
+  function sort_map(
+    $strings,
+    $caseInsensitive = false,
+    $natural = false,
+    $reverse = false
+  ) {
+    $flags = _sort_flags($caseInsensitive, $natural);
+    if (\hacklib_cast_as_boolean($reverse)) {
+      \arsort($strings, $flags);
+    } else {
+      \asort($strings, $flags);
+    }
     return $strings;
+  }
+  function sort_map_keys(
+    $map,
+    $caseInsensitive = false,
+    $natural = false,
+    $reverse = false
+  ) {
+    $flags = _sort_flags($caseInsensitive, $natural);
+    if (\hacklib_cast_as_boolean($reverse)) {
+      \krsort($map, $flags);
+    } else {
+      \ksort($map, $flags);
+    }
+    return $map;
+  }
+  function _sort_flags($caseInsensitive, $natural) {
+    return
+      (\hacklib_cast_as_boolean($natural) ? \SORT_NATURAL : \SORT_STRING) |
+      (\hacklib_cast_as_boolean($caseInsensitive) ? \SORT_FLAG_CASE : 0);
   }
   function chunk($string, $size) {
     if ($size < 1) {
       throw new \Exception("Chunk size must be >= 1");
     }
     $ret = \str_split($string, $size);
-    if ($ret === false) {
+    if (!\hacklib_cast_as_boolean(\is_array($ret))) {
       throw new \Exception("str_split() failed");
     }
     return $ret;
@@ -101,19 +140,14 @@ namespace HackUtils\str {
   function join($strings, $delimiter = "") {
     return \implode($delimiter, $strings);
   }
-  function replace($subject, $search, $replace) {
+  function replace($subject, $search, $replace, $caseInsensitive = false) {
     $count = 0;
-    $result = \str_replace($search, $replace, $subject, $count);
+    $result =
+      \hacklib_cast_as_boolean($caseInsensitive)
+        ? \str_ireplace($search, $replace, $subject, $count)
+        : \str_replace($search, $replace, $subject, $count);
     if (!\hacklib_cast_as_boolean(\is_string($result))) {
-      throw new \Exception("str_replace() failed");
-    }
-    return array($result, $count);
-  }
-  function ireplace($subject, $search, $replace) {
-    $count = 0;
-    $result = \str_ireplace($search, $replace, $subject, $count);
-    if (!\hacklib_cast_as_boolean(\is_string($result))) {
-      throw new \Exception("str_ireplace() failed");
+      throw new \Exception("str_i?replace() failed");
     }
     return array($result, $count);
   }
@@ -122,10 +156,7 @@ namespace HackUtils\str {
   }
   function slice($string, $offset, $length = 0x7FFFFFFF) {
     $ret = \substr($string, $offset, $length);
-    if ($ret === false) {
-      return "";
-    }
-    return $ret;
+    return ($ret === false) ? "" : $ret;
   }
   function pad($string, $length, $pad = " ") {
     return \str_pad($string, $length, $pad, \STR_PAD_BOTH);
@@ -163,30 +194,41 @@ namespace HackUtils\str {
     }
     return \ord($string[$offset]);
   }
-  function compare($a, $b) {
-    return math\sign(\strcmp($a, $b));
+  function compare($a, $b, $caseInsensitive = false, $natural = false) {
+    $ret =
+      \hacklib_cast_as_boolean($caseInsensitive)
+        ? (\hacklib_cast_as_boolean($natural)
+             ? \strnatcasecmp($a, $b)
+             : \strcasecmp($a, $b))
+        : (\hacklib_cast_as_boolean($natural)
+             ? \strnatcmp($a, $b)
+             : \strcmp($a, $b));
+    return math\sign($ret);
   }
-  function icompare($a, $b) {
-    return math\sign(\strcasecmp($a, $b));
-  }
-  function find($haystack, $needle, $offset = 0) {
-    $ret = \strpos($haystack, $needle, _fix_offset($haystack, $offset));
+  function find($haystack, $needle, $offset = 0, $caseInsensitive = false) {
+    $offset = _fix_offset($haystack, $offset);
+    $ret =
+      \hacklib_cast_as_boolean($caseInsensitive)
+        ? \stripos($haystack, $needle, $offset)
+        : \strpos($haystack, $needle, $offset);
     return ($ret === false) ? null : $ret;
   }
-  function ifind($haystack, $needle, $offset = 0) {
-    $ret = \stripos($haystack, $needle, _fix_offset($haystack, $offset));
-    return ($ret === false) ? null : $ret;
-  }
-  function find_last($haystack, $needle, $offset = 0) {
-    $ret = \strrpos($haystack, $needle, _fix_offset($haystack, $offset));
-    return ($ret === false) ? null : $ret;
-  }
-  function ifind_last($haystack, $needle, $offset = 0) {
-    $ret = \strripos($haystack, $needle, _fix_offset($haystack, $offset));
+  function find_last(
+    $haystack,
+    $needle,
+    $offset = 0,
+    $caseInsensitive = false
+  ) {
+    $offset = _fix_offset($haystack, $offset);
+    $ret =
+      \hacklib_cast_as_boolean($caseInsensitive)
+        ? \strripos($haystack, $needle, $offset)
+        : \strrpos($haystack, $needle, $offset);
     return ($ret === false) ? null : $ret;
   }
   function count($haystack, $needle, $offset = 0) {
-    return \substr_count($haystack, $needle, _fix_offset($haystack, $offset));
+    $offset = _fix_offset($haystack, $offset);
+    return \substr_count($haystack, $needle, $offset);
   }
   function contains($haystack, $needle, $offset = 0) {
     return find($haystack, $needle, $offset) !== null;
@@ -194,11 +236,8 @@ namespace HackUtils\str {
   function length($string) {
     return \strlen($string);
   }
-  function equal($a, $b) {
-    return compare($a, $b) === 0;
-  }
-  function iequal($a, $b) {
-    return icompare($a, $b) === 0;
+  function equal($a, $b, $caseInsensitive = false, $natural = false) {
+    return \hacklib_equals(compare($a, $b, $caseInsensitive, $natural), 0);
   }
   function starts_with($string, $prefix) {
     return slice($string, 0, length($prefix)) === $prefix;

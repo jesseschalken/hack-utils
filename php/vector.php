@@ -29,7 +29,10 @@ namespace HackUtils\vector {
     return \array_merge($a, $b);
   }
   function concat_all($vectors) {
-    return \call_user_func_array("array_merge", $vectors);
+    return
+      \hacklib_cast_as_boolean($vectors)
+        ? \call_user_func_array("array_merge", $vectors)
+        : array();
   }
   function pad($list, $size, $value) {
     return \array_pad($list, $size, $value);
@@ -63,12 +66,6 @@ namespace HackUtils\vector {
   }
   function range($start, $end, $step = 1) {
     return \range($start, $end, $step);
-  }
-  function sum($list) {
-    return \array_sum($list);
-  }
-  function product($list) {
-    return \array_product($list);
   }
   function sort($list, $cmp) {
     \usort($list, $cmp);
