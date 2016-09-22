@@ -164,3 +164,22 @@ function all<T>(array<T> $a, (function(T): bool) $f): bool {
   }
   return true;
 }
+
+function of_vectors<T>(): array<array<T>> {
+  return [];
+}
+
+function of_maps<Tk, Tv>(): array<array<Tk, Tv>> {
+  return [];
+}
+
+function group_by<Tk, Tv>(
+  array<Tv> $a,
+  (function(Tv): Tk) $f,
+): array<Tk, array<Tv>> {
+  $res = map\of_vectors();
+  foreach ($a as $v) {
+    $res[$f($v)][] = $v;
+  }
+  return $res;
+}

@@ -142,4 +142,10 @@ namespace HackUtils\map {
     }
     return array($a, $b);
   }
+  function of_vectors() {
+    return array();
+  }
+  function of_maps() {
+    return array();
+  }
 }

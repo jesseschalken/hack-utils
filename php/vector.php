@@ -123,4 +123,17 @@ namespace HackUtils\vector {
     }
     return true;
   }
+  function of_vectors() {
+    return array();
+  }
+  function of_maps() {
+    return array();
+  }
+  function group_by($a, $f) {
+    $res = map\of_vectors();
+    foreach ($a as $v) {
+      $res[$f($v)][] = $v;
+    }
+    return $res;
+  }
 }

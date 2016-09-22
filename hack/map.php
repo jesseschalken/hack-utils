@@ -200,3 +200,11 @@ function unzip<Tk, Ta, Tb>(
   }
   return tuple($a, $b);
 }
+
+function of_vectors<Tk, T>(): array<Tk, array<T>> {
+  return [];
+}
+
+function of_maps<Tk1, Tk2, Tv>(): array<Tk1, array<Tk2, Tv>> {
+  return [];
+}
