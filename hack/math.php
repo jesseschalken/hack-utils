@@ -188,7 +188,10 @@ function sort<T as num>(array<T> $nums, bool $reverse = false): array<T> {
   return $nums;
 }
 
-function sort_map<Tk, Tv as num>(array<Tk, Tv> $nums, bool $reverse = false): array<Tk, Tv> {
+function sort_map<Tk, Tv as num>(
+  array<Tk, Tv> $nums,
+  bool $reverse = false,
+): array<Tk, Tv> {
   if ($reverse) {
     \arsort($nums, \SORT_NUMERIC);
   } else {
@@ -197,11 +200,22 @@ function sort_map<Tk, Tv as num>(array<Tk, Tv> $nums, bool $reverse = false): ar
   return $nums;
 }
 
-function sort_map_keys<Tk as num, Tv>(array<Tk, Tv> $map, bool $reverse = false): array<Tk, Tv> {
+function sort_map_keys<Tk as num, Tv>(
+  array<Tk, Tv> $map,
+  bool $reverse = false,
+): array<Tk, Tv> {
   if ($reverse) {
     \krsort($map, \SORT_NUMERIC);
   } else {
     \ksort($map, \SORT_NUMERIC);
   }
   return $map;
+}
+
+function sum<T as num>(array<T> $list): T {
+  return \array_sum($list);
+}
+
+function product<T as num>(array<T> $list): T {
+  return \array_product($list);
 }

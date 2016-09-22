@@ -2,62 +2,59 @@
 
 namespace HackUtils\ctype;
 
-function isalnum(string $s, int $i = 0): bool {
-  return \ctype_alnum(_char($s, $i));
+use function HackUtils\str\is_empty;
+
+function alnum(string $s): bool {
+  return is_empty($s) || \ctype_alnum($s);
 }
 
-function isblank(string $s, int $i = 0): bool {
-  $c = _char($s, $i);
-  return $c === "\t" || $c === " ";
-}
-
-function isapha(string $s, int $i = 0): bool {
-  return \ctype_alpha(_char($s, $i));
-}
-
-function iscntrl(string $s, int $i = 0): bool {
-  return \ctype_cntrl(_char($s, $i));
-}
-
-function isdigit(string $s, int $i = 0): bool {
-  return \ctype_digit(_char($s, $i));
-}
-
-function isgraph(string $s, int $i = 0): bool {
-  return \ctype_graph(_char($s, $i));
-}
-
-function islower(string $s, int $i = 0): bool {
-  return \ctype_lower(_char($s, $i));
-}
-
-function isprint(string $s, int $i = 0): bool {
-  return \ctype_print(_char($s, $i));
-}
-
-function ispunct(string $s, int $i = 0): bool {
-  return \ctype_punct(_char($s, $i));
-}
-
-function isspace(string $s, int $i = 0): bool {
-  return \ctype_space(_char($s, $i));
-}
-
-function isupper(string $s, int $i = 0): bool {
-  return \ctype_upper(_char($s, $i));
-}
-
-function isxdigit(string $s, int $i = 0): bool {
-  return \ctype_xdigit(_char($s, $i));
-}
-
-function _char(string $s, int $i): string {
+function blank(string $s): bool {
   $l = \strlen($s);
-  if ($i < 0) {
-    $i += $l;
+  for ($i = 0; $i < $l; $i++) {
+    $c = $s[$i];
+    if ($c !== "\t" && $c !== " ") {
+      return false;
+    }
   }
-  if ($i < 0 || $i >= $l) {
-    throw new \Exception("Byte offset $i out of bounds in string '$s'");
-  }
-  return $s[$i];
+  return true;
+}
+
+function alpha(string $s): bool {
+  return is_empty($s) || \ctype_alpha($s);
+}
+
+function cntrl(string $s): bool {
+  return is_empty($s) || \ctype_cntrl($s);
+}
+
+function digit(string $s): bool {
+  return is_empty($s) || \ctype_digit($s);
+}
+
+function graph(string $s): bool {
+  return is_empty($s) || \ctype_graph($s);
+}
+
+function lower(string $s): bool {
+  return is_empty($s) || \ctype_lower($s);
+}
+
+function print(string $s): bool {
+  return is_empty($s) || \ctype_print($s);
+}
+
+function punct(string $s): bool {
+  return is_empty($s) || \ctype_punct($s);
+}
+
+function space(string $s): bool {
+  return is_empty($s) || \ctype_space($s);
+}
+
+function upper(string $s): bool {
+  return is_empty($s) || \ctype_upper($s);
+}
+
+function xdigit(string $s): bool {
+  return is_empty($s) || \ctype_xdigit($s);
 }

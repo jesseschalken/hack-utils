@@ -59,7 +59,7 @@ function run_tests(): void {
 
   assert_eqaul(str\replace('abc', 'b', 'lol'), tuple('alolc', 1));
   assert_eqaul(str\replace('abc', 'B', 'lol'), tuple('abc', 0));
-  assert_eqaul(str\ireplace('abc', 'B', 'lol'), tuple('alolc', 1));
+  assert_eqaul(str\replace('abc', 'B', 'lol', true), tuple('alolc', 1));
 
   assert_eqaul(str\splice('abc', 1, 1), 'ac');
   assert_eqaul(str\splice('abc', 1, 1, 'lol'), 'alolc');
@@ -106,11 +106,11 @@ function run_tests(): void {
   assert_eqaul(str\compare('', 'a'), -1);
   assert_eqaul(str\compare('a', ''), 1);
 
-  assert_eqaul(str\icompare('a', 'a'), 0);
-  assert_eqaul(str\icompare('a', 'A'), 0);
-  assert_eqaul(str\icompare('', ''), 0);
-  assert_eqaul(str\icompare('', 'a'), -1);
-  assert_eqaul(str\icompare('a', ''), 1);
+  assert_eqaul(str\compare('a', 'a', true), 0);
+  assert_eqaul(str\compare('a', 'A', true), 0);
+  assert_eqaul(str\compare('', '', true), 0);
+  assert_eqaul(str\compare('', 'a', true), -1);
+  assert_eqaul(str\compare('a', '', true), 1);
 
   assert_eqaul(str\equal('a', 'a'), true);
   assert_eqaul(str\equal('a', 'A'), false);
@@ -118,11 +118,11 @@ function run_tests(): void {
   assert_eqaul(str\equal('', 'a'), false);
   assert_eqaul(str\equal('a', ''), false);
 
-  assert_eqaul(str\iequal('a', 'a'), true);
-  assert_eqaul(str\iequal('a', 'A'), true);
-  assert_eqaul(str\iequal('', ''), true);
-  assert_eqaul(str\iequal('', 'a'), false);
-  assert_eqaul(str\iequal('a', ''), false);
+  assert_eqaul(str\equal('a', 'a', true), true);
+  assert_eqaul(str\equal('a', 'A', true), true);
+  assert_eqaul(str\equal('', '', true), true);
+  assert_eqaul(str\equal('', 'a', true), false);
+  assert_eqaul(str\equal('a', '', true), false);
 
   assert_eqaul(str\find('a', 'a'), 0);
   assert_eqaul(str\find('a', 'a', 1), null);

@@ -49,7 +49,10 @@ function fixkeys(array<key> $keys): array<string> {
   return vector\map($keys, $key ==> (string) $key);
 }
 
-function column<Tk, Tv>(array<array<Tk, Tv>> $maps, Tk $key): array<Tv> {
+function column<Tk as key, Tv>(
+  array<array<Tk, Tv>> $maps,
+  Tk $key,
+): array<Tv> {
   return \array_column($maps, $key);
 }
 
@@ -108,7 +111,11 @@ function find<Tk, Tv>(array<Tk, Tv> $map, Tv $value): ?Tk {
   return $ret === false ? null : $ret;
 }
 
-function slice<Tk, Tv>(array<Tk, Tv> $map, int $offset, ?int $length = null): array<Tk, Tv> {
+function slice<Tk, Tv>(
+  array<Tk, Tv> $map,
+  int $offset,
+  ?int $length = null,
+): array<Tk, Tv> {
   return \array_slice($map, $offset, $length, true);
 }
 
@@ -132,16 +139,25 @@ function sort_keys<Tk, Tv>(
   return $map;
 }
 
-function sort<Tk, Tv>(array<Tk, Tv> $map, (function(Tv, Tv): int) $cmp): array<Tk, Tv> {
+function sort<Tk, Tv>(
+  array<Tk, Tv> $map,
+  (function(Tv, Tv): int) $cmp,
+): array<Tk, Tv> {
   \uasort($map, $cmp);
   return $map;
 }
 
-function filter<Tk, Tv>(array<Tk, Tv> $map, (function(Tv): bool) $f): array<Tk, Tv> {
+function filter<Tk, Tv>(
+  array<Tk, Tv> $map,
+  (function(Tv): bool) $f,
+): array<Tk, Tv> {
   return \array_filter($map, $f);
 }
 
-function map<Tk, Tin, Tout>(array<Tk, Tin> $map, (function(Tin): Tout) $f): array<Tk, Tout> {
+function map<Tk, Tin, Tout>(
+  array<Tk, Tin> $map,
+  (function(Tin): Tout) $f,
+): array<Tk, Tout> {
   return \array_map($f, $map);
 }
 
@@ -160,7 +176,10 @@ function select<Tk, Tv>(array<Tk, Tv> $map, array<Tk> $keys): array<Tv> {
   return vector\map($keys, $key ==> $map[$key]);
 }
 
-function zip<Tk, Ta, Tb>(array<Tk, Ta> $a, array<Tk, Tb> $b): array<Tk, (Ta, Tb)> {
+function zip<Tk, Ta, Tb>(
+  array<Tk, Ta> $a,
+  array<Tk, Tb> $b,
+): array<Tk, (Ta, Tb)> {
   $ret = [];
   foreach ($a as $k => $v) {
     if (has_key($b, $k)) {
@@ -170,7 +189,9 @@ function zip<Tk, Ta, Tb>(array<Tk, Ta> $a, array<Tk, Tb> $b): array<Tk, (Ta, Tb)
   return $ret;
 }
 
-function unzip<Tk, Ta, Tb>(array<Tk, (Ta, Tb)> $map): (array<Tk, Ta>, array<Tk, Tb>) {
+function unzip<Tk, Ta, Tb>(
+  array<Tk, (Ta, Tb)> $map,
+): (array<Tk, Ta>, array<Tk, Tb>) {
   $a = [];
   $b = [];
   foreach ($map as $k => $v) {

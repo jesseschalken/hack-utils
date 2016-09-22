@@ -23,7 +23,7 @@ function chunk<T>(array<T> $map, int $size): array<array<T>> {
   return \array_chunk($map, $size, false);
 }
 
-function count_values(array<map\key> $values): map<int> {
+function count_values<T as arraykey>(array<T> $values): array<T, int> {
   return \array_count_values($values);
 }
 
@@ -36,7 +36,7 @@ function concat<T>(array<T> $a, array<T> $b): array<T> {
 }
 
 function concat_all<T>(array<array<T>> $vectors): array<T> {
-  return \call_user_func_array('array_merge', $vectors);
+  return $vectors ? \call_user_func_array('array_merge', $vectors) : [];
 }
 
 function pad<T>(array<T> $list, int $size, T $value): array<T> {
@@ -69,7 +69,7 @@ function splice<T>(
   return tuple($list, $ret);
 }
 
-function unique<T as map\key>(array<T> $list): array<T> {
+function unique<T as arraykey>(array<T> $list): array<T> {
   return \array_unique($list);
 }
 
@@ -88,14 +88,6 @@ function contains<T>(array<T> $list, T $value): bool {
 
 function range(int $start, int $end, int $step = 1): array<int> {
   return \range($start, $end, $step);
-}
-
-function sum<T as num>(array<T> $list): T {
-  return \array_sum($list);
-}
-
-function product<T as num>(array<T> $list): T {
-  return \array_product($list);
 }
 
 function sort<T>(array<T> $list, (function(T, T): int) $cmp): array<T> {

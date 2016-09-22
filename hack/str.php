@@ -160,11 +160,9 @@ function sort_map_keys<Tk as arraykey, Tv>(
 }
 
 function _sort_flags(bool $caseInsensitive, bool $natural): int {
-  $flags = $natural ? \SORT_NATURAL | \SORT_STRING;
-  if ($caseInsensitive) {
-    $flags |= \SORT_FLAG_CASE;
-  }
-  return $flags;
+  return
+    ($natural ? \SORT_NATURAL : \SORT_STRING) |
+    ($caseInsensitive ? \SORT_FLAG_CASE : 0);
 }
 
 function chunk(string $string, int $size): array<string> {
@@ -172,7 +170,7 @@ function chunk(string $string, int $size): array<string> {
     throw new \Exception("Chunk size must be >= 1");
   }
   $ret = \str_split($string, $size);
-  if ($ret === false) {
+  if (!\is_array($ret)) {
     throw new \Exception('str_split() failed');
   }
   return $ret;
@@ -186,16 +184,15 @@ function replace(
   string $subject,
   string $search,
   string $replace,
-  bool $castInsensitive = false,
+  bool $caseInsensitive = false,
 ): (string, int) {
   $count = 0;
-  if ($caseInsensitive) {
-    $result = \str_ireplace($search, $replace, $subject, $count);
-  } else {
-    $result = \str_replace($search, $replace, $subject, $count);
-  }
+  $result =
+    $caseInsensitive
+      ? \str_ireplace($search, $replace, $subject, $count)
+      : \str_replace($search, $replace, $subject, $count);
   if (!\is_string($result)) {
-    throw new \Exception('str_{i,}replace() failed');
+    throw new \Exception('str_i?replace() failed');
   }
   return tuple($result, $count);
 }
@@ -212,10 +209,7 @@ function splice(
 function slice(string $string, int $offset, int $length = 0x7FFFFFFF): string {
   $ret = \substr($string, $offset, $length);
   // \substr() returns false "on failure".
-  if ($ret === false) {
-    return '';
-  }
-  return $ret;
+  return $ret === false ? '' : $ret;
 }
 
 function pad(string $string, int $length, string $pad = ' '): string {
@@ -263,15 +257,10 @@ function compare(
   bool $caseInsensitive = false,
   bool $natural = false,
 ): int {
-  $ret = $caseInsensitive
-    ? ($natural
-      ? \strnatcasecmp($a, $b)
-      : \strcasecmp($a, $b)
-    )
-    : ($natural
-      ? \strnatcmp($a, $b)
-      : \strcmp($a, $b)
-    );
+  $ret =
+    $caseInsensitive
+      ? ($natural ? \strnatcasecmp($a, $b) : \strcasecmp($a, $b))
+      : ($natural ? \strnatcmp($a, $b) : \strcmp($a, $b));
   return math\sign($ret);
 }
 
@@ -282,11 +271,10 @@ function find(
   bool $caseInsensitive = false,
 ): ?int {
   $offset = _fix_offset($haystack, $offset);
-  if ($caseInsensitive) {
-    $ret = \stripos($haystack, $needle, $offset);
-  } else {
-    $ret = \strpos($haystack, $needle, $offset);
-  }
+  $ret =
+    $caseInsensitive
+      ? \stripos($haystack, $needle, $offset)
+      : \strpos($haystack, $needle, $offset);
   return $ret === false ? null : $ret;
 }
 
@@ -297,11 +285,10 @@ function find_last(
   bool $caseInsensitive = false,
 ): ?int {
   $offset = _fix_offset($haystack, $offset);
-  if ($caseInsensitive) {
-    $ret = \strripos($haystack, $needle, $offset);
-  } else {
-    $ret = \strrpos($haystack, $needle, $offset);
-  }
+  $ret =
+    $caseInsensitive
+      ? \strripos($haystack, $needle, $offset)
+      : \strrpos($haystack, $needle, $offset);
   return $ret === false ? null : $ret;
 }
 
