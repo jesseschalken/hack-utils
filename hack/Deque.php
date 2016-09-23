@@ -3,7 +3,7 @@
 namespace HackUtils;
 
 final class Deque<T> implements \Countable, \IteratorAggregate<T> {
-  public function __construct(private array<T> $array = []) {}
+  private array<T> $array = [];
 
   public function unshift(T $x): void {
     \array_unshift($this->array, $x);

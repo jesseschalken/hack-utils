@@ -2,10 +2,7 @@
 namespace HackUtils {
   require_once ($GLOBALS["HACKLIB_ROOT"]);
   final class Deque implements \Countable, \IteratorAggregate {
-    private $array;
-    public function __construct($array = array()) {
-      $this->array = $array;
-    }
+    private $array = array();
     public function unshift($x) {
       \array_unshift($this->array, $x);
     }
