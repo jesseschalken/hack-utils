@@ -181,7 +181,7 @@ namespace HackUtils\str {
   function get_code_at($string, $offset = 0) {
     $length = length($string);
     if ($offset < 0) {
-      $length += $length;
+      $offset += $length;
     }
     if (($offset < 0) || ($offset >= $length)) {
       throw new \Exception(
