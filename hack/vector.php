@@ -56,6 +56,61 @@ function slice<T>(array<T> $list, int $offset, ?int $length = null): array<T> {
   return \array_slice($list, $offset, $length);
 }
 
+function get<T>(array<T> $v, int $i): T {
+  return $v[$i];
+}
+
+function set<T>(array<T> $v, int $i, T $x): array<T> {
+  $l = length($v);
+  // Setting the last index + 1 ($i == length) is allowed, since it would
+  // still leave the vector packed with keys 0,1,2..N.
+  if ($i < 0 || $i > $l) {
+    throw new \Exception(
+      "Cannot set index $i: Index out of bounds in array with length $l",
+    );
+  }
+  $v[$i] = $x;
+  return $v;
+}
+
+function push<T>(array<T> $v, T $x): array<T> {
+  \array_push($v, $x);
+  return $v;
+}
+
+function pop<T>(array<T> $v): (array<T>, T) {
+  _check_empty($v, 'remove last element');
+  $x = \array_pop($v);
+  return tuple($v, $x);
+}
+
+function unshift<T>(T $x, array<T> $v): array<T> {
+  \array_unshift($v, $x);
+  return $v;
+}
+
+function shift<T>(array<T> $v): (T, array<T>) {
+  _check_empty($v, 'remove first element');
+  $x = \array_shift($v);
+  return tuple($x, $v);
+}
+
+function first<T>(array<T> $a): T {
+  _check_empty($a, 'get first element');
+  return $a[0];
+}
+
+function last<T>(array<T> $a): T {
+  _check_empty($a, 'get last element');
+  return $a[length($a) - 1];
+}
+
+function _check_empty(array<mixed> $a, string $op): void {
+  if (!$a) {
+    throw new \Exception("Cannot $op: Array is empty");
+  }
+}
+
 /**
  * Returns a pair of (new list, removed elements).
  */

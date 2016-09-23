@@ -13,6 +13,10 @@ namespace HackUtils\set {
   function values($set) {
     return \array_keys($set);
   }
+  function add($set, $val) {
+    $set[$val] = true;
+    return $set;
+  }
   function union($a, $b) {
     return \array_replace($a, $b);
   }

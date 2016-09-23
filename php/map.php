@@ -22,6 +22,17 @@ namespace HackUtils\map {
   function chunk($map, $size) {
     return \array_chunk($map, $size, true);
   }
+  function get($map, $key) {
+    $res = $map[$key];
+    if (($res === null) && (!\hacklib_cast_as_boolean(has_key($map, $key)))) {
+      throw new \Exception("Key '".$key."' does not exist in map");
+    }
+    return $res;
+  }
+  function set($map, $key, $val) {
+    $map[$key] = $val;
+    return $map;
+  }
   function soft_get($map, $key) {
     return $map[$key] ?? new_null();
   }

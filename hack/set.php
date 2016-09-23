@@ -16,6 +16,11 @@ function values<T as value>(array<T, mixed> $set): array<value> {
   return \array_keys($set);
 }
 
+function add<T as value>(array<T, mixed> $set, T $val): array<T, mixed> {
+  $set[$val] = true;
+  return $set;
+}
+
 function union<T as value>(
   array<T, mixed> $a,
   array<T, mixed> $b,

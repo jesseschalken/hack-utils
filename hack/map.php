@@ -29,6 +29,19 @@ function chunk<Tk, Tv>(array<Tk, Tv> $map, int $size): array<array<Tk, Tv>> {
   return \array_chunk($map, $size, true);
 }
 
+function get<Tk as arraykey, Tv>(array<Tk, Tv> $map, Tk $key): Tv {
+  $res = $map[$key];
+  if ($res === null && !has_key($map, $key)) {
+    throw new \Exception("Key '$key' does not exist in map");
+  }
+  return $res;
+}
+
+function set<Tk, Tv>(array<Tk, Tv> $map, Tk $key, Tv $val): array<Tk, Tv> {
+  $map[$key] = $val;
+  return $map;
+}
+
 function soft_get<Tk, Tv>(array<Tk, Tv> $map, Tk $key): ?Tv {
   return $map[$key] ?? new_null();
 }

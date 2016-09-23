@@ -47,6 +47,53 @@ namespace HackUtils\vector {
   function slice($list, $offset, $length = null) {
     return \array_slice($list, $offset, $length);
   }
+  function get($v, $i) {
+    return $v[$i];
+  }
+  function set($v, $i, $x) {
+    $l = length($v);
+    if (($i < 0) || ($i > $l)) {
+      throw new \Exception(
+        "Cannot set index ".
+        $i.
+        ": Index out of bounds in array with length ".
+        $l
+      );
+    }
+    $v[$i] = $x;
+    return $v;
+  }
+  function push($v, $x) {
+    \array_push($v, $x);
+    return $v;
+  }
+  function pop($v) {
+    _check_empty($v, "remove last element");
+    $x = \array_pop($v);
+    return array($v, $x);
+  }
+  function unshift($x, $v) {
+    \array_unshift($v, $x);
+    return $v;
+  }
+  function shift($v) {
+    _check_empty($v, "remove first element");
+    $x = \array_shift($v);
+    return array($x, $v);
+  }
+  function first($a) {
+    _check_empty($a, "get first element");
+    return $a[0];
+  }
+  function last($a) {
+    _check_empty($a, "get last element");
+    return $a[length($a) - 1];
+  }
+  function _check_empty($a, $op) {
+    if (!\hacklib_cast_as_boolean($a)) {
+      throw new \Exception("Cannot ".$op.": Array is empty");
+    }
+  }
   function splice($list, $offset, $length = null, $replacement = array()) {
     $ret = \array_splice($list, $offset, $length, $replacement);
     return array($list, $ret);
