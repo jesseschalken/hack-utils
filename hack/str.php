@@ -2,9 +2,13 @@
 
 namespace HackUtils\str;
 
+use HackUtils as utils;
 use HackUtils\vector;
+use HackUtils\map;
+use HackUtils\set;
 use HackUtils\str;
 use HackUtils\math;
+use HackUtils\tuple;
 
 function to_hex(string $string): string {
   return \bin2hex($string);
@@ -79,7 +83,7 @@ function split(
 }
 
 function split_at(string $string, int $offset): (string, string) {
-  $offset = _fix_offset($string, $offset);
+  $offset = utils\fix_offset($offset, length($string));
   return tuple(slice($string, 0, $offset), slice($string, $offset));
 }
 
@@ -270,7 +274,7 @@ function find(
   int $offset = 0,
   bool $caseInsensitive = false,
 ): ?int {
-  $offset = _fix_offset($haystack, $offset);
+  $offset = utils\fix_offset($offset, length($haystack));
   $ret =
     $caseInsensitive
       ? \stripos($haystack, $needle, $offset)
@@ -284,7 +288,7 @@ function find_last(
   int $offset = 0,
   bool $caseInsensitive = false,
 ): ?int {
-  $offset = _fix_offset($haystack, $offset);
+  $offset = utils\fix_offset($offset, length($haystack));
   $ret =
     $caseInsensitive
       ? \strripos($haystack, $needle, $offset)
@@ -293,7 +297,7 @@ function find_last(
 }
 
 function count(string $haystack, string $needle, int $offset = 0): int {
-  $offset = _fix_offset($haystack, $offset);
+  $offset = utils\fix_offset($offset, length($haystack));
   return \substr_count($haystack, $needle, $offset);
 }
 
@@ -323,26 +327,4 @@ function ends_with(string $string, string $suffix): bool {
     return true;
   }
   return slice($string, -length($suffix)) === $suffix;
-}
-
-function _fix_offset(string $string, int $offset): int {
-  return _fix_bounds($offset, length($string));
-}
-
-function _fix_length(string $string, int $offset, int $length): int {
-  return
-    _fix_bounds($length, length($string) - _fix_offset($string, $offset));
-}
-
-function _fix_bounds(int $num, int $max): int {
-  if ($num < 0) {
-    $num += $max;
-  }
-  if ($num < 0) {
-    return 0;
-  }
-  if ($num > $max) {
-    return $max;
-  }
-  return $num;
 }

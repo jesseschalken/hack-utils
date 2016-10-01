@@ -47,7 +47,7 @@ function reverse<T>(array<T> $list): array<T> {
   return \array_reverse($list, false);
 }
 
-function find<T>(array<T> $list, T $value): ?int {
+function index_of<T>(array<T> $list, T $value): ?int {
   $ret = \array_search($list, $value, true);
   return $ret === false ? null : $ret;
 }
@@ -173,6 +173,21 @@ function reduce<Tin, Tout>(
   Tout $initial,
 ): Tout {
   return \array_reduce($list, $f, $initial);
+}
+
+function reduce_right<Tin, Tout>(
+  array<Tin> $list,
+  (function(Tout, Tin): Tout) $f,
+  Tout $value,
+): Tout {
+  for ($i = (\count($list) - 1); $i >= 0; $i--) {
+    $value = $f($value, $list[$i]);
+  }
+  return $value;
+}
+
+function keys(array<mixed> $array): array<int> {
+  return \array_keys($array);
 }
 
 function zip<Ta, Tb>(array<Ta> $a, array<Tb> $b): array<(Ta, Tb)> {

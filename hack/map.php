@@ -87,7 +87,7 @@ function fill_keys<Tk, Tv>(array<Tk> $keys, Tv $value): array<Tk, Tv> {
   return \array_fill_keys($keys, $value);
 }
 
-function flip<Tk, Tv as key>(array<Tk, Tv> $map): array<Tv, Tk> {
+function flip<Tk as key, Tv as key>(array<Tk, Tv> $map): array<Tv, Tk> {
   return \array_flip($map);
 }
 
