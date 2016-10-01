@@ -4,11 +4,11 @@ namespace HackUtils\ctype;
 
 use function HackUtils\str\is_empty;
 
-function alnum(string $s): bool {
+function all_alnum(string $s): bool {
   return is_empty($s) || \ctype_alnum($s);
 }
 
-function blank(string $s): bool {
+function all_blank(string $s): bool {
   $l = \strlen($s);
   for ($i = 0; $i < $l; $i++) {
     $c = $s[$i];
@@ -19,42 +19,42 @@ function blank(string $s): bool {
   return true;
 }
 
-function alpha(string $s): bool {
+function all_alpha(string $s): bool {
   return is_empty($s) || \ctype_alpha($s);
 }
 
-function cntrl(string $s): bool {
+function all_cntrl(string $s): bool {
   return is_empty($s) || \ctype_cntrl($s);
 }
 
-function digit(string $s): bool {
+function all_digit(string $s): bool {
   return is_empty($s) || \ctype_digit($s);
 }
 
-function graph(string $s): bool {
+function all_graph(string $s): bool {
   return is_empty($s) || \ctype_graph($s);
 }
 
-function lower(string $s): bool {
+function all_lower(string $s): bool {
   return is_empty($s) || \ctype_lower($s);
 }
 
-function print(string $s): bool {
+function all_print(string $s): bool {
   return is_empty($s) || \ctype_print($s);
 }
 
-function punct(string $s): bool {
+function all_punct(string $s): bool {
   return is_empty($s) || \ctype_punct($s);
 }
 
-function space(string $s): bool {
+function all_space(string $s): bool {
   return is_empty($s) || \ctype_space($s);
 }
 
-function upper(string $s): bool {
+function all_upper(string $s): bool {
   return is_empty($s) || \ctype_upper($s);
 }
 
-function xdigit(string $s): bool {
+function all_xdigit(string $s): bool {
   return is_empty($s) || \ctype_xdigit($s);
 }
