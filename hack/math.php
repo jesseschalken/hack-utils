@@ -168,6 +168,10 @@ function sqrt(float $arg): float {
   return \sqrt($arg);
 }
 
+function cmp<T as num>(T $x, T $y): int {
+  return sign($x - $y);
+}
+
 function intdiv(int $numerator, int $divisor): int {
   return \intdiv($numerator, $divisor);
 }

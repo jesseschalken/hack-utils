@@ -26,6 +26,10 @@ function if_null<T>(?T $x, T $y): T {
   return $x === null ? $y : $x;
 }
 
+/**
+ * Simple container for a value of a given type. Useful to replace PHP's
+ * built in references, which are not supported in Hack.
+ */
 final class Ref<T> {
   public function __construct(private T $value) {}
 
