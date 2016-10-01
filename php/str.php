@@ -1,9 +1,13 @@
 <?php
 namespace HackUtils\str {
   require_once ($GLOBALS["HACKLIB_ROOT"]);
+  use \HackUtils as utils;
   use \HackUtils\vector;
+  use \HackUtils\map;
+  use \HackUtils\set;
   use \HackUtils\str;
   use \HackUtils\math;
+  use \HackUtils\tuple;
   function to_hex($string) {
     return \bin2hex($string);
   }
@@ -58,7 +62,7 @@ namespace HackUtils\str {
     return \explode($delimiter, $string, $limit);
   }
   function split_at($string, $offset) {
-    $offset = _fix_offset($string, $offset);
+    $offset = utils\fix_offset($offset, length($string));
     return array(slice($string, 0, $offset), slice($string, $offset));
   }
   function lines($string) {
@@ -206,7 +210,7 @@ namespace HackUtils\str {
     return math\sign($ret);
   }
   function find($haystack, $needle, $offset = 0, $caseInsensitive = false) {
-    $offset = _fix_offset($haystack, $offset);
+    $offset = utils\fix_offset($offset, length($haystack));
     $ret =
       \hacklib_cast_as_boolean($caseInsensitive)
         ? \stripos($haystack, $needle, $offset)
@@ -219,7 +223,7 @@ namespace HackUtils\str {
     $offset = 0,
     $caseInsensitive = false
   ) {
-    $offset = _fix_offset($haystack, $offset);
+    $offset = utils\fix_offset($offset, length($haystack));
     $ret =
       \hacklib_cast_as_boolean($caseInsensitive)
         ? \strripos($haystack, $needle, $offset)
@@ -227,7 +231,7 @@ namespace HackUtils\str {
     return ($ret === false) ? null : $ret;
   }
   function count($haystack, $needle, $offset = 0) {
-    $offset = _fix_offset($haystack, $offset);
+    $offset = utils\fix_offset($offset, length($haystack));
     return \substr_count($haystack, $needle, $offset);
   }
   function contains($haystack, $needle, $offset = 0) {
@@ -247,24 +251,5 @@ namespace HackUtils\str {
       return true;
     }
     return slice($string, -length($suffix)) === $suffix;
-  }
-  function _fix_offset($string, $offset) {
-    return _fix_bounds($offset, length($string));
-  }
-  function _fix_length($string, $offset, $length) {
-    return
-      _fix_bounds($length, length($string) - _fix_offset($string, $offset));
-  }
-  function _fix_bounds($num, $max) {
-    if ($num < 0) {
-      $num += $max;
-    }
-    if ($num < 0) {
-      return 0;
-    }
-    if ($num > $max) {
-      return $max;
-    }
-    return $num;
   }
 }

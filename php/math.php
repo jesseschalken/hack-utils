@@ -126,6 +126,9 @@ namespace HackUtils\math {
   function sqrt($arg) {
     return \sqrt($arg);
   }
+  function cmp($x, $y) {
+    return sign($x - $y);
+  }
   function intdiv($numerator, $divisor) {
     return \intdiv($numerator, $divisor);
   }

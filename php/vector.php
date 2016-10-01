@@ -40,7 +40,7 @@ namespace HackUtils\vector {
   function reverse($list) {
     return \array_reverse($list, false);
   }
-  function find($list, $value) {
+  function index_of($list, $value) {
     $ret = \array_search($list, $value, true);
     return ($ret === false) ? null : $ret;
   }
@@ -130,6 +130,15 @@ namespace HackUtils\vector {
   }
   function reduce($list, $f, $initial) {
     return \array_reduce($list, $f, $initial);
+  }
+  function reduce_right($list, $f, $value) {
+    for ($i = \count($list) - 1; $i >= 0; $i--) {
+      $value = $f($value, $list[$i]);
+    }
+    return $value;
+  }
+  function keys($array) {
+    return \array_keys($array);
   }
   function zip($a, $b) {
     $r = array();
