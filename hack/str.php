@@ -53,6 +53,18 @@ function trim_right(string $string, string $chars = TRIM_CHARS): string {
   return \rtrim($string, $chars);
 }
 
+function escape(string $string, string $chars): string {
+  if ($string === '')
+    return $string;
+  $string = tuple\fst(replace($string, '\\', '\\\\'));
+  $length = length($chars);
+  for ($i = 0; $i < $length; $i++) {
+    $char = $chars[$i];
+    $string = tuple\fst(replace($string, $char, '\\'.$char));
+  }
+  return $string;
+}
+
 function split(
   string $string,
   string $delimiter = '',
