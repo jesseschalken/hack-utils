@@ -68,6 +68,13 @@ function slice<T>(array<T> $list, int $offset, ?int $length = null): array<T> {
 }
 
 function get<T>(array<T> $v, int $i): T {
+  $l = \count($v);
+  if ($i < 0) {
+    $i += $l;
+  }
+  if ($i < 0 || $i >= $l) {
+    throw new \Exception("Index $i out of bounds in vector of length $l");
+  }
   return $v[$i];
 }
 
