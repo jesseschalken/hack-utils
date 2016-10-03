@@ -5,6 +5,7 @@ namespace HackUtils\map;
 use HackUtils\vector;
 use HackUtils\map;
 use HackUtils\set;
+use HackUtils as utils;
 use function HackUtils\new_null;
 
 type key = arraykey;
@@ -71,6 +72,18 @@ function column<Tk as key, Tv>(
 
 function combine<Tk, Tv>(array<Tk> $keys, array<Tv> $values): array<Tk, Tv> {
   return \array_combine($keys, $values);
+}
+
+function splice<Tk, Tv>(
+  array<Tk, Tv> $map,
+  int $offset,
+  ?int $length = null,
+  array<Tk, Tv> $replacement = [],
+): (array<Tk, Tv>, array<Tk, Tv>) {
+  $left = slice($map, 0, $offset);
+  $middle = slice($map, $offset, $length);
+  $right = $length !== null ? slice($map, $length) : [];
+  return tuple(\array_replace($left, $replacement, $right), $middle);
 }
 
 function separate<Tk, Tv>(array<Tk, Tv> $map): (array<Tk>, array<Tv>) {
@@ -145,9 +158,12 @@ function sort_keys<Tk, Tv>(
   ?(function(Tk, Tk): int) $cmp = null,
 ): array<Tk, Tv> {
   if ($cmp !== null) {
-    \uksort($map, $cmp);
+    $ret = \uksort($map, $cmp);
   } else {
-    \ksort($map, \SORT_STRING);
+    $ret = \ksort($map, \SORT_STRING);
+  }
+  if ($ret === false) {
+    throw new \Exception(($cmp ? 'ksort' : 'uksort').'() failed');
   }
   return $map;
 }
@@ -167,11 +183,57 @@ function filter<Tk, Tv>(
   return \array_filter($map, $f);
 }
 
+function filter_pairs<Tk, Tv>(
+  array<Tk, Tv> $map,
+  (function((Tk, Tv)): bool) $f,
+): array<Tk, Tv> {
+  foreach ($map as $k => $v) {
+    if (!$f(tuple($k, $v))) {
+      unset($map[$k]);
+    }
+  }
+  return $map;
+}
+
+function filter_keys<Tk, Tv>(
+  array<Tk, Tv> $map,
+  (function(Tk): bool) $f,
+): array<Tk, Tv> {
+  foreach ($map as $k => $v) {
+    if (!$f($k)) {
+      unset($map[$k]);
+    }
+  }
+  return $map;
+}
+
+function get_pair<Tk, Tv>(array<Tk, Tv> $array, int $offset): (Tk, Tv) {
+  $slice = slice($array, $offset, 1);
+  foreach ($slice as $k => $v) {
+    return tuple($k, $v);
+  }
+  throw new \Exception(
+    "Offset $offset out of bounds for array of size ".size($array),
+  );
+}
+
 function map<Tk, Tin, Tout>(
   array<Tk, Tin> $map,
   (function(Tin): Tout) $f,
 ): array<Tk, Tout> {
   return \array_map($f, $map);
+}
+
+function map_pairs<Tk1, Tv1, Tk2, Tv2>(
+  array<Tk1, Tv1> $map,
+  (function((Tk1, Tv1)): (Tk2, Tv2)) $f,
+): array<Tk2, Tv2> {
+  $res = [];
+  foreach ($map as $k => $v) {
+    list($k, $v) = $f(tuple($k, $v));
+    $res[$k] = $v;
+  }
+  return $res;
 }
 
 function reduce<Tin, Tout>(

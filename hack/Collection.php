@@ -14,30 +14,26 @@ abstract class Collection<T> {
 
   public abstract function add(T $item): void;
 
-  public function addAll(array<T> $items): void {
+  public function addArray(array<T> $items): void {
     foreach ($items as $item) {
       $this->add($item);
     }
   }
 
-  public final function size(): int {
-    return $this->length();
+  public function addAll(namespace\Collection<T> $items): void {
+    $this->addArray($items->unwrap());
   }
 
-  public function length(): int {
+  public function size(): int {
     return \count($this->unwrap());
   }
 
-  public function slice(
+  public abstract function slice(
     int $offset,
     ?int $length = null,
-  ): namespace\Collection<T> {
-    return static::wrap(vector\slice($this->unwrap(), $offset, $length));
-  }
+  ): namespace\Collection<T>;
 
-  public function reverse(): namespace\Collection<T> {
-    return static::wrap(vector\reverse($this->unwrap()));
-  }
+  public abstract function reverse(): namespace\Collection<T>;
 
   public function contains(T $value): bool {
     return vector\contains($this->unwrap(), $value);
@@ -51,16 +47,11 @@ abstract class Collection<T> {
     return vector\last_index_of($this->unwrap(), $value);
   }
 
-  public function splice(
+  public abstract function splice(
     int $offset,
     ?int $length = null,
     array<T> $replacement = [],
-  ): namespace\Collection<T> {
-    $array = $this->unwrap();
-    $result = \array_splice($array, $offset, $length, $replacement);
-    $this->setContents($array);
-    return static::wrap($result);
-  }
+  ): namespace\Collection<T>;
 
   public function shuffle(): void {
     $array = $this->unwrap();
@@ -108,14 +99,6 @@ abstract class Collection<T> {
     $this->setContents(\array_filter($this->unwrap(), $x ==> $x !== $value));
   }
 
-  public function skip(int $num): namespace\Collection<T> {
-    return $this->slice($num);
-  }
-
-  public function take(int $num): namespace\Collection<T> {
-    return $this->slice(0, $num);
-  }
-
   public function first(): T {
     $this->checkEmpty('get first element');
     return $this->get(0);
@@ -123,16 +106,16 @@ abstract class Collection<T> {
 
   public function last(): T {
     $this->checkEmpty('get last element');
-    return $this->get($this->length() - 1);
+    return $this->get($this->size() - 1);
   }
 
   public function map<T2>((function(T): T2) $f): namespace\Vector<T2> {
     return namespace\Vector::wrap(vector\map($this->unwrap(), $f));
   }
 
-  public function filter((function(T): bool) $f): namespace\Collection<T> {
-    return static::wrap(vector\filter($this->unwrap(), $f));
-  }
+  public abstract function filter(
+    (function(T): bool) $f,
+  ): namespace\Collection<T>;
 
   public function reduce<Tout>(
     (function(Tout, T): Tout) $f,
@@ -149,7 +132,7 @@ abstract class Collection<T> {
   }
 
   public function isEmpty(): bool {
-    return !$this->length();
+    return !$this->size();
   }
 
   public abstract function unwrap(): array<T>;
@@ -163,10 +146,10 @@ abstract class Collection<T> {
   }
 
   protected function checkBounds(int $index): void {
-    $length = $this->length();
-    if ($index < 0 || $index >= $length) {
+    $size = $this->size();
+    if ($index < 0 || $index >= $size) {
       throw new \Exception(
-        "Collection index $index out of bounds in collection with length $length",
+        "Collection index $index out of bounds in collection with size $size",
       );
     }
   }
@@ -181,12 +164,30 @@ class Vector<T> extends namespace\Collection<T> {
   private function __construct(private array<T> $array = []) {}
 
   <<__Override>>
+  public function filter((function(T): bool) $f): namespace\Vector<T> {
+    return new self(vector\filter($this->array, $f));
+  }
+
+  <<__Override>>
+  public function reverse(): namespace\Vector<T> {
+    return new self(vector\reverse($this->array));
+  }
+
+  <<__Override>>
+  public function slice(
+    int $offset = 0,
+    ?int $length = null,
+  ): namespace\Vector<T> {
+    return new self(vector\slice($this->array, $offset, $length));
+  }
+
+  <<__Override>>
   public function add(T $value): void {
     $this->push($value);
   }
 
   <<__Override>>
-  public function addAll(array<T> $array): void {
+  public function addArray(array<T> $array): void {
     $this->append($array);
   }
 
@@ -277,7 +278,7 @@ class Vector<T> extends namespace\Collection<T> {
   }
 }
 
-class Set<T> extends namespace\Collection<T> {
+class Set<T as arraykey> extends namespace\Collection<T> {
   <<__Override>>
   public static function wrap(array<T> $array): namespace\Set<T> {
     return new self(\array_fill_keys($array, true));
@@ -285,16 +286,32 @@ class Set<T> extends namespace\Collection<T> {
 
   private function __construct(private array<T, mixed> $array = []) {}
 
+  public function addAll(namespace\Collection<T> $values): void {
+    if ($values instanceof self) {
+      $this->array = set\union($this->array, $values->array);
+      return;
+    }
+
+    parent::addAll($values);
+  }
+
+  public function splice(
+    int $offset,
+    ?int $length = null,
+    array<T> $replacement = [],
+  ): namespace\Set<T> {
+    list($this->array, $return) =
+      map\splice($this->array, $offset, $length, set\create($replacement));
+    return new self($return);
+  }
+
+  public function filter((function(T): bool) $f): namespace\Set<T> {
+    return new self(map\filter_keys($this->array, $f));
+  }
+
   <<__Override>>
   public function get(int $index): T {
-    $this->checkBounds($index);
-    // Slicing is probably the fastest/easiest way to get the key at a given
-    // index
-    $piece = \array_slice($this->array, $index, 1, true);
-    foreach ($piece as $k => $v) {
-      return $k;
-    }
-    throw new \Exception();
+    return pair\fst(map\get_pair($this->array, $index));
   }
 
   <<__Override>>
@@ -313,13 +330,13 @@ class Set<T> extends namespace\Collection<T> {
   }
 
   <<__Override>>
-  public function length(): int {
+  public function size(): int {
     return \count($this->array);
   }
 
   <<__Override>>
   public function reverse(): namespace\Set<T> {
-    return new self(\array_reverse($this->array, true));
+    return new self(set\reverse($this->array));
   }
 
   <<__Override>>
@@ -332,35 +349,69 @@ class Set<T> extends namespace\Collection<T> {
 
   <<__Override>>
   public function slice(int $offset, ?int $length = null): namespace\Set<T> {
-    return new self(\array_slice($this->array, $offset, $length, true));
+    return new self(map\slice($this->array, $offset, $length));
   }
 
   <<__Override>>
   public function setContents(array<T> $array): void {
-    $this->array = \array_fill_keys($array, true);
+    $this->array = set\create($array);
   }
 
   <<__Override>>
   public function unwrap(): array<T> {
-    return \array_keys($this->array);
+    return set\values($this->array);
+  }
+
+  public function toArray(): array<T> {
+    return $this->unwrap();
   }
 }
 
-class Map<Tk, Tv> extends namespace\Collection<(Tk, Tv)> {
+class Map<Tk as arraykey, Tv> extends namespace\Collection<(Tk, Tv)> {
   public static function wrap(array<(Tk, Tv)> $array): namespace\Map<Tk, Tv> {
     return new self(map\from_pairs($array));
   }
 
   private function __construct(private array<Tk, Tv> $array = []) {}
 
+  public function addAll(namespace\Collection<(Tk, Tv)> $items): void {
+    if ($items instanceof self) {
+      $this->array = map\union($this->array, $items->array);
+      return;
+    }
+
+    parent::addAll($items);
+  }
+
+  public function splice(
+    int $offset,
+    ?int $length = 0,
+    array<(Tk, Tv)> $replacement = [],
+  ): namespace\Map<Tk, Tv> {
+    list($this->array, $return) = map\splice(
+      $this->array,
+      $offset,
+      $length,
+      map\from_pairs($replacement),
+    );
+    return new self($return);
+  }
+
   <<__Override>>
-  public function length(): int {
+  public function filter(
+    (function((Tk, Tv)): bool) $f,
+  ): namespace\Map<Tk, Tv> {
+    return new self(map\filter_pairs($this->array, $f));
+  }
+
+  <<__Override>>
+  public function size(): int {
     return \count($this->array);
   }
 
   <<__Override>>
   public function reverse(): namespace\Map<Tk, Tv> {
-    return new self(\array_reverse($this->array));
+    return new self(map\reverse($this->array));
   }
 
   <<__Override>>
@@ -371,6 +422,9 @@ class Map<Tk, Tv> extends namespace\Collection<(Tk, Tv)> {
 
   <<__Override>>
   public function get(int $index): (Tk, Tv) {
+    if ($index < 0) {
+      $index += $this->size();
+    }
     $this->checkBounds($index);
     $piece = map\slice($this->array, $index, 1);
     foreach ($piece as $k => $v) {
@@ -384,7 +438,11 @@ class Map<Tk, Tv> extends namespace\Collection<(Tk, Tv)> {
     int $offset,
     ?int $length = null,
   ): namespace\Map<Tk, Tv> {
-    return new self(\array_slice($this->array, $offset, $length));
+    return new self(map\slice($this->array, $offset, $length));
+  }
+
+  public function assign(Tk $key, Tv $value): void {
+    $this->array[$key] = $value;
   }
 
   public function firstKey(): Tk {
@@ -411,30 +469,38 @@ class Map<Tk, Tv> extends namespace\Collection<(Tk, Tv)> {
     return \in_array($value, $this->array, true);
   }
 
-  public function lookup(Tk $key): Tv {
+  public function fetch(Tk $key): Tv {
     return $this->array[$key];
   }
 
-  public function lookupSoft(Tk $key): ?Tv {
+  public function fetchOrNull(Tk $key): ?Tv {
     return map\soft_get($this->array, $key);
   }
 
-  public function lookupDefault<T super Tv>(Tk $key, T $value): T {
+  public function fetchOrDefault<T super Tv>(Tk $key, T $value): T {
     return map\get_default($this->array, $key, $value);
+  }
+
+  public function deleteKey(Tk $key): void {
+    unset($this->array[$key]);
+  }
+
+  public function toArray(): array<Tk, Tv> {
+    return $this->array;
   }
 
   <<__Override>>
   public function contains((Tk, Tv) $pair): bool {
     list($key, $value) = $pair;
-    return $this->containsKey($key) && $this->lookup($key) === $value;
+    return $this->containsKey($key) && $this->fetch($key) === $value;
   }
 
-  public function keys(): array<Tk> {
-    return map\keys($this->array);
+  public function keys(): namespace\Vector<Tk> {
+    return namespace\Vector::wrap(map\keys($this->array));
   }
 
-  public function values(): array<Tv> {
-    return map\values($this->array);
+  public function values(): namespace\Vector<Tv> {
+    return namespace\Vector::wrap(map\values($this->array));
   }
 
   public function unwrap(): array<(Tk, Tv)> {
@@ -457,6 +523,12 @@ class Map<Tk, Tv> extends namespace\Collection<(Tk, Tv)> {
 
   public function setContents(array<(Tk, Tv)> $pairs): void {
     $this->array = map\from_pairs($pairs);
+  }
+
+  public function mapPairs<Tk2 as arraykey, Tv2>(
+    (function((Tk, Tv)): (Tk2, Tv2)) $f,
+  ): namespace\Map<Tk2, Tv2> {
+    return new self(map\map_pairs($this->array, $f));
   }
 
   public function mapValues<Tout>(

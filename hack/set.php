@@ -12,7 +12,7 @@ function create<T as value>(array<T> $values = []): array<T, mixed> {
   return $values ? \array_fill_keys($values, true) : [];
 }
 
-function values<T as value>(array<T, mixed> $set): array<value> {
+function values<T as value>(array<T, mixed> $set): array<T> {
   return \array_keys($set);
 }
 
