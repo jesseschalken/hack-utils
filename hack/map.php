@@ -99,7 +99,7 @@ function keys<Tk>(array<Tk, mixed> $map): array<Tk> {
   return \array_keys($map);
 }
 
-function values<Tv>(map<Tv> $map): array<Tv> {
+function values<Tv>(array<mixed, Tv> $map): array<Tv> {
   return \array_values($map);
 }
 
@@ -132,11 +132,11 @@ function slice<Tk, Tv>(
   return \array_slice($map, $offset, $length, true);
 }
 
-function size(map<mixed> $map): int {
+function size(array<mixed, mixed> $map): int {
   return \count($map);
 }
 
-function contains<T>(map<T> $map, T $value): bool {
+function contains<T>(array<mixed, T> $map, T $value): bool {
   return \in_array($value, $map, true);
 }
 
@@ -175,7 +175,7 @@ function map<Tk, Tin, Tout>(
 }
 
 function reduce<Tin, Tout>(
-  map<Tin> $map,
+  array<mixed, Tin> $map,
   (function(Tout, Tin): Tout) $f,
   Tout $initial,
 ): Tout {

@@ -8,7 +8,7 @@ use HackUtils\map;
 use HackUtils\set;
 use HackUtils\str;
 use HackUtils\math;
-use HackUtils\tuple;
+use HackUtils\pair;
 
 function to_hex(string $string): string {
   return \bin2hex($string);
@@ -56,11 +56,11 @@ function trim_right(string $string, string $chars = TRIM_CHARS): string {
 function escape(string $string, string $chars): string {
   if ($string === '')
     return $string;
-  $string = tuple\fst(replace($string, '\\', '\\\\'));
+  $string = pair\fst(replace($string, '\\', '\\\\'));
   $length = length($chars);
   for ($i = 0; $i < $length; $i++) {
     $char = $chars[$i];
-    $string = tuple\fst(replace($string, $char, '\\'.$char));
+    $string = pair\fst(replace($string, $char, '\\'.$char));
   }
   return $string;
 }

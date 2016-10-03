@@ -1,6 +1,6 @@
 <?hh // strict
 
-namespace HackUtils\tuple;
+namespace HackUtils\pair;
 
 use HackUtils\vector;
 use HackUtils\key;

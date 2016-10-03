@@ -5,6 +5,7 @@ namespace HackUtils\vector;
 use HackUtils\vector;
 use HackUtils\map;
 use HackUtils\set;
+use HackUtils as utils;
 
 function is_vector(mixed $x): bool {
   if (!\is_array($x)) {
@@ -50,6 +51,16 @@ function reverse<T>(array<T> $list): array<T> {
 function index_of<T>(array<T> $list, T $value): ?int {
   $ret = \array_search($list, $value, true);
   return $ret === false ? null : $ret;
+}
+
+function last_index_of<T>(array<T> $list, T $value): ?int {
+  $ret = utils\new_null();
+  foreach ($list as $k => $v) {
+    if ($v === $value) {
+      $ret = $k;
+    }
+  }
+  return $ret;
 }
 
 function slice<T>(array<T> $list, int $offset, ?int $length = null): array<T> {

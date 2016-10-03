@@ -17,7 +17,7 @@ const string EXTRA = 'X';
 const string UTF8 = 'u';
 const string STUDY = 'S';
 
-type match = map<(string, int)>;
+type match = array<arraykey, (string, int)>;
 
 function quote(string $text): string {
   return \preg_quote($text);
@@ -108,7 +108,7 @@ function _compose(string $regex, string $options = ''): string {
 }
 
 final class _EscapeCache {
-  private static map<string> $cache = [];
+  private static array<arraykey, string> $cache = [];
 
   public static function escape(string $regex): string {
     $escaped = map\soft_get(self::$cache, $regex);
