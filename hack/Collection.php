@@ -18,10 +18,10 @@ interface IConstCollection<+T> {
     ?int $length = null,
   ): IConstCollection<T>;
 
-  public function chunk(int $size): array<IConstCollection<T>>;
+  public function chunk(int $size): IConstVector<IConstCollection<T>>;
 
   public function filter(fun1<T, bool> $f): IConstCollection<T>;
-  public function map<Tr>(fun1<T, Tr> $f): array<Tr>;
+  public function map<Tr>(fun1<T, Tr> $f): ArrayVector<Tr>;
   public function reduce<Tr>(fun2<Tr, T, Tr> $f, Tr $initial): Tr;
 
   public function contains(mixed $value): bool;
@@ -94,7 +94,7 @@ interface IConstVector<+T> extends IConstCollection<T> {
   ): IConstVector<T2>;
 }
 
-interface IVector<T> extends ICollection<T> {
+interface IVector<T> extends ICollection<T>, IConstVector<T> {
   public function append(IConstCollection<T> $values): void;
   public function prepend(IConstCollection<T> $values): void;
   public function push(T $value): void;
@@ -105,6 +105,12 @@ interface IVector<T> extends ICollection<T> {
 
 final class ArrayVector<T> implements IVector<T> {
   private function __construct(private array<T> $array = []) {}
+
+  public function concat<T2 super T>(
+    IConstCollection<T2> $values,
+  ): ArrayVector<T2> {
+    return new self(vector\concat($this->array, $values->toArray()));
+  }
 
   public function equals(IConstCollection<mixed> $values): bool {
     return $values === $this || $this->array === $values->toArray();
@@ -126,10 +132,12 @@ final class ArrayVector<T> implements IVector<T> {
     $this->array = vector\concat($this->array, $values->toArray());
   }
 
-  public function chunk(int $size): array<ArrayVector<T>> {
-    return vector\map(
-      vector\chunk($this->array, $size),
-      $chunk ==> new self($chunk),
+  public function chunk(int $size): ArrayVector<ArrayVector<T>> {
+    return new self(
+      vector\map(
+        vector\chunk($this->array, $size),
+        $chunk ==> new self($chunk),
+      ),
     );
   }
 
@@ -174,8 +182,8 @@ final class ArrayVector<T> implements IVector<T> {
     return vector\length($this->array);
   }
 
-  public function map<Tr>(fun1<T, Tr> $f): array<Tr> {
-    return vector\map($this->array, $f);
+  public function map<Tr>(fun1<T, Tr> $f): ArrayVector<Tr> {
+    return new self(vector\map($this->array, $f));
   }
 
   public function remove(T $value): void {
