@@ -104,7 +104,7 @@ interface IVector<T> extends ICollection<T>, IConstVector<T> {
 }
 
 final class ArrayVector<T> implements IVector<T> {
-  private function __construct(private array<T> $array = []) {}
+  public function __construct(private array<T> $array = []) {}
 
   public function concat<T2 super T>(
     IConstCollection<T2> $values,
@@ -292,4 +292,110 @@ final class ArrayVector<T> implements IVector<T> {
   public function unshift(T $value): void {
     \array_unshift($this->array, $value);
   }
+}
+
+abstract class _ArrayMapBase<Tk, Tv, Tak as arraykey, Tav>
+  implements IMap<Tk, Tv> {
+  private array<Tak, Tav> $array = [];
+
+  public function add((Tk, Tv) $pair): void {
+    list($key, $value) = $pair;
+    $this->assign($key, $value);
+  }
+
+  public function addAll(IConstCollection<(Tk, Tv)> $values): void {
+    foreach ($values->toArray() as $pair) {
+      $this->add($pair);
+    }
+  }
+
+  public function assign(Tk $key, Tv $value): void {
+    $this->array[$this->makeKey($key)] = $this->makeValue($key, $value);
+  }
+
+  public function chunk(int $size): ArrayVector<IMap<Tk, Tv>> {
+    return new ArrayVector(
+      vector\map(
+        map\chunk($this->array, $size),
+        function($chunk) {
+          return $this->makeSelf($chunk);
+        },
+      ),
+    );
+  }
+
+  public function clear(): void {
+    $this->array = [];
+  }
+
+  // public function contains((Tk, Tv) $pair): bool {
+  //   list($key, $value) = $pair;
+  //   return $this->exists($key) && $this->fetch($key) === $value;
+  // }
+
+  // public function exists(Tk $key): bool {
+  //   return map\has_key($this->array, $this->makeKey($key));
+  // }
+
+  // public function fetch(Tk $key): Tv {
+  //   $key = $this->makeKey($key);
+  //   return $this->getValue($key, map\get($this->array, $key));
+  // }
+
+  // public function containsAll(IConstCollection<(Tk, Tv)> $pairs): bool {
+  //   foreach ($pairs->toArray() as $pair) {
+  //     if (!$this->contains($pair)) {
+  //       return false;
+  //     }
+  //   }
+  //   return true;
+  // }
+
+  public function delete(int $i): void {
+    $this->array = pair\fst(map\splice($this->array, $i, 1));
+  }
+
+  public function equals(IConstCollection<mixed> $values): bool {
+    return $values === $this || $this->toArray() === $values->toArray();
+  }
+
+  public function toArray(): array<(Tk, Tv)> {
+    $ret = [];
+    foreach ($this->array as $k => $v) {
+      $ret[] = tuple($this->getKey($k, $v), $this->getValue($k, $v));
+    }
+    return $ret;
+  }
+
+  // public function fetchOrDefault<T2 super Tv>(Tk $key, T2 $default): T2 {
+  //   $key = $this->makeKey($key);
+  //   if (!map\has_key($this->array, $key)) {
+  //     return $default;
+  //   }
+  //   return $this->getValue($key, $this->array[$key]);
+  // }
+
+  // public function fetchOrNull(Tk $key): ?Tv {
+  //   return $this->fetchOrDefault($key, null);
+  // }
+
+  public function filter(fun1<(Tk, Tv), bool> $f): IMap<Tk, Tv> {
+    $self = $this->makeSelf([]);
+    $self->fromArray(vector\filter($this->toArray(), $f));
+    return $self;
+  }
+
+  public function fromArray(array<(Tk, Tv)> $array): void {
+    $this->array = [];
+    foreach ($array as $pair) {
+      list($key, $value) = $pair;
+      $this->array[$this->makeKey($key)] = $this->makeValue($key, $value);
+    }
+  }
+
+  protected abstract function makeKey(Tk $key): Tak;
+  protected abstract function makeValue(Tk $key, Tv $value): Tav;
+  protected abstract function getKey(Tak $arrayKey, Tav $arrayValue): Tk;
+  protected abstract function getValue(Tak $arrayKey, Tav $arrayValue): Tv;
+  protected abstract function makeSelf(array<Tak, Tav> $array): IMap<Tk, Tv>;
 }
