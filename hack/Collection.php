@@ -29,6 +29,8 @@ interface IConstCollection<+T> {
 
   public function indexOf(mixed $value): ?int;
   public function lastIndexOf(mixed $value): ?int;
+
+  public function equals(IConstCollection<mixed> $values): bool;
 }
 
 /**
@@ -103,6 +105,10 @@ interface IVector<T> extends ICollection<T> {
 
 final class ArrayVector<T> implements IVector<T> {
   private function __construct(private array<T> $array = []) {}
+
+  public function equals(IConstCollection<mixed> $values): bool {
+    return $values === $this || $this->array === $values->toArray();
+  }
 
   public function clear(): void {
     $this->array = [];
