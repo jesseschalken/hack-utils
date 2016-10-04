@@ -4,6 +4,7 @@ namespace HackUtils\vector {
   use \HackUtils\vector;
   use \HackUtils\map;
   use \HackUtils\set;
+  use \HackUtils as utils;
   function is_vector($x) {
     if (!\hacklib_cast_as_boolean(\is_array($x))) {
       return false;
@@ -44,10 +45,28 @@ namespace HackUtils\vector {
     $ret = \array_search($list, $value, true);
     return ($ret === false) ? null : $ret;
   }
+  function last_index_of($list, $value) {
+    $ret = utils\new_null();
+    foreach ($list as $k => $v) {
+      if ($v === $value) {
+        $ret = $k;
+      }
+    }
+    return $ret;
+  }
   function slice($list, $offset, $length = null) {
     return \array_slice($list, $offset, $length);
   }
   function get($v, $i) {
+    $l = \count($v);
+    if ($i < 0) {
+      $i += $l;
+    }
+    if (($i < 0) || ($i >= $l)) {
+      throw new \Exception(
+        "Index ".$i." out of bounds in vector of length ".$l
+      );
+    }
     return $v[$i];
   }
   function set($v, $i, $x) {

@@ -7,7 +7,7 @@ namespace HackUtils\str {
   use \HackUtils\set;
   use \HackUtils\str;
   use \HackUtils\math;
-  use \HackUtils\tuple;
+  use \HackUtils\pair;
   function to_hex($string) {
     return \bin2hex($string);
   }
@@ -40,6 +40,18 @@ namespace HackUtils\str {
   }
   function trim_right($string, $chars = TRIM_CHARS) {
     return \rtrim($string, $chars);
+  }
+  function escape($string, $chars) {
+    if ($string === "") {
+      return $string;
+    }
+    $string = pair\fst(replace($string, "\\", "\\\\"));
+    $length = length($chars);
+    for ($i = 0; $i < $length; $i++) {
+      $char = $chars[$i];
+      $string = pair\fst(replace($string, $char, "\\".$char));
+    }
+    return $string;
   }
   function split($string, $delimiter = "", $limit = 0x7FFFFFFF) {
     if ($limit < 1) {

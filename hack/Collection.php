@@ -136,7 +136,9 @@ final class ArrayVector<T> implements IVector<T> {
     return new self(
       vector\map(
         vector\chunk($this->array, $size),
-        $chunk ==> new self($chunk),
+        function($chunk) {
+          return new ArrayVector($chunk);
+        },
       ),
     );
   }

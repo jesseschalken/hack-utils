@@ -4,6 +4,7 @@ namespace HackUtils\map {
   use \HackUtils\vector;
   use \HackUtils\map;
   use \HackUtils\set;
+  use \HackUtils as utils;
   use function \HackUtils\new_null;
   function to_pairs($map) {
     $r = array();
@@ -57,6 +58,12 @@ namespace HackUtils\map {
   function combine($keys, $values) {
     return \array_combine($keys, $values);
   }
+  function splice($map, $offset, $length = null, $replacement = array()) {
+    $left = slice($map, 0, $offset);
+    $middle = slice($map, $offset, $length);
+    $right = ($length !== null) ? slice($map, $length) : array();
+    return array(\array_replace($left, $replacement, $right), $middle);
+  }
   function separate($map) {
     $ks = array();
     $vs = array();
@@ -108,9 +115,14 @@ namespace HackUtils\map {
   }
   function sort_keys($map, $cmp = null) {
     if ($cmp !== null) {
-      \uksort($map, $cmp);
+      $ret = \uksort($map, $cmp);
     } else {
-      \ksort($map, \SORT_STRING);
+      $ret = \ksort($map, \SORT_STRING);
+    }
+    if ($ret === false) {
+      throw new \Exception(
+        (\hacklib_cast_as_boolean($cmp) ? "ksort" : "uksort")."() failed"
+      );
     }
     return $map;
   }
@@ -121,8 +133,41 @@ namespace HackUtils\map {
   function filter($map, $f) {
     return \array_filter($map, $f);
   }
+  function filter_pairs($map, $f) {
+    foreach ($map as $k => $v) {
+      if (!\hacklib_cast_as_boolean($f(array($k, $v)))) {
+        unset($map[$k]);
+      }
+    }
+    return $map;
+  }
+  function filter_keys($map, $f) {
+    foreach ($map as $k => $v) {
+      if (!\hacklib_cast_as_boolean($f($k))) {
+        unset($map[$k]);
+      }
+    }
+    return $map;
+  }
+  function get_pair($array, $offset) {
+    $slice = slice($array, $offset, 1);
+    foreach ($slice as $k => $v) {
+      return array($k, $v);
+    }
+    throw new \Exception(
+      "Offset ".$offset." out of bounds for array of size ".size($array)
+    );
+  }
   function map($map, $f) {
     return \array_map($f, $map);
+  }
+  function map_pairs($map, $f) {
+    $res = array();
+    foreach ($map as $k => $v) {
+      list($k, $v) = $f(array($k, $v));
+      $res[$k] = $v;
+    }
+    return $res;
   }
   function reduce($map, $f, $initial) {
     return \array_reduce($map, $f, $initial);
