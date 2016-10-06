@@ -5,6 +5,9 @@ namespace HackUtils\vector {
   use \HackUtils\map;
   use \HackUtils\set;
   use \HackUtils as utils;
+  use \HackUtils\fun2;
+  use \HackUtils\fun1;
+  use \HackUtils\fun0;
   function is_vector($x) {
     if (!\hacklib_cast_as_boolean(\is_array($x))) {
       return false;

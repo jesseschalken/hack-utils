@@ -153,7 +153,6 @@ namespace HackUtils\str {
     return \explode($delimiter, $string, $limit);
   }
   function split_at($string, $offset) {
-    $offset = utils\fix_offset($offset, length($string));
     return array(slice($string, 0, $offset), slice($string, $offset));
   }
   function lines($string) {
@@ -317,7 +316,6 @@ namespace HackUtils\str {
     return math\sign($ret);
   }
   function find($haystack, $needle, $offset = 0, $caseInsensitive = false) {
-    $offset = utils\fix_offset($offset, length($haystack));
     $ret =
       \hacklib_cast_as_boolean($caseInsensitive)
         ? \stripos($haystack, $needle, $offset)
@@ -330,7 +328,6 @@ namespace HackUtils\str {
     $offset = 0,
     $caseInsensitive = false
   ) {
-    $offset = utils\fix_offset($offset, length($haystack));
     $ret =
       \hacklib_cast_as_boolean($caseInsensitive)
         ? \strripos($haystack, $needle, $offset)
@@ -338,7 +335,6 @@ namespace HackUtils\str {
     return ($ret === false) ? null : $ret;
   }
   function count($haystack, $needle, $offset = 0) {
-    $offset = utils\fix_offset($offset, length($haystack));
     return \substr_count($haystack, $needle, $offset);
   }
   function contains($haystack, $needle, $offset = 0) {

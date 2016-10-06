@@ -5,7 +5,16 @@ namespace HackUtils\map {
   use \HackUtils\map;
   use \HackUtils\set;
   use \HackUtils as utils;
+  use \HackUtils\fun2;
+  use \HackUtils\fun1;
+  use \HackUtils\fun0;
   use function \HackUtils\new_null;
+  function keys_to_lower($array) {
+    return \array_change_key_case($array, \CASE_LOWER);
+  }
+  function keys_to_uppper($array) {
+    return \array_change_key_case($array, \CASE_UPPER);
+  }
   function to_pairs($map) {
     $r = array();
     foreach ($map as $k => $v) {
@@ -42,13 +51,13 @@ namespace HackUtils\map {
       \hacklib_cast_as_boolean(has_key($map, $key)) ? $map[$key] : $default;
   }
   function fixkey($key) {
-    return (string) $key;
+    return $key."";
   }
   function fixkeys($keys) {
     return vector\map(
       $keys,
       function($key) {
-        return (string) $key;
+        return $key."";
       }
     );
   }
@@ -73,17 +82,32 @@ namespace HackUtils\map {
     }
     return array($ks, $vs);
   }
-  function fill_keys($keys, $value) {
+  function from_keys($keys, $value) {
     return \array_fill_keys($keys, $value);
   }
-  function flip($map) {
+  function flip_last($map) {
     return \array_flip($map);
+  }
+  function flip($map) {
+    $ret = of_vectors();
+    foreach ($map as $k => $v) {
+      $ret[$v][] = $k;
+    }
+    return $ret;
   }
   function has_key($map, $key) {
     return \array_key_exists($key, $map);
   }
   function keys($map) {
     return \array_keys($map);
+  }
+  function keys_strings($map) {
+    return vector\map(
+      keys($map),
+      function($k) {
+        return "".$k;
+      }
+    );
   }
   function values($map) {
     return \array_values($map);
@@ -96,6 +120,12 @@ namespace HackUtils\map {
   }
   function union_all($maps) {
     return \call_user_func_array("array_replace", $maps);
+  }
+  function intersect($a, $b) {
+    return \array_intersect_key($a, $b);
+  }
+  function diff($a, $b) {
+    return \array_intersect_key($a, $b);
   }
   function reverse($map) {
     return \array_reverse($map, true);
@@ -126,11 +156,14 @@ namespace HackUtils\map {
     }
     return $map;
   }
-  function sort($map, $cmp) {
+  function sort_values($map, $cmp) {
     \uasort($map, $cmp);
     return $map;
   }
-  function filter($map, $f) {
+  function sort_pairs($map, $cmp) {
+    return from_pairs(vector\sort(to_pairs($map), $cmp));
+  }
+  function filter_values($map, $f) {
     return \array_filter($map, $f);
   }
   function filter_pairs($map, $f) {
@@ -150,16 +183,22 @@ namespace HackUtils\map {
     return $map;
   }
   function get_pair($array, $offset) {
-    $slice = slice($array, $offset, 1);
-    foreach ($slice as $k => $v) {
+    foreach (slice($array, $offset, 1) as $k => $v) {
       return array($k, $v);
     }
     throw new \Exception(
       "Offset ".$offset." out of bounds for array of size ".size($array)
     );
   }
-  function map($map, $f) {
+  function map_values($map, $f) {
     return \array_map($f, $map);
+  }
+  function map_keys($map, $f) {
+    $ret = array();
+    foreach ($map as $k => $v) {
+      $ret[$f($k)] = $v;
+    }
+    return $ret;
   }
   function map_pairs($map, $f) {
     $res = array();
@@ -169,8 +208,14 @@ namespace HackUtils\map {
     }
     return $res;
   }
-  function reduce($map, $f, $initial) {
+  function reduce_values($map, $f, $initial) {
     return \array_reduce($map, $f, $initial);
+  }
+  function reduce_keys($map, $f, $initial) {
+    return vector\reduce(keys($map), $f, $initial);
+  }
+  function reduce_pairs($map, $f, $initial) {
+    return vector\reduce(to_pairs($map), $f, $initial);
   }
   function select($map, $keys) {
     return vector\map(
