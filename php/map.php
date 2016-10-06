@@ -95,6 +95,15 @@ namespace HackUtils\map {
     }
     return $ret;
   }
+  function unflip($map) {
+    $ret = array();
+    foreach ($map as $k => $v) {
+      foreach ($v as $v2) {
+        $ret[$v2] = $k;
+      }
+    }
+    return $ret;
+  }
   function has_key($map, $key) {
     return \array_key_exists($key, $map);
   }

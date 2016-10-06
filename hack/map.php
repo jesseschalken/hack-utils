@@ -121,6 +121,18 @@ function flip<Tk as key, Tv as key>(array<Tk, Tv> $map): array<Tv, array<Tk>> {
   return $ret;
 }
 
+function unflip<Tk as key, Tv as key>(
+  array<Tv, array<Tk>> $map,
+): array<Tk, Tv> {
+  $ret = [];
+  foreach ($map as $k => $v) {
+    foreach ($v as $v2) {
+      $ret[$v2] = $k;
+    }
+  }
+  return $ret;
+}
+
 function has_key<Tk>(array<Tk, mixed> $map, Tk $key): bool {
   return \array_key_exists($key, $map);
 }
