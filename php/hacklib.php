@@ -23,7 +23,7 @@ function hacklib_nullsafe($v) {
   }
   return $v;
 }
-class _HackLibNullObj {
+final class _HackLibNullObj {
   public static $instance;
   public function __call($method, $arguments) {
     return null;

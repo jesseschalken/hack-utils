@@ -28,7 +28,7 @@ function hacklib_nullsafe(mixed $v): mixed {
   return $v;
 }
 
-class _HackLibNullObj {
+final class _HackLibNullObj {
   public static ?_HackLibNullObj $instance;
   public function __call(string $method, array<mixed> $arguments): mixed {
     return null;
