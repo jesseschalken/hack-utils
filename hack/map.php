@@ -11,6 +11,14 @@ use function HackUtils\new_null;
 
 type key = arraykey;
 
+function keys_to_lower<Tk, Tv>(array<Tk, Tv> $array): array<Tk, Tv> {
+  return \array_change_key_case($array, \CASE_LOWER);
+}
+
+function keys_to_uppper<Tk, Tv>(array<Tk, Tv> $array): array<Tk, Tv> {
+  return \array_change_key_case($array, \CASE_UPPER);
+}
+
 function to_pairs<Tk, Tv>(array<Tk, Tv> $map): array<(Tk, Tv)> {
   $r = [];
   foreach ($map as $k => $v) {
@@ -57,11 +65,11 @@ function get_default<Tk, Tv>(array<Tk, Tv> $map, Tk $key, Tv $default): Tv {
  * ints. Use this function to convert them back.
  */
 function fixkey(key $key): string {
-  return (string) $key;
+  return $key.'';
 }
 
 function fixkeys(array<key> $keys): array<string> {
-  return vector\map($keys, $key ==> (string) $key);
+  return vector\map($keys, $key ==> $key.'');
 }
 
 function column<Tk as key, Tv>(
@@ -97,12 +105,20 @@ function separate<Tk, Tv>(array<Tk, Tv> $map): (array<Tk>, array<Tv>) {
   return tuple($ks, $vs);
 }
 
-function fill_keys<Tk, Tv>(array<Tk> $keys, Tv $value): array<Tk, Tv> {
+function from_keys<Tk, Tv>(array<Tk> $keys, Tv $value): array<Tk, Tv> {
   return \array_fill_keys($keys, $value);
 }
 
-function flip<Tk as key, Tv as key>(array<Tk, Tv> $map): array<Tv, Tk> {
+function flip_last<Tk as key, Tv as key>(array<Tk, Tv> $map): array<Tv, Tk> {
   return \array_flip($map);
+}
+
+function flip<Tk as key, Tv as key>(array<Tk, Tv> $map): array<Tv, array<Tk>> {
+  $ret = of_vectors();
+  foreach ($map as $k => $v) {
+    $ret[$v][] = $k;
+  }
+  return $ret;
 }
 
 function has_key<Tk>(array<Tk, mixed> $map, Tk $key): bool {
@@ -113,6 +129,10 @@ function keys<Tk>(array<Tk, mixed> $map): array<Tk> {
   return \array_keys($map);
 }
 
+function keys_strings(array<key, mixed> $map): array<string> {
+  return vector\map(keys($map), $k ==> ''.$k);
+}
+
 function values<Tv>(array<mixed, Tv> $map): array<Tv> {
   return \array_values($map);
 }
@@ -121,12 +141,40 @@ function value_keys<Tk, Tv>(array<Tk, Tv> $map, Tv $value): array<Tk> {
   return \array_keys($map, $value, true);
 }
 
+/**
+ * If a key exists in both arrays, the value from the second array is used.
+ */
 function union<Tk, Tv>(array<Tk, Tv> $a, array<Tk, Tv> $b): array<Tk, Tv> {
   return \array_replace($a, $b);
 }
 
+/**
+ * If a key exists in multiple arrays, the value from the later array is used.
+ */
 function union_all<Tk, Tv>(array<array<Tk, Tv>> $maps): array<Tk, Tv> {
   return \call_user_func_array('array_replace', $maps);
+}
+
+/**
+ * Returns an array with only keys that exist in both arrays, using values from
+ * the first array.
+ */
+function intersect<Tk as key, Tv>(
+  array<Tk, Tv> $a,
+  array<Tk, Tv> $b,
+): array<Tk, Tv> {
+  return \array_intersect_key($a, $b);
+}
+
+/**
+ * Returns an array with keys that exist in the first arrau but not the second,
+ * using values from the first array.
+ */
+function diff<Tk as key, Tv>(
+  array<Tk, Tv> $a,
+  array<Tk, Tv> $b,
+): array<Tk, Tv> {
+  return \array_intersect_key($a, $b);
 }
 
 function reverse<Tk, Tv>(array<Tk, Tv> $map): array<Tk, Tv> {
@@ -169,7 +217,7 @@ function sort_keys<Tk, Tv>(
   return $map;
 }
 
-function sort<Tk, Tv>(
+function sort_values<Tk, Tv>(
   array<Tk, Tv> $map,
   fun2<Tv, Tv, int> $cmp,
 ): array<Tk, Tv> {
@@ -177,7 +225,17 @@ function sort<Tk, Tv>(
   return $map;
 }
 
-function filter<Tk, Tv>(array<Tk, Tv> $map, fun1<Tv, bool> $f): array<Tk, Tv> {
+function sort_pairs<Tk, Tv>(
+  array<Tk, Tv> $map,
+  fun2<(Tk, Tv), (Tk, Tv), int> $cmp,
+): array<Tk, Tv> {
+  return from_pairs(vector\sort(to_pairs($map), $cmp));
+}
+
+function filter_values<Tk, Tv>(
+  array<Tk, Tv> $map,
+  fun1<Tv, bool> $f,
+): array<Tk, Tv> {
   return \array_filter($map, $f);
 }
 
@@ -206,8 +264,7 @@ function filter_keys<Tk, Tv>(
 }
 
 function get_pair<Tk, Tv>(array<Tk, Tv> $array, int $offset): (Tk, Tv) {
-  $slice = slice($array, $offset, 1);
-  foreach ($slice as $k => $v) {
+  foreach (slice($array, $offset, 1) as $k => $v) {
     return tuple($k, $v);
   }
   throw new \Exception(
@@ -215,11 +272,22 @@ function get_pair<Tk, Tv>(array<Tk, Tv> $array, int $offset): (Tk, Tv) {
   );
 }
 
-function map<Tk, Tin, Tout>(
-  array<Tk, Tin> $map,
-  fun1<Tin, Tout> $f,
-): array<Tk, Tout> {
+function map_values<Tk, Tv1, Tv2>(
+  array<Tk, Tv1> $map,
+  fun1<Tv1, Tv2> $f,
+): array<Tk, Tv2> {
   return \array_map($f, $map);
+}
+
+function map_keys<Tk1, Tk2, Tv>(
+  array<Tk1, Tv> $map,
+  fun1<Tk1, Tk2> $f,
+): array<Tk2, Tv> {
+  $ret = [];
+  foreach ($map as $k => $v) {
+    $ret[$f($k)] = $v;
+  }
+  return $ret;
 }
 
 function map_pairs<Tk1, Tv1, Tk2, Tv2>(
@@ -234,12 +302,28 @@ function map_pairs<Tk1, Tv1, Tk2, Tv2>(
   return $res;
 }
 
-function reduce<Tin, Tout>(
+function reduce_values<Tin, Tout>(
   array<mixed, Tin> $map,
   fun2<Tout, Tin, Tout> $f,
   Tout $initial,
 ): Tout {
   return \array_reduce($map, $f, $initial);
+}
+
+function reduce_keys<Tin, Tout>(
+  array<Tin, mixed> $map,
+  fun2<Tout, Tin, Tout> $f,
+  Tout $initial,
+): Tout {
+  return vector\reduce(keys($map), $f, $initial);
+}
+
+function reduce_pairs<Tk, Tv, Tout>(
+  array<Tk, Tv> $map,
+  fun2<Tout, (Tk, Tv), Tout> $f,
+  Tout $initial,
+): Tout {
+  return vector\reduce(to_pairs($map), $f, $initial);
 }
 
 /**
