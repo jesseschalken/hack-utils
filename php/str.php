@@ -41,17 +41,96 @@ namespace HackUtils\str {
   function trim_right($string, $chars = TRIM_CHARS) {
     return \rtrim($string, $chars);
   }
-  function escape($string, $chars) {
-    if ($string === "") {
-      return $string;
+  function escape_chars($s, $chars) {
+    if ($s === "") {
+      return $s;
     }
-    $string = pair\fst(replace($string, "\\", "\\\\"));
-    $length = length($chars);
-    for ($i = 0; $i < $length; $i++) {
-      $char = $chars[$i];
-      $string = pair\fst(replace($string, $char, "\\".$char));
+    $s = replace($s, "\\", "\\\\");
+    $l = length($chars);
+    for ($i = 0; $i < $l; $i++) {
+      $c = $chars[$i];
+      $s = replace($s, $c, "\\".$c);
     }
-    return $string;
+    return $s;
+  }
+  function encode_list($list) {
+    $r = "";
+    foreach ($list as $x) {
+      $r .= escape_chars($x, ";").";";
+    }
+    return $r;
+  }
+  function decode_list($s) {
+    $r = array();
+    $b = "";
+    $e = false;
+    $l = \strlen($s);
+    for ($i = 0; $i < $l; $i++) {
+      $c = $s[$i];
+      if (\hacklib_cast_as_boolean($e)) {
+        $b .= $c;
+        $e = false;
+      } else {
+        if ($c === "\\") {
+          $e = true;
+        } else {
+          if ($c === ";") {
+            $r[] = $b;
+            $b = "";
+          } else {
+            $b .= $c;
+          }
+        }
+      }
+    }
+    return $r;
+  }
+  function encode_map($map) {
+    $r = "";
+    foreach ($map as $k => $v) {
+      $k .= "";
+      $r .= escape_chars($k, "=;")."=";
+      $r .= escape_chars($v, "=;").";";
+    }
+    return $r;
+  }
+  function decode_map($s) {
+    $r = array();
+    $k = null;
+    $b = "";
+    $l = \strlen($s);
+    $e = false;
+    for ($i = 0; $i < $l; $i++) {
+      $c = $s[$i];
+      if (\hacklib_cast_as_boolean($e)) {
+        $b .= $c;
+        $e = false;
+      } else {
+        if ($c === "\\") {
+          $e = true;
+        } else {
+          if ($c === "=") {
+            if ($k !== null) {
+              throw new \Exception("Double key");
+            }
+            $k = $b;
+            $b = "";
+          } else {
+            if ($c === ";") {
+              if ($k === null) {
+                throw new \Exception("Value without key");
+              }
+              $r[$k] = $b;
+              $k = null;
+              $b = "";
+            } else {
+              $b .= $c;
+            }
+          }
+        }
+      }
+    }
+    return $r;
   }
   function split($string, $delimiter = "", $limit = 0x7FFFFFFF) {
     if ($limit < 1) {
@@ -157,6 +236,22 @@ namespace HackUtils\str {
     return \implode($delimiter, $strings);
   }
   function replace($subject, $search, $replace, $caseInsensitive = false) {
+    $count = 0;
+    $result =
+      \hacklib_cast_as_boolean($caseInsensitive)
+        ? \str_ireplace($search, $replace, $subject)
+        : \str_replace($search, $replace, $subject);
+    if (!\hacklib_cast_as_boolean(\is_string($result))) {
+      throw new \Exception("str_i?replace() failed");
+    }
+    return $result;
+  }
+  function replace_count(
+    $subject,
+    $search,
+    $replace,
+    $caseInsensitive = false
+  ) {
     $count = 0;
     $result =
       \hacklib_cast_as_boolean($caseInsensitive)
