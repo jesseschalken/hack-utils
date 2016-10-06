@@ -173,7 +173,6 @@ function split(
 }
 
 function split_at(string $string, int $offset): (string, string) {
-  $offset = utils\fix_offset($offset, length($string));
   return tuple(slice($string, 0, $offset), slice($string, $offset));
 }
 
@@ -381,7 +380,6 @@ function find(
   int $offset = 0,
   bool $caseInsensitive = false,
 ): ?int {
-  $offset = utils\fix_offset($offset, length($haystack));
   $ret =
     $caseInsensitive
       ? \stripos($haystack, $needle, $offset)
@@ -395,7 +393,6 @@ function find_last(
   int $offset = 0,
   bool $caseInsensitive = false,
 ): ?int {
-  $offset = utils\fix_offset($offset, length($haystack));
   $ret =
     $caseInsensitive
       ? \strripos($haystack, $needle, $offset)
@@ -404,7 +401,6 @@ function find_last(
 }
 
 function count(string $haystack, string $needle, int $offset = 0): int {
-  $offset = utils\fix_offset($offset, length($haystack));
   return \substr_count($haystack, $needle, $offset);
 }
 

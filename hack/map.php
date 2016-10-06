@@ -6,6 +6,7 @@ use HackUtils\vector;
 use HackUtils\map;
 use HackUtils\set;
 use HackUtils as utils;
+use HackUtils\{fun0, fun1, fun2};
 use function HackUtils\new_null;
 
 type key = arraykey;
@@ -155,7 +156,7 @@ function contains<T>(array<mixed, T> $map, T $value): bool {
 
 function sort_keys<Tk, Tv>(
   array<Tk, Tv> $map,
-  ?(function(Tk, Tk): int) $cmp = null,
+  ?fun2<Tk, Tk, int> $cmp = null,
 ): array<Tk, Tv> {
   if ($cmp !== null) {
     $ret = \uksort($map, $cmp);
@@ -170,22 +171,19 @@ function sort_keys<Tk, Tv>(
 
 function sort<Tk, Tv>(
   array<Tk, Tv> $map,
-  (function(Tv, Tv): int) $cmp,
+  fun2<Tv, Tv, int> $cmp,
 ): array<Tk, Tv> {
   \uasort($map, $cmp);
   return $map;
 }
 
-function filter<Tk, Tv>(
-  array<Tk, Tv> $map,
-  (function(Tv): bool) $f,
-): array<Tk, Tv> {
+function filter<Tk, Tv>(array<Tk, Tv> $map, fun1<Tv, bool> $f): array<Tk, Tv> {
   return \array_filter($map, $f);
 }
 
 function filter_pairs<Tk, Tv>(
   array<Tk, Tv> $map,
-  (function((Tk, Tv)): bool) $f,
+  fun1<(Tk, Tv), bool> $f,
 ): array<Tk, Tv> {
   foreach ($map as $k => $v) {
     if (!$f(tuple($k, $v))) {
@@ -197,7 +195,7 @@ function filter_pairs<Tk, Tv>(
 
 function filter_keys<Tk, Tv>(
   array<Tk, Tv> $map,
-  (function(Tk): bool) $f,
+  fun1<Tk, bool> $f,
 ): array<Tk, Tv> {
   foreach ($map as $k => $v) {
     if (!$f($k)) {
@@ -219,14 +217,14 @@ function get_pair<Tk, Tv>(array<Tk, Tv> $array, int $offset): (Tk, Tv) {
 
 function map<Tk, Tin, Tout>(
   array<Tk, Tin> $map,
-  (function(Tin): Tout) $f,
+  fun1<Tin, Tout> $f,
 ): array<Tk, Tout> {
   return \array_map($f, $map);
 }
 
 function map_pairs<Tk1, Tv1, Tk2, Tv2>(
   array<Tk1, Tv1> $map,
-  (function((Tk1, Tv1)): (Tk2, Tv2)) $f,
+  fun1<(Tk1, Tv1), (Tk2, Tv2)> $f,
 ): array<Tk2, Tv2> {
   $res = [];
   foreach ($map as $k => $v) {
@@ -238,7 +236,7 @@ function map_pairs<Tk1, Tv1, Tk2, Tv2>(
 
 function reduce<Tin, Tout>(
   array<mixed, Tin> $map,
-  (function(Tout, Tin): Tout) $f,
+  fun2<Tout, Tin, Tout> $f,
   Tout $initial,
 ): Tout {
   return \array_reduce($map, $f, $initial);
