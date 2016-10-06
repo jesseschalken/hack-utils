@@ -122,18 +122,28 @@ namespace HackUtils\datetime {
   function set_timezone($dt, $tz) {
     return $dt->setTimezone($tz);
   }
+  final class Part {
+    const YEAR = 0;
+    const MONTH = 1;
+    const DAY = 2;
+    const HOUR = 3;
+    const MINUTE = 4;
+    const SECOND = 5;
+    const MICROSECOND = 6;
+    private function __construct() {}
+  }
   function from_parts($parts, $tz) {
     return parse(
       "Y-m-d H:i:s.u",
       \sprintf(
         "%04d-%02d-%02d %02d:%02d:%02d.%06d",
-        $parts[\hacklib_id("year")],
-        $parts[\hacklib_id("month")],
-        $parts[\hacklib_id("day")],
-        $parts[\hacklib_id("hour")],
-        $parts[\hacklib_id("minute")],
-        $parts[\hacklib_id("second")],
-        $parts[\hacklib_id("microsecond")]
+        $parts[Part::YEAR],
+        $parts[Part::MONTH],
+        $parts[Part::DAY],
+        $parts[Part::HOUR],
+        $parts[Part::MINUTE],
+        $parts[Part::SECOND],
+        $parts[Part::MICROSECOND]
       ),
       $tz
     );
@@ -147,13 +157,13 @@ namespace HackUtils\datetime {
         }
       );
     return array(
-      "year" => $year,
-      "month" => $month,
-      "day" => $day,
-      "hour" => $hour,
-      "minute" => $minute,
-      "second" => $second,
-      "microsecond" => $microsecond
+      Part::YEAR => $year,
+      Part::MONTH => $month,
+      Part::DAY => $day,
+      Part::HOUR => $hour,
+      Part::MINUTE => $minute,
+      Part::SECOND => $second,
+      Part::MICROSECOND => $microsecond
     );
   }
   function now($tz, $withMicroseconds = false) {

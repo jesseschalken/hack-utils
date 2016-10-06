@@ -186,14 +186,26 @@ function set_timezone(datetime $dt, timezone $tz): datetime {
   return $dt->setTimezone($tz);
 }
 
+final class Part {
+  const int YEAR = 0;
+  const int MONTH = 1;
+  const int DAY = 2;
+  const int HOUR = 3;
+  const int MINUTE = 4;
+  const int SECOND = 5;
+  const int MICROSECOND = 6;
+
+  private function __construct() {}
+}
+
 type datetimeparts = shape(
-  'year' => int,
-  'month' => int,
-  'day' => int,
-  'hour' => int,
-  'minute' => int,
-  'second' => int,
-  'microsecond' => int,
+  Part::YEAR => int,
+  Part::MONTH => int,
+  Part::DAY => int,
+  Part::HOUR => int,
+  Part::MINUTE => int,
+  Part::SECOND => int,
+  Part::MICROSECOND => int,
 );
 
 /**
@@ -204,13 +216,13 @@ function from_parts(datetimeparts $parts, timezone $tz): datetime {
     'Y-m-d H:i:s.u',
     \sprintf(
       '%04d-%02d-%02d %02d:%02d:%02d.%06d',
-      $parts['year'],
-      $parts['month'],
-      $parts['day'],
-      $parts['hour'],
-      $parts['minute'],
-      $parts['second'],
-      $parts['microsecond'],
+      $parts[Part::YEAR],
+      $parts[Part::MONTH],
+      $parts[Part::DAY],
+      $parts[Part::HOUR],
+      $parts[Part::MINUTE],
+      $parts[Part::SECOND],
+      $parts[Part::MICROSECOND],
     ),
     $tz,
   );
@@ -219,14 +231,15 @@ function from_parts(datetimeparts $parts, timezone $tz): datetime {
 function get_parts(datetime $dt): datetimeparts {
   list($year, $month, $day, $hour, $minute, $second, $microsecond) =
     vector\map(str\split(format($dt, 'Y m d H i s u'), ' '), $x ==> (int) $x);
+
   return shape(
-    'year' => $year,
-    'month' => $month,
-    'day' => $day,
-    'hour' => $hour,
-    'minute' => $minute,
-    'second' => $second,
-    'microsecond' => $microsecond,
+    Part::YEAR => $year,
+    Part::MONTH => $month,
+    Part::DAY => $day,
+    Part::HOUR => $hour,
+    Part::MINUTE => $minute,
+    Part::SECOND => $second,
+    Part::MICROSECOND => $microsecond,
   );
 }
 
