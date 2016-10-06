@@ -18,19 +18,29 @@ namespace HackUtils\json {
       $flags |= \JSON_PRESERVE_ZERO_FRACTION;
     }
     if (\hacklib_cast_as_boolean($binary)) {
-      $value = _map_strings($value, fun("utf8_encode"));
+      $value = _map_strings(
+        $value,
+        function($x) {
+          return \utf8_encode($x);
+        }
+      );
     }
     _check_value($value);
-    $json = json_encode($value, $flags);
+    $json = \json_encode($value, $flags);
     _check_error();
     return $json;
   }
   function decode($json, $binary = false) {
-    $value = json_decode($json, true);
+    $value = \json_decode($json, true);
     _check_error();
     _check_value($value);
     if (\hacklib_cast_as_boolean($binary)) {
-      $value = _map_strings($value, fun("utf8_decode"));
+      $value = _map_strings(
+        $value,
+        function($x) {
+          return \utf8_decode($x);
+        }
+      );
     }
     return $value;
   }
@@ -62,8 +72,8 @@ namespace HackUtils\json {
     return $x;
   }
   function _check_error() {
-    if (json_last_error() !== JSON_ERROR_NONE) {
-      throw new Exception(json_last_error_msg(), json_last_error());
+    if (\json_last_error() !== \JSON_ERROR_NONE) {
+      throw new Exception(\json_last_error_msg(), \json_last_error());
     }
   }
   class Exception extends \Exception {}

@@ -23,20 +23,30 @@ function encode(
     $flags |= \JSON_PRESERVE_ZERO_FRACTION;
   }
   if ($binary) {
-    $value = _map_strings($value, fun('utf8_encode'));
+    $value = _map_strings(
+      $value,
+      function($x) {
+        return \utf8_encode($x);
+      },
+    );
   }
   _check_value($value);
-  $json = json_encode($value, $flags);
+  $json = \json_encode($value, $flags);
   _check_error();
   return $json;
 }
 
 function decode(string $json, bool $binary = false): mixed {
-  $value = json_decode($json, true);
+  $value = \json_decode($json, true);
   _check_error();
   _check_value($value);
   if ($binary) {
-    $value = _map_strings($value, fun('utf8_decode'));
+    $value = _map_strings(
+      $value,
+      function($x) {
+        return \utf8_decode($x);
+      },
+    );
   }
   return $value;
 }
@@ -70,8 +80,8 @@ function _map_strings(mixed $x, fun1<string, string> $f): mixed {
 }
 
 function _check_error(): void {
-  if (json_last_error() !== JSON_ERROR_NONE) {
-    throw new Exception(json_last_error_msg(), json_last_error());
+  if (\json_last_error() !== \JSON_ERROR_NONE) {
+    throw new Exception(\json_last_error_msg(), \json_last_error());
   }
 }
 
