@@ -2,7 +2,7 @@
 
 namespace HackUtils\json;
 
-use HackUtils\fun1;
+use HackUtils\fn1;
 
 function encode(
   mixed $value,
@@ -65,7 +65,7 @@ function _check_value(mixed $x): void {
   }
 }
 
-function _map_strings(mixed $x, fun1<string, string> $f): mixed {
+function _map_strings(mixed $x, fn1<string, string> $f): mixed {
   if (\is_string($x)) {
     return $f($x);
   }

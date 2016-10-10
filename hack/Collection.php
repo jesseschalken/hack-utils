@@ -20,9 +20,9 @@ interface IConstCollection<+T> {
 
   public function chunk(int $size): IConstVector<IConstCollection<T>>;
 
-  public function filter(fun1<T, bool> $f): IConstCollection<T>;
-  public function map<Tr>(fun1<T, Tr> $f): ArrayVector<Tr>;
-  public function reduce<Tr>(fun2<Tr, T, Tr> $f, Tr $initial): Tr;
+  public function filter(fn1<T, bool> $f): IConstCollection<T>;
+  public function map<Tr>(fn1<T, Tr> $f): ArrayVector<Tr>;
+  public function reduce<Tr>(fn2<Tr, T, Tr> $f, Tr $initial): Tr;
 
   public function contains(mixed $value): bool;
   public function containsAll(IConstCollection<mixed> $values): bool;
@@ -54,7 +54,7 @@ interface ICollection<T> extends IConstCollection<T> {
   public function clear(): void;
 
   public function shuffle(): void;
-  public function sort(fun2<T, T, int> $cmp): void;
+  public function sort(fn2<T, T, int> $cmp): void;
   public function reverse(): void;
 
   public function splice(
@@ -70,22 +70,22 @@ interface IConstMap<+Tk, +Tv> extends IConstCollection<(Tk, Tv)> {
   public function fetchOrNull(mixed $key): ?Tv;
   public function fetchOrDefault<Tr super Tv>(mixed $key, Tr $default): Tr;
 
-  public function filterValues(fun1<Tv, bool> $f): IConstMap<Tk, Tv>;
-  public function filterKeys(fun1<Tk, bool> $f): IConstMap<Tk, Tv>;
+  public function filterValues(fn1<Tv, bool> $f): IConstMap<Tk, Tv>;
+  public function filterKeys(fn1<Tk, bool> $f): IConstMap<Tk, Tv>;
 
-  public function mapValues<Tr>(fun1<Tv, Tr> $f): array<Tr>;
-  public function mapKeys<Tr>(fun1<Tk, Tr> $f): array<Tk>;
+  public function mapValues<Tr>(fn1<Tv, Tr> $f): array<Tr>;
+  public function mapKeys<Tr>(fn1<Tk, Tr> $f): array<Tk>;
 
-  public function reduceValues<Tr>(fun2<Tr, Tv, Tr> $f, Tr $initial): Tr;
-  public function reduceKeys<Tr>(fun2<Tr, Tk, Tr> $f, Tr $initial): Tr;
+  public function reduceValues<Tr>(fn2<Tr, Tv, Tr> $f, Tr $initial): Tr;
+  public function reduceKeys<Tr>(fn2<Tr, Tk, Tr> $f, Tr $initial): Tr;
 }
 
 interface IMap<Tk, Tv> extends ICollection<(Tk, Tv)>, IConstMap<Tk, Tv> {
   public function assign(Tk $key, Tv $value): void;
   public function unassign(Tk $key): void;
 
-  public function sortValues(fun2<Tv, Tv, int> $cmp): void;
-  public function sortKeys(fun2<Tk, Tk, int> $cmp): void;
+  public function sortValues(fn2<Tv, Tv, int> $cmp): void;
+  public function sortKeys(fn2<Tk, Tk, int> $cmp): void;
 }
 
 interface IConstVector<+T> extends IConstCollection<T> {
@@ -160,7 +160,7 @@ final class ArrayVector<T> implements IVector<T> {
     \array_splice($this->array, $index, 1);
   }
 
-  public function filter(fun1<T, bool> $f): ArrayVector<T> {
+  public function filter(fn1<T, bool> $f): ArrayVector<T> {
     return new self(vector\filter($this->array, $f));
   }
 
@@ -184,7 +184,7 @@ final class ArrayVector<T> implements IVector<T> {
     return vector\length($this->array);
   }
 
-  public function map<Tr>(fun1<T, Tr> $f): ArrayVector<Tr> {
+  public function map<Tr>(fn1<T, Tr> $f): ArrayVector<Tr> {
     return new self(vector\map($this->array, $f));
   }
 
@@ -229,11 +229,11 @@ final class ArrayVector<T> implements IVector<T> {
     return new self(vector\slice($this->array, $offset, $length));
   }
 
-  public function reduce<Tr>(fun2<Tr, T, Tr> $f, Tr $initial): Tr {
+  public function reduce<Tr>(fn2<Tr, T, Tr> $f, Tr $initial): Tr {
     return vector\reduce($this->array, $f, $initial);
   }
 
-  public function sort(fun2<T, T, int> $cmp): void {
+  public function sort(fn2<T, T, int> $cmp): void {
     $ok = \usort($this->array, $cmp);
     if ($ok === false) {
       throw new \Exception('usort() failed');
@@ -379,7 +379,7 @@ abstract class _ArrayMapBase<Tk, Tv, Tak as arraykey, Tav>
   //   return $this->fetchOrDefault($key, null);
   // }
 
-  public function filter(fun1<(Tk, Tv), bool> $f): IMap<Tk, Tv> {
+  public function filter(fn1<(Tk, Tv), bool> $f): IMap<Tk, Tv> {
     $self = $this->makeSelf([]);
     $self->fromArray(vector\filter($this->toArray(), $f));
     return $self;
