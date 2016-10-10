@@ -1,29 +1,29 @@
 <?hh // strict
 
-namespace HackUtils\regex;
+namespace HackUtils;
 
 use HackUtils\vector;
 use HackUtils\map;
 use function HackUtils\new_null;
 
-const string CASELESS = 'i';
-const string MULTILINE = 'm';
-const string DOTALL = 's';
-const string EXTENDED = 'x';
-const string ANCHORED = 'A';
-const string DOLLAR_ENDONLY = 'D';
-const string UNGREEDY = 'U';
-const string EXTRA = 'X';
-const string UTF8 = 'u';
-const string STUDY = 'S';
+const string PCRE_CASELESS = 'i';
+const string PCRE_MULTILINE = 'm';
+const string PCRE_DOTALL = 's';
+const string PCRE_EXTENDED = 'x';
+const string PCRE_ANCHORED = 'A';
+const string PCRE_DOLLAR_ENDONLY = 'D';
+const string PCRE_UNGREEDY = 'U';
+const string PCRE_EXTRA = 'X';
+const string PCRE_UTF8 = 'u';
+const string PCRE_STUDY = 'S';
 
 type match = array<arraykey, (string, int)>;
 
-function quote(string $text): string {
+function pcre_quote(string $text): string {
   return \preg_quote($text);
 }
 
-function match(
+function pcre_match(
   string $regex,
   string $subject,
   string $options = '',
@@ -31,17 +31,17 @@ function match(
 ): ?match {
   $match = [];
   $count = \preg_match(
-    _compose($regex, $options),
+    _pcre_compose($regex, $options),
     $subject,
     $match,
     \PREG_OFFSET_CAPTURE,
     $offset,
   );
-  _check_last_error();
-  return $count ? _fix_match($match) : new_null();
+  _pcre_check_last_error();
+  return $count ? _pcre_fix_match($match) : new_null();
 }
 
-function match_all(
+function pcre_match_all(
   string $regex,
   string $subject,
   string $options,
@@ -49,7 +49,7 @@ function match_all(
 ): array<match> {
   $matches = [];
   \preg_match_all(
-    _compose($regex, $options),
+    _pcre_compose($regex, $options),
     $subject,
     $matches,
     \PREG_SET_ORDER | \PREG_OFFSET_CAPTURE,
@@ -58,12 +58,12 @@ function match_all(
   return vector\map(
     $matches,
     function($match) {
-      return _fix_match($match);
+      return _pcre_fix_match($match);
     },
   );
 }
 
-function replace(
+function pcre_replace(
   string $regex,
   string $subject,
   string $replacement,
@@ -71,39 +71,39 @@ function replace(
   string $options = '',
 ): string {
   $result = \preg_replace(
-    _compose($regex, $options),
+    _pcre_compose($regex, $options),
     $replacement,
     $subject,
     $limit === null ? -1 : \max(0, $limit),
   );
-  _check_last_error();
+  _pcre_check_last_error();
   if (!\is_string($result)) {
-    throw new Exception('preg_replace() failed');
+    throw new PCREException('preg_replace() failed');
   }
   return $result;
 }
 
-function split(
+function pcre_split(
   string $regex,
   string $subject,
   ?int $limit = null,
   string $options = '',
 ): array<string> {
   $pieces = \preg_split(
-    _compose($regex, $options),
+    _pcre_compose($regex, $options),
     $subject,
     $limit === null ? -1 : max(1, $limit),
   );
-  _check_last_error();
+  _pcre_check_last_error();
   if (!\is_array($pieces)) {
-    throw new Exception('preg_split() failed');
+    throw new PCREException('preg_split() failed');
   }
   return $pieces;
 }
 
-final class Exception extends \Exception {}
+final class PCREException extends \Exception {}
 
-function _compose(string $regex, string $options = ''): string {
+function _pcre_compose(string $regex, string $options = ''): string {
   return '/'._EscapeCache::escape($regex).'/'.$options;
 }
 
@@ -119,11 +119,11 @@ final class _EscapeCache {
     if (map\size(self::$cache) >= 10000) {
       self::$cache = [];
     }
-    return (self::$cache[$regex] = _escape($regex));
+    return (self::$cache[$regex] = _pcre_escape($regex));
   }
 }
 
-function _escape(string $regex): string {
+function _pcre_escape(string $regex): string {
   // Insert a "\" before each unescaped "/".
   // I'm really hoping this simple state machine will get jitted to efficient
   // machine code.
@@ -144,7 +144,7 @@ function _escape(string $regex): string {
   return $result;
 }
 
-function _fix_match(match $match): match {
+function _pcre_fix_match(match $match): match {
   // A sub pattern will exist in $subPatterns if it didn't match
   // only if a later sub pattern matched.
   //
@@ -161,7 +161,7 @@ function _fix_match(match $match): match {
   return $match;
 }
 
-function _get_error_message(int $error): string {
+function _pcre_get_error_message(int $error): string {
   switch ($error) {
     case PREG_NO_ERROR:
       return 'No errors';
@@ -183,9 +183,9 @@ function _get_error_message(int $error): string {
   }
 }
 
-function _check_last_error(): void {
+function _pcre_check_last_error(): void {
   $error = \preg_last_error();
   if ($error !== \PREG_NO_ERROR) {
-    throw new Exception(_get_error_message($error), $error);
+    throw new PCREException(_pcre_get_error_message($error), $error);
   }
 }
