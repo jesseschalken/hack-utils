@@ -25,11 +25,19 @@ function if_null<T>(?T $x, T $y): T {
   return $x === null ? $y : $x;
 }
 
+interface Gettable<+T> {
+  public function get(): T;
+}
+
+interface Settable<-T> {
+  public function set(T $value): void;
+}
+
 /**
  * Simple container for a value of a given type. Useful to replace PHP's
  * built in references, which are not supported in Hack.
  */
-final class Ref<T> {
+final class Ref<T> implements Gettable<T>, Settable<T> {
   public function __construct(private T $value) {}
 
   public function get(): T {

@@ -65,7 +65,7 @@ function _check_value(mixed $x): void {
   }
 }
 
-function _map_strings(mixed $x, fn1<string, string> $f): mixed {
+function _map_strings(mixed $x, (function(string): string) $f): mixed {
   if (\is_string($x)) {
     return $f($x);
   }

@@ -216,7 +216,7 @@ function contains<T>(array<mixed, T> $map, T $value): bool {
 
 function sort_keys<Tk, Tv>(
   array<Tk, Tv> $map,
-  ?fn2<Tk, Tk, int> $cmp = null,
+  ?(function(Tk, Tk): int) $cmp = null,
 ): array<Tk, Tv> {
   if ($cmp !== null) {
     $ret = \uksort($map, $cmp);
@@ -231,7 +231,7 @@ function sort_keys<Tk, Tv>(
 
 function sort_values<Tk, Tv>(
   array<Tk, Tv> $map,
-  fn2<Tv, Tv, int> $cmp,
+  (function(Tv, Tv): int) $cmp,
 ): array<Tk, Tv> {
   \uasort($map, $cmp);
   return $map;
@@ -239,21 +239,21 @@ function sort_values<Tk, Tv>(
 
 function sort_pairs<Tk, Tv>(
   array<Tk, Tv> $map,
-  fn2<(Tk, Tv), (Tk, Tv), int> $cmp,
+  (function((Tk, Tv), (Tk, Tv)): int) $cmp,
 ): array<Tk, Tv> {
   return from_pairs(vector\sort(to_pairs($map), $cmp));
 }
 
 function filter_values<Tk, Tv>(
   array<Tk, Tv> $map,
-  fn1<Tv, bool> $f,
+  (function(Tv): bool) $f,
 ): array<Tk, Tv> {
   return \array_filter($map, $f);
 }
 
 function filter_pairs<Tk, Tv>(
   array<Tk, Tv> $map,
-  fn1<(Tk, Tv), bool> $f,
+  (function((Tk, Tv)): bool) $f,
 ): array<Tk, Tv> {
   foreach ($map as $k => $v) {
     if (!$f(tuple($k, $v))) {
@@ -265,7 +265,7 @@ function filter_pairs<Tk, Tv>(
 
 function filter_keys<Tk, Tv>(
   array<Tk, Tv> $map,
-  fn1<Tk, bool> $f,
+  (function(Tk): bool) $f,
 ): array<Tk, Tv> {
   foreach ($map as $k => $v) {
     if (!$f($k)) {
@@ -286,14 +286,14 @@ function get_pair<Tk, Tv>(array<Tk, Tv> $array, int $offset): (Tk, Tv) {
 
 function map_values<Tk, Tv1, Tv2>(
   array<Tk, Tv1> $map,
-  fn1<Tv1, Tv2> $f,
+  (function(Tv1): Tv2) $f,
 ): array<Tk, Tv2> {
   return \array_map($f, $map);
 }
 
 function map_keys<Tk1, Tk2, Tv>(
   array<Tk1, Tv> $map,
-  fn1<Tk1, Tk2> $f,
+  (function(Tk1): Tk2) $f,
 ): array<Tk2, Tv> {
   $ret = [];
   foreach ($map as $k => $v) {
@@ -304,7 +304,7 @@ function map_keys<Tk1, Tk2, Tv>(
 
 function map_pairs<Tk1, Tv1, Tk2, Tv2>(
   array<Tk1, Tv1> $map,
-  fn1<(Tk1, Tv1), (Tk2, Tv2)> $f,
+  (function((Tk1, Tv1)): (Tk2, Tv2)) $f,
 ): array<Tk2, Tv2> {
   $res = [];
   foreach ($map as $k => $v) {
@@ -316,7 +316,7 @@ function map_pairs<Tk1, Tv1, Tk2, Tv2>(
 
 function reduce_values<Tin, Tout>(
   array<mixed, Tin> $map,
-  fn2<Tout, Tin, Tout> $f,
+  (function(Tout, Tin): Tout) $f,
   Tout $initial,
 ): Tout {
   return \array_reduce($map, $f, $initial);
@@ -324,7 +324,7 @@ function reduce_values<Tin, Tout>(
 
 function reduce_keys<Tin, Tout>(
   array<Tin, mixed> $map,
-  fn2<Tout, Tin, Tout> $f,
+  (function(Tout, Tin): Tout) $f,
   Tout $initial,
 ): Tout {
   return vector\reduce(keys($map), $f, $initial);
@@ -332,7 +332,7 @@ function reduce_keys<Tin, Tout>(
 
 function reduce_pairs<Tk, Tv, Tout>(
   array<Tk, Tv> $map,
-  fn2<Tout, (Tk, Tv), Tout> $f,
+  (function(Tout, (Tk, Tv)): Tout) $f,
   Tout $initial,
 ): Tout {
   return vector\reduce(to_pairs($map), $f, $initial);

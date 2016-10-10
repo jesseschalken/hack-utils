@@ -164,12 +164,12 @@ function range(int $start, int $end, int $step = 1): array<int> {
   return \range($start, $end, $step);
 }
 
-function sort<T>(array<T> $list, fn2<T, T, int> $cmp): array<T> {
+function sort<T>(array<T> $list, (function(T, T): int) $cmp): array<T> {
   \usort($list, $cmp);
   return $list;
 }
 
-function filter<T>(array<T> $list, fn1<T, bool> $f): array<T> {
+function filter<T>(array<T> $list, (function(T): bool) $f): array<T> {
   $ret = \array_filter($list, $f);
   // array_filter() preserves keys, so if some elements were removed,
   // renumber keys 0,1...N.
@@ -179,13 +179,16 @@ function filter<T>(array<T> $list, fn1<T, bool> $f): array<T> {
   return $ret;
 }
 
-function map<Tin, Tout>(array<Tin> $list, fn1<Tin, Tout> $f): array<Tout> {
+function map<Tin, Tout>(
+  array<Tin> $list,
+  (function(Tin): Tout) $f,
+): array<Tout> {
   return \array_map($f, $list);
 }
 
 function reduce<Tin, Tout>(
   array<Tin> $list,
-  fn2<Tout, Tin, Tout> $f,
+  (function(Tout, Tin): Tout) $f,
   Tout $initial,
 ): Tout {
   return \array_reduce($list, $f, $initial);
@@ -193,7 +196,7 @@ function reduce<Tin, Tout>(
 
 function reduce_right<Tin, Tout>(
   array<Tin> $list,
-  fn2<Tout, Tin, Tout> $f,
+  (function(Tout, Tin): Tout) $f,
   Tout $value,
 ): Tout {
   for ($i = (\count($list) - 1); $i >= 0; $i--) {
@@ -233,7 +236,7 @@ function intersect<T as arraykey>(array<T> $a, array<T> $b): array<T> {
   return \array_values(\array_intersect($a, $b));
 }
 
-function any<T>(array<T> $a, fn1<T, bool> $f): bool {
+function any<T>(array<T> $a, (function(T): bool) $f): bool {
   foreach ($a as $x) {
     if ($f($x)) {
       return true;
@@ -242,7 +245,7 @@ function any<T>(array<T> $a, fn1<T, bool> $f): bool {
   return false;
 }
 
-function all<T>(array<T> $a, fn1<T, bool> $f): bool {
+function all<T>(array<T> $a, (function(T): bool) $f): bool {
   foreach ($a as $x) {
     if (!$f($x)) {
       return false;
@@ -261,7 +264,7 @@ function of_maps<Tk, Tv>(): array<array<Tk, Tv>> {
 
 function group_by<Tk, Tv>(
   array<Tv> $a,
-  fn1<Tv, Tk> $f,
+  (function(Tv): Tk) $f,
 ): array<Tk, array<Tv>> {
   $res = map\of_vectors();
   foreach ($a as $v) {
