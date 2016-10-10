@@ -1,71 +1,79 @@
 <?hh // strict
 
-namespace HackUtils\json;
+namespace HackUtils;
 
-use HackUtils\fn1;
-
-function encode(
+function json_encode(
   mixed $value,
   bool $binary = false,
   bool $pretty = false,
 ): string {
   $flags = 0;
+
   if (defined('JSON_PRETTY_PRINT') && $pretty) {
     $flags |= \JSON_PRETTY_PRINT;
   }
+
+  // By default we shouldn't escape more than we need to.
   if (defined('JSON_UNESCAPED_SLASHES')) {
     $flags |= \JSON_UNESCAPED_SLASHES;
   }
   if (defined('JSON_UNESCAPED_UNICODE')) {
     $flags |= \JSON_UNESCAPED_UNICODE;
   }
+
+  // No reason 0 floats should turn into 0 ints.
   if (defined('JSON_PRESERVE_ZERO_FRACTION')) {
     $flags |= \JSON_PRESERVE_ZERO_FRACTION;
   }
+
   if ($binary) {
-    $value = _map_strings(
+    $value = _json_map_strings(
       $value,
       function($x) {
         return \utf8_encode($x);
       },
     );
   }
-  _check_value($value);
+
+  _json_check_value($value);
   $json = \json_encode($value, $flags);
-  _check_error();
+  _json_check_error();
+
   return $json;
 }
 
-function decode(string $json, bool $binary = false): mixed {
+function json_decode(string $json, bool $binary = false): mixed {
   $value = \json_decode($json, true);
-  _check_error();
-  _check_value($value);
+  _json_check_error();
+  _json_check_value($value);
+
   if ($binary) {
-    $value = _map_strings(
+    $value = _json_map_strings(
       $value,
       function($x) {
         return \utf8_decode($x);
       },
     );
   }
+
   return $value;
 }
 
-function _check_value(mixed $x): void {
+function _json_check_value(mixed $x): void {
   if (\is_object($x) || \is_resource($x)) {
-    throw new Exception(
+    throw new JSONException(
       'Type is not supported',
       \JSON_ERROR_UNSUPPORTED_TYPE,
     );
   }
   if (\is_array($x)) {
     foreach ($x as $v) {
-      _check_value($v);
+      _json_check_value($v);
     }
   }
 }
 
-function _map_strings(mixed $x, (function(string): string) $f): mixed {
+function _json_map_strings(mixed $x, (function(string): string) $f): mixed {
   if (\is_string($x)) {
     return $f($x);
   }
@@ -79,10 +87,10 @@ function _map_strings(mixed $x, (function(string): string) $f): mixed {
   return $x;
 }
 
-function _check_error(): void {
+function _json_check_error(): void {
   if (\json_last_error() !== \JSON_ERROR_NONE) {
-    throw new Exception(\json_last_error_msg(), \json_last_error());
+    throw new JSONException(\json_last_error_msg(), \json_last_error());
   }
 }
 
-class Exception extends \Exception {}
+class JSONException extends \Exception {}
