@@ -26,8 +26,8 @@ class _UTCTimeZone {
 function utc_timezone(): timezone {
   // Clone it so "===" on returned objects returns false as though someone used
   // "new DateTimeZone('UTC')".
-  return clone ((_UTCTimeZone::$singleton) ??
-                (_UTCTimeZone::$singleton = create_timezone('UTC')));
+  return clone (_UTCTimeZone::$singleton ?: (_UTCTimeZone::$singleton =
+                                               create_timezone('UTC')));
 }
 
 /**
@@ -111,11 +111,7 @@ function from_timestamp(int $sec, timezone $tz, int $usec = 0): datetime {
     // Easy mode, just instantiate DateTimeImmutable with our timestamp.
     $ret = new \DateTimeImmutable('@'.$sec, $tz);
   } else {
-    // PHP tends to ignore provided timezones when parsing/constructing
-    // with timestamps, so this block will be more predictable if we just
-    // do it in UTC and set the timezone later.
     $utc = utc_timezone();
-
     // The only way we can get microseconds in is by parsing with the 'u'
     // specifier. It will be faster parsing in format 'U.u' than 'Y-m-d
     // H:i:s.u', but 'U' doesn't accept negative timestamps, so if the
@@ -241,6 +237,11 @@ function get_parts(datetime $dt): datetimeparts {
     Part::SECOND => $second,
     Part::MICROSECOND => $microsecond,
   );
+}
+
+function get_part(datetime $dt, int $part): int {
+  $f = 'YmdHis';
+  return (int) format($dt, $f[$part]);
 }
 
 function now(timezone $tz, bool $withMicroseconds = false): datetime {
