@@ -1,8 +1,7 @@
 <?php
-namespace HackUtils\json {
+namespace HackUtils {
   require_once ($GLOBALS["HACKLIB_ROOT"]);
-  use \HackUtils\fun1;
-  function encode($value, $binary = false, $pretty = false) {
+  function json_encode($value, $binary = false, $pretty = false) {
     $flags = 0;
     if (\hacklib_cast_as_boolean(defined("JSON_PRETTY_PRINT")) &&
         \hacklib_cast_as_boolean($pretty)) {
@@ -18,24 +17,24 @@ namespace HackUtils\json {
       $flags |= \JSON_PRESERVE_ZERO_FRACTION;
     }
     if (\hacklib_cast_as_boolean($binary)) {
-      $value = _map_strings(
+      $value = _json_map_strings(
         $value,
         function($x) {
           return \utf8_encode($x);
         }
       );
     }
-    _check_value($value);
+    _json_check_value($value);
     $json = \json_encode($value, $flags);
-    _check_error();
+    _json_check_error();
     return $json;
   }
-  function decode($json, $binary = false) {
+  function json_decode($json, $binary = false) {
     $value = \json_decode($json, true);
-    _check_error();
-    _check_value($value);
+    _json_check_error();
+    _json_check_value($value);
     if (\hacklib_cast_as_boolean($binary)) {
-      $value = _map_strings(
+      $value = _json_map_strings(
         $value,
         function($x) {
           return \utf8_decode($x);
@@ -44,21 +43,21 @@ namespace HackUtils\json {
     }
     return $value;
   }
-  function _check_value($x) {
+  function _json_check_value($x) {
     if (\hacklib_cast_as_boolean(\is_object($x)) ||
         \hacklib_cast_as_boolean(\is_resource($x))) {
-      throw new Exception(
+      throw new JSONException(
         "Type is not supported",
         \JSON_ERROR_UNSUPPORTED_TYPE
       );
     }
     if (\hacklib_cast_as_boolean(\is_array($x))) {
       foreach ($x as $v) {
-        _check_value($v);
+        _json_check_value($v);
       }
     }
   }
-  function _map_strings($x, $f) {
+  function _json_map_strings($x, $f) {
     if (\hacklib_cast_as_boolean(\is_string($x))) {
       return $f($x);
     }
@@ -71,10 +70,10 @@ namespace HackUtils\json {
     }
     return $x;
   }
-  function _check_error() {
+  function _json_check_error() {
     if (\json_last_error() !== \JSON_ERROR_NONE) {
-      throw new Exception(\json_last_error_msg(), \json_last_error());
+      throw new JSONException(\json_last_error_msg(), \json_last_error());
     }
   }
-  class Exception extends \Exception {}
+  class JSONException extends \Exception {}
 }

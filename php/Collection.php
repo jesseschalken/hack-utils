@@ -1,10 +1,6 @@
 <?php
 namespace HackUtils {
   require_once ($GLOBALS["HACKLIB_ROOT"]);
-  use \HackUtils\vector;
-  use \HackUtils\map;
-  use \HackUtils\set;
-  use \HackUtils\pair;
   interface IConstCollection {
     public function toArray();
     public function get($index);
@@ -14,7 +10,7 @@ namespace HackUtils {
     public function chunk($size);
     public function filter($f);
     public function map($f);
-    public function reduce($f, $initial);
+    public function reduce($f, $init);
     public function contains($value);
     public function containsAll($values);
     public function indexOf($value);
@@ -46,8 +42,8 @@ namespace HackUtils {
     public function filterKeys($f);
     public function mapValues($f);
     public function mapKeys($f);
-    public function reduceValues($f, $initial);
-    public function reduceKeys($f, $initial);
+    public function reduceValues($f, $init);
+    public function reduceKeys($f, $init);
   }
   interface IMap extends ICollection, IConstMap {
     public function assign($key, $value);
@@ -187,8 +183,8 @@ namespace HackUtils {
     public function slice($offset, $length = null) {
       return new self(vector\slice($this->array, $offset, $length));
     }
-    public function reduce($f, $initial) {
-      return vector\reduce($this->array, $f, $initial);
+    public function reduce($f, $init) {
+      return vector\reduce($this->array, $f, $init);
     }
     public function sort($cmp) {
       $ok = \usort($this->array, $cmp);
@@ -267,7 +263,7 @@ namespace HackUtils {
       $this->array = array();
     }
     public function delete($i) {
-      $this->array = pair\fst(map\splice($this->array, $i, 1));
+      $this->array = fst(map\splice($this->array, $i, 1));
     }
     public function equals($values) {
       return ($values === $this) || ($this->toArray() === $values->toArray());

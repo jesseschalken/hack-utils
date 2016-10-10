@@ -13,7 +13,19 @@ namespace HackUtils {
   function if_null($x, $y) {
     return ($x === null) ? $y : $x;
   }
-  final class Ref {
+  function fst($t) {
+    return $t[0];
+  }
+  function snd($t) {
+    return $t[1];
+  }
+  interface Gettable {
+    public function get();
+  }
+  interface Settable {
+    public function set($value);
+  }
+  final class Ref implements Gettable, Settable {
     private $value;
     public function __construct($value) {
       $this->value = $value;

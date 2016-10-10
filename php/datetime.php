@@ -16,8 +16,11 @@ namespace HackUtils\datetime {
     public static $singleton = null;
   }
   function utc_timezone() {
-    return clone (_UTCTimeZone::$singleton ??
-                  (_UTCTimeZone::$singleton = create_timezone("UTC")));
+    return
+      clone (\hacklib_cast_as_boolean(_UTCTimeZone::$singleton) ?: (_UTCTimeZone::$singleton =
+                                                                      create_timezone(
+                                                                        "UTC"
+                                                                      )));
   }
   function parse($format, $string, $tz) {
     $result = \DateTimeImmutable::createFromFormat("!".$format, $string, $tz);
@@ -165,6 +168,10 @@ namespace HackUtils\datetime {
       Part::SECOND => $second,
       Part::MICROSECOND => $microsecond
     );
+  }
+  function get_part($dt, $part) {
+    $f = "YmdHis";
+    return (int) format($dt, $f[$part]);
   }
   function now($tz, $withMicroseconds = false) {
     if (\hacklib_cast_as_boolean($withMicroseconds)) {

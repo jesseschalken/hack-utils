@@ -1,38 +1,39 @@
 <?php
-namespace HackUtils\regex {
+namespace HackUtils {
   require_once ($GLOBALS["HACKLIB_ROOT"]);
   use \HackUtils\vector;
   use \HackUtils\map;
   use function \HackUtils\new_null;
-  const CASELESS = "i";
-  const MULTILINE = "m";
-  const DOTALL = "s";
-  const EXTENDED = "x";
-  const ANCHORED = "A";
-  const DOLLAR_ENDONLY = "D";
-  const UNGREEDY = "U";
-  const EXTRA = "X";
-  const UTF8 = "u";
-  const STUDY = "S";
-  function quote($text) {
+  const PCRE_CASELESS = "i";
+  const PCRE_MULTILINE = "m";
+  const PCRE_DOTALL = "s";
+  const PCRE_EXTENDED = "x";
+  const PCRE_ANCHORED = "A";
+  const PCRE_DOLLAR_ENDONLY = "D";
+  const PCRE_UNGREEDY = "U";
+  const PCRE_EXTRA = "X";
+  const PCRE_UTF8 = "u";
+  const PCRE_STUDY = "S";
+  function pcre_quote($text) {
     return \preg_quote($text);
   }
-  function match($regex, $subject, $options = "", $offset = 0) {
+  function pcre_match($regex, $subject, $options = "", $offset = 0) {
     $match = array();
     $count = \preg_match(
-      _compose($regex, $options),
+      _pcre_compose($regex, $options),
       $subject,
       $match,
       \PREG_OFFSET_CAPTURE,
       $offset
     );
-    _check_last_error();
-    return \hacklib_cast_as_boolean($count) ? _fix_match($match) : new_null();
+    _pcre_check_last_error();
+    return
+      \hacklib_cast_as_boolean($count) ? _pcre_fix_match($match) : new_null();
   }
-  function match_all($regex, $subject, $options, $offset = 0) {
+  function pcre_match_all($regex, $subject, $options, $offset = 0) {
     $matches = array();
     \preg_match_all(
-      _compose($regex, $options),
+      _pcre_compose($regex, $options),
       $subject,
       $matches,
       \PREG_SET_ORDER | \PREG_OFFSET_CAPTURE,
@@ -41,11 +42,11 @@ namespace HackUtils\regex {
     return vector\map(
       $matches,
       function($match) {
-        return _fix_match($match);
+        return _pcre_fix_match($match);
       }
     );
   }
-  function replace(
+  function pcre_replace(
     $regex,
     $subject,
     $replacement,
@@ -53,31 +54,31 @@ namespace HackUtils\regex {
     $options = ""
   ) {
     $result = \preg_replace(
-      _compose($regex, $options),
+      _pcre_compose($regex, $options),
       $replacement,
       $subject,
       ($limit === null) ? (-1) : \max(0, $limit)
     );
-    _check_last_error();
+    _pcre_check_last_error();
     if (!\hacklib_cast_as_boolean(\is_string($result))) {
-      throw new Exception("preg_replace() failed");
+      throw new PCREException("preg_replace() failed");
     }
     return $result;
   }
-  function split($regex, $subject, $limit = null, $options = "") {
+  function pcre_split($regex, $subject, $limit = null, $options = "") {
     $pieces = \preg_split(
-      _compose($regex, $options),
+      _pcre_compose($regex, $options),
       $subject,
       ($limit === null) ? (-1) : max(1, $limit)
     );
-    _check_last_error();
+    _pcre_check_last_error();
     if (!\hacklib_cast_as_boolean(\is_array($pieces))) {
-      throw new Exception("preg_split() failed");
+      throw new PCREException("preg_split() failed");
     }
     return $pieces;
   }
-  final class Exception extends \Exception {}
-  function _compose($regex, $options = "") {
+  final class PCREException extends \Exception {}
+  function _pcre_compose($regex, $options = "") {
     return "/"._EscapeCache::escape($regex)."/".$options;
   }
   final class _EscapeCache {
@@ -90,10 +91,10 @@ namespace HackUtils\regex {
       if (map\size(self::$cache) >= 10000) {
         self::$cache = array();
       }
-      return self::$cache[$regex] = _escape($regex);
+      return self::$cache[$regex] = _pcre_escape($regex);
     }
   }
-  function _escape($regex) {
+  function _pcre_escape($regex) {
     $result = "";
     $length = strlen($regex);
     $escape = false;
@@ -114,7 +115,7 @@ namespace HackUtils\regex {
     }
     return $result;
   }
-  function _fix_match($match) {
+  function _pcre_fix_match($match) {
     foreach ($match as $k => $v) {
       if (\hacklib_equals($v[1], -1)) {
         unset($match[$k]);
@@ -122,7 +123,7 @@ namespace HackUtils\regex {
     }
     return $match;
   }
-  function _get_error_message($error) {
+  function _pcre_get_error_message($error) {
     switch ($error) {
       case PREG_NO_ERROR:
         return "No errors";
@@ -143,10 +144,10 @@ namespace HackUtils\regex {
         return "Unknown error";
     }
   }
-  function _check_last_error() {
+  function _pcre_check_last_error() {
     $error = \preg_last_error();
     if ($error !== \PREG_NO_ERROR) {
-      throw new Exception(_get_error_message($error), $error);
+      throw new PCREException(_pcre_get_error_message($error), $error);
     }
   }
 }

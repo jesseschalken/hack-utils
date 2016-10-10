@@ -1,14 +1,6 @@
 <?php
-namespace HackUtils\map {
+namespace HackUtils {
   require_once ($GLOBALS["HACKLIB_ROOT"]);
-  use \HackUtils\vector;
-  use \HackUtils\map;
-  use \HackUtils\set;
-  use \HackUtils as utils;
-  use \HackUtils\fun2;
-  use \HackUtils\fun1;
-  use \HackUtils\fun0;
-  use function \HackUtils\new_null;
   function keys_to_lower($array) {
     return \array_change_key_case($array, \CASE_LOWER);
   }
@@ -29,32 +21,35 @@ namespace HackUtils\map {
     }
     return $r;
   }
-  function chunk($map, $size) {
+  function chunk_assoc($map, $size) {
     return \array_chunk($map, $size, true);
   }
-  function get($map, $key) {
+  function get_key($map, $key) {
     $res = $map[$key];
-    if (($res === null) && (!\hacklib_cast_as_boolean(has_key($map, $key)))) {
+    if (($res === null) &&
+        (!\hacklib_cast_as_boolean(key_exists($map, $key)))) {
       throw new \Exception("Key '".$key."' does not exist in map");
     }
     return $res;
   }
-  function set($map, $key, $val) {
+  function set_key($map, $key, $val) {
     $map[$key] = $val;
     return $map;
   }
-  function soft_get($map, $key) {
+  function get_key_or_null($map, $key) {
     return $map[$key] ?? new_null();
   }
-  function get_default($map, $key, $default) {
+  function get_key_or_default($map, $key, $default) {
     return
-      \hacklib_cast_as_boolean(has_key($map, $key)) ? $map[$key] : $default;
+      \hacklib_cast_as_boolean(key_exists($map, $key))
+        ? $map[$key]
+        : $default;
   }
   function fixkey($key) {
     return $key."";
   }
   function fixkeys($keys) {
-    return vector\map(
+    return map(
       $keys,
       function($key) {
         return $key."";
@@ -67,10 +62,15 @@ namespace HackUtils\map {
   function combine($keys, $values) {
     return \array_combine($keys, $values);
   }
-  function splice($map, $offset, $length = null, $replacement = array()) {
-    $left = slice($map, 0, $offset);
-    $middle = slice($map, $offset, $length);
-    $right = ($length !== null) ? slice($map, $length) : array();
+  function splice_assoc(
+    $map,
+    $offset,
+    $length = null,
+    $replacement = array()
+  ) {
+    $left = slice_assoc($map, 0, $offset);
+    $middle = slice_assoc($map, $offset, $length);
+    $right = ($length !== null) ? slice_assoc($map, $length) : array();
     return array(\array_replace($left, $replacement, $right), $middle);
   }
   function separate($map) {
@@ -89,7 +89,7 @@ namespace HackUtils\map {
     return \array_flip($map);
   }
   function flip($map) {
-    $ret = of_vectors();
+    $ret = array();
     foreach ($map as $k => $v) {
       $ret[$v][] = $k;
     }
@@ -104,14 +104,14 @@ namespace HackUtils\map {
     }
     return $ret;
   }
-  function has_key($map, $key) {
+  function key_exists($map, $key) {
     return \array_key_exists($key, $map);
   }
   function keys($map) {
     return \array_keys($map);
   }
   function keys_strings($map) {
-    return vector\map(
+    return map(
       keys($map),
       function($k) {
         return "".$k;
@@ -130,20 +130,20 @@ namespace HackUtils\map {
   function union_all($maps) {
     return \call_user_func_array("array_replace", $maps);
   }
-  function intersect($a, $b) {
+  function intersect_keys($a, $b) {
     return \array_intersect_key($a, $b);
   }
-  function diff($a, $b) {
+  function diff_keys($a, $b) {
     return \array_intersect_key($a, $b);
   }
-  function reverse($map) {
+  function reverse_assoc($map) {
     return \array_reverse($map, true);
   }
   function find($map, $value) {
     $ret = \array_search($map, $value, true);
     return ($ret === false) ? null : $ret;
   }
-  function slice($map, $offset, $length = null) {
+  function slice_assoc($map, $offset, $length = null) {
     return \array_slice($map, $offset, $length, true);
   }
   function size($map) {
@@ -170,7 +170,7 @@ namespace HackUtils\map {
     return $map;
   }
   function sort_pairs($map, $cmp) {
-    return from_pairs(vector\sort(to_pairs($map), $cmp));
+    return from_pairs(sort(to_pairs($map), $cmp));
   }
   function filter_values($map, $f) {
     return \array_filter($map, $f);
@@ -192,7 +192,7 @@ namespace HackUtils\map {
     return $map;
   }
   function get_pair($array, $offset) {
-    foreach (slice($array, $offset, 1) as $k => $v) {
+    foreach (slice_assoc($array, $offset, 1) as $k => $v) {
       return array($k, $v);
     }
     throw new \Exception(
@@ -221,29 +221,29 @@ namespace HackUtils\map {
     return \array_reduce($map, $f, $initial);
   }
   function reduce_keys($map, $f, $initial) {
-    return vector\reduce(keys($map), $f, $initial);
+    return reduce(keys($map), $f, $initial);
   }
   function reduce_pairs($map, $f, $initial) {
-    return vector\reduce(to_pairs($map), $f, $initial);
+    return reduce(to_pairs($map), $f, $initial);
   }
   function select($map, $keys) {
-    return vector\map(
+    return map(
       $keys,
       function($key) use ($map) {
         return $map[$key];
       }
     );
   }
-  function zip($a, $b) {
+  function zip_assoc($a, $b) {
     $ret = array();
     foreach ($a as $k => $v) {
-      if (\hacklib_cast_as_boolean(has_key($b, $k))) {
+      if (\hacklib_cast_as_boolean(key_exists($b, $k))) {
         $ret[$k] = array($v, $b[$k]);
       }
     }
     return $ret;
   }
-  function unzip($map) {
+  function unzip_assoc($map) {
     $a = array();
     $b = array();
     foreach ($map as $k => $v) {
@@ -251,11 +251,5 @@ namespace HackUtils\map {
       $b[$k] = $v[1];
     }
     return array($a, $b);
-  }
-  function of_vectors() {
-    return array();
-  }
-  function of_maps() {
-    return array();
   }
 }

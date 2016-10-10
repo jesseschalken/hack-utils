@@ -1,13 +1,6 @@
 <?php
-namespace HackUtils\vector {
+namespace HackUtils {
   require_once ($GLOBALS["HACKLIB_ROOT"]);
-  use \HackUtils\vector;
-  use \HackUtils\map;
-  use \HackUtils\set;
-  use \HackUtils as utils;
-  use \HackUtils\fun2;
-  use \HackUtils\fun1;
-  use \HackUtils\fun0;
   function is_vector($x) {
     if (!\hacklib_cast_as_boolean(\is_array($x))) {
       return false;
@@ -49,7 +42,7 @@ namespace HackUtils\vector {
     return ($ret === false) ? null : $ret;
   }
   function last_index_of($list, $value) {
-    $ret = utils\new_null();
+    $ret = new_null();
     foreach ($list as $k => $v) {
       if ($v === $value) {
         $ret = $k;
@@ -60,26 +53,26 @@ namespace HackUtils\vector {
   function slice($list, $offset, $length = null) {
     return \array_slice($list, $offset, $length);
   }
-  function get($v, $i) {
+  function get_offset($v, $i) {
     $l = \count($v);
     if ($i < 0) {
       $i += $l;
     }
     if (($i < 0) || ($i >= $l)) {
       throw new \Exception(
-        "Index ".$i." out of bounds in vector of length ".$l
+        "Index ".$i." out of bounds in array of length ".$l
       );
     }
     return $v[$i];
   }
-  function set($v, $i, $x) {
-    $l = length($v);
-    if (($i < 0) || ($i > $l)) {
+  function set_offset($v, $i, $x) {
+    $l = \count($v);
+    if ($i < 0) {
+      $i += $l;
+    }
+    if (($i < 0) || ($i >= $l)) {
       throw new \Exception(
-        "Cannot set index ".
-        $i.
-        ": Index out of bounds in array with length ".
-        $l
+        "Index ".$i." out of bounds in array of length ".$l
       );
     }
     $v[$i] = $x;
@@ -130,9 +123,6 @@ namespace HackUtils\vector {
   function length($list) {
     return \count($list);
   }
-  function contains($list, $value) {
-    return \in_array($value, $list, true);
-  }
   function range($start, $end, $step = 1) {
     return \range($start, $end, $step);
   }
@@ -158,9 +148,6 @@ namespace HackUtils\vector {
       $value = $f($value, $list[$i]);
     }
     return $value;
-  }
-  function keys($array) {
-    return \array_keys($array);
   }
   function zip($a, $b) {
     $r = array();
@@ -201,14 +188,8 @@ namespace HackUtils\vector {
     }
     return true;
   }
-  function of_vectors() {
-    return array();
-  }
-  function of_maps() {
-    return array();
-  }
   function group_by($a, $f) {
-    $res = map\of_vectors();
+    $res = array();
     foreach ($a as $v) {
       $res[$f($v)][] = $v;
     }
