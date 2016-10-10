@@ -1,12 +1,6 @@
 <?hh // strict
 
-namespace HackUtils\vector;
-
-use HackUtils\vector;
-use HackUtils\map;
-use HackUtils\set;
-use HackUtils as utils;
-use HackUtils\{fn0, fn1, fn2};
+namespace HackUtils;
 
 function is_vector(mixed $x): bool {
   if (!\is_array($x)) {
@@ -55,7 +49,7 @@ function index_of<T>(array<T> $list, T $value): ?int {
 }
 
 function last_index_of<T>(array<T> $list, T $value): ?int {
-  $ret = utils\new_null();
+  $ret = new_null();
   foreach ($list as $k => $v) {
     if ($v === $value) {
       $ret = $k;
@@ -68,25 +62,24 @@ function slice<T>(array<T> $list, int $offset, ?int $length = null): array<T> {
   return \array_slice($list, $offset, $length);
 }
 
-function get<T>(array<T> $v, int $i): T {
+function get_offset<T>(array<T> $v, int $i): T {
   $l = \count($v);
   if ($i < 0) {
     $i += $l;
   }
   if ($i < 0 || $i >= $l) {
-    throw new \Exception("Index $i out of bounds in vector of length $l");
+    throw new \Exception("Index $i out of bounds in array of length $l");
   }
   return $v[$i];
 }
 
-function set<T>(array<T> $v, int $i, T $x): array<T> {
-  $l = length($v);
-  // Setting the last index + 1 ($i == length) is allowed, since it would
-  // still leave the vector packed with keys 0,1,2..N.
-  if ($i < 0 || $i > $l) {
-    throw new \Exception(
-      "Cannot set index $i: Index out of bounds in array with length $l",
-    );
+function set_offset<T>(array<T> $v, int $i, T $x): array<T> {
+  $l = \count($v);
+  if ($i < 0) {
+    $i += $l;
+  }
+  if ($i < 0 || $i >= $l) {
+    throw new \Exception("Index $i out of bounds in array of length $l");
   }
   $v[$i] = $x;
   return $v;
@@ -156,10 +149,6 @@ function length(array<mixed> $list): int {
   return \count($list);
 }
 
-function contains<T>(array<T> $list, T $value): bool {
-  return \in_array($value, $list, true);
-}
-
 function range(int $start, int $end, int $step = 1): array<int> {
   return \range($start, $end, $step);
 }
@@ -203,10 +192,6 @@ function reduce_right<Tin, Tout>(
     $value = $f($value, $list[$i]);
   }
   return $value;
-}
-
-function keys(array<mixed> $array): array<int> {
-  return \array_keys($array);
 }
 
 function zip<Ta, Tb>(array<Ta> $a, array<Tb> $b): array<(Ta, Tb)> {
@@ -254,19 +239,11 @@ function all<T>(array<T> $a, (function(T): bool) $f): bool {
   return true;
 }
 
-function of_vectors<T>(): array<array<T>> {
-  return [];
-}
-
-function of_maps<Tk, Tv>(): array<array<Tk, Tv>> {
-  return [];
-}
-
 function group_by<Tk, Tv>(
   array<Tv> $a,
   (function(Tv): Tk) $f,
 ): array<Tk, array<Tv>> {
-  $res = map\of_vectors();
+  $res = [];
   foreach ($a as $v) {
     $res[$f($v)][] = $v;
   }
