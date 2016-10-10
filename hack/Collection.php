@@ -2,11 +2,6 @@
 
 namespace HackUtils;
 
-use HackUtils\vector;
-use HackUtils\map;
-use HackUtils\set;
-use HackUtils\pair;
-
 interface IConstCollection<+T> {
   public function toArray(): array<T>;
   public function get(int $index): T;
@@ -352,7 +347,7 @@ abstract class _ArrayMapBase<Tk, Tv, Tak as arraykey, Tav>
   // }
 
   public function delete(int $i): void {
-    $this->array = pair\fst(map\splice($this->array, $i, 1));
+    $this->array = fst(map\splice($this->array, $i, 1));
   }
 
   public function equals(IConstCollection<mixed> $values): bool {

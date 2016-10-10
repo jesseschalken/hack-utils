@@ -25,6 +25,14 @@ function if_null<T>(?T $x, T $y): T {
   return $x === null ? $y : $x;
 }
 
+function fst<T>((T, mixed) $t): T {
+  return $t[0];
+}
+
+function snd<T>((mixed, T) $t): T {
+  return $t[1];
+}
+
 interface Gettable<+T> {
   public function get(): T;
 }
