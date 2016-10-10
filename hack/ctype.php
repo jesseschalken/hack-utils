@@ -1,11 +1,9 @@
 <?hh // strict
 
-namespace HackUtils\ctype;
-
-use function HackUtils\str\is_empty;
+namespace HackUtils;
 
 function all_alnum(string $s): bool {
-  return is_empty($s) || \ctype_alnum($s);
+  return $s === '' || \ctype_alnum($s);
 }
 
 function all_blank(string $s): bool {
@@ -20,41 +18,105 @@ function all_blank(string $s): bool {
 }
 
 function all_alpha(string $s): bool {
-  return is_empty($s) || \ctype_alpha($s);
+  return $s === '' || \ctype_alpha($s);
 }
 
 function all_cntrl(string $s): bool {
-  return is_empty($s) || \ctype_cntrl($s);
+  return $s === '' || \ctype_cntrl($s);
 }
 
 function all_digit(string $s): bool {
-  return is_empty($s) || \ctype_digit($s);
+  return $s === '' || \ctype_digit($s);
 }
 
 function all_graph(string $s): bool {
-  return is_empty($s) || \ctype_graph($s);
+  return $s === '' || \ctype_graph($s);
 }
 
 function all_lower(string $s): bool {
-  return is_empty($s) || \ctype_lower($s);
+  return $s === '' || \ctype_lower($s);
 }
 
 function all_print(string $s): bool {
-  return is_empty($s) || \ctype_print($s);
+  return $s === '' || \ctype_print($s);
 }
 
 function all_punct(string $s): bool {
-  return is_empty($s) || \ctype_punct($s);
+  return $s === '' || \ctype_punct($s);
 }
 
 function all_space(string $s): bool {
-  return is_empty($s) || \ctype_space($s);
+  return $s === '' || \ctype_space($s);
 }
 
 function all_upper(string $s): bool {
-  return is_empty($s) || \ctype_upper($s);
+  return $s === '' || \ctype_upper($s);
 }
 
 function all_xdigit(string $s): bool {
-  return is_empty($s) || \ctype_xdigit($s);
+  return $s === '' || \ctype_xdigit($s);
+}
+
+function _char(string $s, int $i = 0): string {
+  $l = \strlen($s);
+  // Allow caller to specify negative offsets for characters from the end of
+  // the string
+  if ($i < 0) {
+    $i += $l;
+  }
+  if ($i < 0 || $i >= $l) {
+    throw new \Exception(
+      "String offset $i out of bounds in string of length $l",
+    );
+  }
+  return $s[$i];
+}
+
+function is_alnum(string $s, int $i = 0): bool {
+  return \ctype_alnum(_char($s, $i));
+}
+
+function is_blank(string $s, int $i = 0): bool {
+  $c = _char($s, $i);
+  return $c === ' ' || $c === "\t";
+}
+
+function is_alpha(string $s, int $i = 0): bool {
+  return \ctype_alpha(_char($s, $i));
+}
+
+function is_cntrl(string $s, int $i = 0): bool {
+  return \ctype_cntrl(_char($s, $i));
+}
+
+function is_digit(string $s, int $i = 0): bool {
+  return \ctype_digit(_char($s, $i));
+}
+
+function is_graph(string $s, int $i = 0): bool {
+  return \ctype_graph(_char($s, $i));
+}
+
+function is_lower(string $s, int $i = 0): bool {
+  return \ctype_lower(_char($s, $i));
+}
+
+function is_print(string $s, int $i = 0): bool {
+  return \ctype_print(_char($s, $i));
+}
+
+function is_punct(string $s, int $i = 0): bool {
+  return \ctype_punct(_char($s, $i));
+}
+
+function is_space(string $s, int $i = 0): bool {
+  return \ctype_space(_char($s, $i));
+}
+
+function is_upper(string $s, int $i = 0): bool {
+  return \ctype_upper(_char($s, $i));
+}
+
+function is_xdigit(string $s, int $i = 0): bool {
+  return \ctype_xdigit(_char($s, $i));
 }
