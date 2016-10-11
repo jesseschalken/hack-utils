@@ -81,18 +81,6 @@ function combine<Tk, Tv>(array<Tk> $keys, array<Tv> $values): array<Tk, Tv> {
   return \array_combine($keys, $values);
 }
 
-function splice_assoc<Tk, Tv>(
-  array<Tk, Tv> $map,
-  int $offset,
-  ?int $length = null,
-  array<Tk, Tv> $replacement = [],
-): (array<Tk, Tv>, array<Tk, Tv>) {
-  $left = slice_assoc($map, 0, $offset);
-  $middle = slice_assoc($map, $offset, $length);
-  $right = $length !== null ? slice_assoc($map, $length) : [];
-  return tuple(\array_replace($left, $replacement, $right), $middle);
-}
-
 function separate<Tk, Tv>(array<Tk, Tv> $map): (array<Tk>, array<Tv>) {
   $ks = [];
   $vs = [];
