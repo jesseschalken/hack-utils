@@ -8,11 +8,11 @@ namespace HackUtils;
 function escape_chars(string $s, string $chars): string {
   if ($s === '')
     return '';
-  $s = replace($s, '\\', '\\\\');
-  $l = length($chars);
+  $s = find_replace($s, '\\', '\\\\');
+  $l = len($chars);
   for ($i = 0; $i < $l; $i++) {
     $c = $chars[$i];
-    $s = replace($s, $c, '\\'.$c);
+    $s = find_replace($s, $c, '\\'.$c);
   }
   return $s;
 }

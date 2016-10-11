@@ -57,21 +57,6 @@ function all_xdigit(string $s): bool {
   return $s === '' || \ctype_xdigit($s);
 }
 
-function char_at(string $s, int $i = 0): string {
-  $l = \strlen($s);
-  // Allow caller to specify negative offsets for characters from the end of
-  // the string
-  if ($i < 0) {
-    $i += $l;
-  }
-  if ($i < 0 || $i >= $l) {
-    throw new \Exception(
-      "String offset $i out of bounds in string of length $l",
-    );
-  }
-  return $s[$i];
-}
-
 function is_alnum(string $s, int $i = 0): bool {
   return \ctype_alnum(char_at($s, $i));
 }

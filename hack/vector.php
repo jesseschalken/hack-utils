@@ -15,16 +15,8 @@ function is_vector(mixed $x): bool {
   return true;
 }
 
-function chunk<T>(array<T> $map, int $size): array<array<T>> {
-  return \array_chunk($map, $size, false);
-}
-
 function count_values<T as arraykey>(array<T> $values): array<T, int> {
   return \array_count_values($values);
-}
-
-function repeat<T>(T $value, int $count): array<T> {
-  return \array_fill(0, $count, $value);
 }
 
 function concat<T>(array<T> $a, array<T> $b): array<T> {
@@ -37,33 +29,6 @@ function concat_all<T>(array<array<T>> $vectors): array<T> {
 
 function pad_array<T>(array<T> $list, int $size, T $value): array<T> {
   return \array_pad($list, $size, $value);
-}
-
-function reverse<T>(array<T> $list): array<T> {
-  return \array_reverse($list, false);
-}
-
-function key_of<Tk, Tv>(array<Tk, Tv> $list, Tv $value): ?Tk {
-  $ret = \array_search($list, $value, true);
-  return $ret === false ? null : $ret;
-}
-
-function last_key_of<Tk, Tv>(array<Tk, Tv> $list, Tv $value): ?Tk {
-  $ret = new_null();
-  foreach ($list as $k => $v) {
-    if ($v === $value) {
-      $ret = $k;
-    }
-  }
-  return $ret;
-}
-
-function vec_slice<T>(
-  array<T> $list,
-  int $offset,
-  ?int $length = null,
-): array<T> {
-  return \array_slice($list, $offset, $length);
 }
 
 function get_offset<T>(array<T> $v, int $i): T {
@@ -127,32 +92,6 @@ function _check_empty(array<mixed> $a, string $op): void {
   }
 }
 
-/**
- * Returns a pair of (new list, removed elements).
- */
-function vec_splice<T>(
-  array<T> $list,
-  int $offset,
-  ?int $length = null,
-  array<T> $replacement = [],
-): (array<T>, array<T>) {
-  $ret = \array_splice($list, $offset, $length, $replacement);
-  return tuple($list, $ret);
-}
-
-function unique<T as arraykey>(array<T> $list): array<T> {
-  return \array_unique($list);
-}
-
-function shuffle<T>(array<T> $list): array<T> {
-  \shuffle($list);
-  return $list;
-}
-
-function count(array<mixed> $list): int {
-  return \count($list);
-}
-
 function range(int $start, int $end, int $step = 1): array<int> {
   return \range($start, $end, $step);
 }
@@ -187,10 +126,18 @@ function reduce_right<Tin, Tout>(
   (function(Tout, Tin): Tout) $f,
   Tout $value,
 ): Tout {
-  foreach ($list as $v) {
-    $value = $f($value, $v);
+  // Messy, but the easiest way of iterating through an array in reverse
+  // without creating a copy.
+  \end($list);
+  while (!\is_null($key = \key($list))) {
+    $value = $f($value, \current($list));
+    \prev($list);
   }
   return $value;
+}
+
+function unique<T as arraykey>(array<T> $list): array<T> {
+  return \array_unique($list);
 }
 
 function diff<T as arraykey>(array<T> $a, array<T> $b): array<T> {

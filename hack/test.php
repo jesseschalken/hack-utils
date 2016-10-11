@@ -21,10 +21,10 @@ function run_tests(): void {
   assert_eqaul(from_hex("00ff20"), "\x00\xff\x20");
   assert_eqaul(from_hex("00Ff20"), "\x00\xff\x20");
 
-  assert_eqaul(length(str_shuffle("abc")), 3);
+  assert_eqaul(len(str_shuffle("abc")), 3);
 
-  assert_eqaul(str_reverse("abc"), 'cba');
-  assert_eqaul(str_reverse(""), '');
+  assert_eqaul(reverse_string("abc"), 'cba');
+  assert_eqaul(reverse_string(""), '');
 
   assert_eqaul(to_lower("ABC.1.2.3"), "abc.1.2.3");
   assert_eqaul(to_upper("abc.1.2.3"), "ABC.1.2.3");
@@ -45,9 +45,9 @@ function run_tests(): void {
   assert_eqaul(split('abc', 'b', 1), ['abc']);
   assert_eqaul(split('abc', 'b', 2), ['a', 'c']);
 
-  assert_eqaul(str_chunk('abc', 1), ['a', 'b', 'c']);
-  assert_eqaul(str_chunk('abc', 2), ['ab', 'c']);
-  assert_eqaul(str_chunk('abc', 3), ['abc']);
+  assert_eqaul(chunk_string('abc', 1), ['a', 'b', 'c']);
+  assert_eqaul(chunk_string('abc', 2), ['ab', 'c']);
+  assert_eqaul(chunk_string('abc', 3), ['abc']);
 
   assert_eqaul(join([]), '');
   assert_eqaul(join(['abc']), 'abc');
@@ -57,18 +57,18 @@ function run_tests(): void {
   assert_eqaul(join(['abc'], ','), 'abc');
   assert_eqaul(join(['a', 'bc'], ','), 'a,bc');
 
-  assert_eqaul(replace('abc', 'b', 'lol'), tuple('alolc', 1));
-  assert_eqaul(replace('abc', 'B', 'lol'), tuple('abc', 0));
-  assert_eqaul(replace('abc', 'B', 'lol', true), tuple('alolc', 1));
+  assert_eqaul(find_replace('abc', 'b', 'lol'), tuple('alolc', 1));
+  assert_eqaul(find_replace('abc', 'B', 'lol'), tuple('abc', 0));
+  assert_eqaul(find_replace('abc', 'B', 'lol', true), tuple('alolc', 1));
 
-  assert_eqaul(str_splice('abc', 1, 1), 'ac');
-  assert_eqaul(str_splice('abc', 1, 1, 'lol'), 'alolc');
+  assert_eqaul(replace('abc', 1, 1), 'ac');
+  assert_eqaul(replace('abc', 1, 1, 'lol'), 'alolc');
 
-  assert_eqaul(str_slice('abc', 1, 1), 'b');
-  assert_eqaul(str_slice('abc', -1, 1), 'c');
-  assert_eqaul(str_slice('abc', 1, -1), 'b');
-  assert_eqaul(str_slice('abc', 1), 'bc');
-  assert_eqaul(str_slice('abc', -1), 'c');
+  assert_eqaul(sub('abc', 1, 1), 'b');
+  assert_eqaul(sub('abc', -1, 1), 'c');
+  assert_eqaul(sub('abc', 1, -1), 'b');
+  assert_eqaul(sub('abc', 1), 'bc');
+  assert_eqaul(sub('abc', -1), 'c');
 
   assert_eqaul(pad('abc', 3), 'abc');
   assert_eqaul(pad('abc', 4), 'abc ');
@@ -124,29 +124,29 @@ function run_tests(): void {
   assert_eqaul(str_eq('', 'a', true), false);
   assert_eqaul(str_eq('a', '', true), false);
 
-  assert_eqaul(str_index_of('a', 'a'), 0);
-  assert_eqaul(str_index_of('a', 'a', 1), null);
-  assert_eqaul(str_index_of('a', 'a', -1), 0);
-  assert_eqaul(str_index_of('abc', 'a'), 0);
-  assert_eqaul(str_index_of('abc', 'b'), 1);
-  assert_eqaul(str_index_of('abc', 'c'), 2);
-  assert_eqaul(str_index_of('abc', 'a', -2), null);
-  assert_eqaul(str_index_of('abc', 'b', -2), 1);
-  assert_eqaul(str_index_of('abc', 'c', -2), 2);
-  assert_eqaul(str_index_of('abbb', 'bb'), 1);
-  assert_eqaul(str_index_of('abbb', 'bb', 2), 2);
+  assert_eqaul(find('a', 'a'), 0);
+  assert_eqaul(find('a', 'a', 1), null);
+  assert_eqaul(find('a', 'a', -1), 0);
+  assert_eqaul(find('abc', 'a'), 0);
+  assert_eqaul(find('abc', 'b'), 1);
+  assert_eqaul(find('abc', 'c'), 2);
+  assert_eqaul(find('abc', 'a', -2), null);
+  assert_eqaul(find('abc', 'b', -2), 1);
+  assert_eqaul(find('abc', 'c', -2), 2);
+  assert_eqaul(find('abbb', 'bb'), 1);
+  assert_eqaul(find('abbb', 'bb', 2), 2);
 
-  assert_eqaul(str_last_index_of('a', 'a'), 0);
-  assert_eqaul(str_last_index_of('a', 'a', 1), null);
-  assert_eqaul(str_last_index_of('a', 'a', -1), 0);
-  assert_eqaul(str_last_index_of('aba', 'a'), 2);
-  assert_eqaul(str_last_index_of('aba', 'b'), 1);
-  assert_eqaul(str_last_index_of('aba', 'c'), null);
-  assert_eqaul(str_last_index_of('aba', 'a', -2), 2);
-  assert_eqaul(str_last_index_of('aba', 'b', -2), 1);
-  assert_eqaul(str_last_index_of('aba', 'c', -2), null);
-  assert_eqaul(str_last_index_of('abbb', 'bb'), 2);
-  assert_eqaul(str_last_index_of('abbb', 'bb', 2), 2);
+  assert_eqaul(find_last('a', 'a'), 0);
+  assert_eqaul(find_last('a', 'a', 1), null);
+  assert_eqaul(find_last('a', 'a', -1), 0);
+  assert_eqaul(find_last('aba', 'a'), 2);
+  assert_eqaul(find_last('aba', 'b'), 1);
+  assert_eqaul(find_last('aba', 'c'), null);
+  assert_eqaul(find_last('aba', 'a', -2), 2);
+  assert_eqaul(find_last('aba', 'b', -2), 1);
+  assert_eqaul(find_last('aba', 'c', -2), null);
+  assert_eqaul(find_last('abbb', 'bb'), 2);
+  assert_eqaul(find_last('abbb', 'bb', 2), 2);
 
   assert_eqaul(ends_with('abbb', 'bb'), true);
   assert_eqaul(ends_with('abbb', 'ba'), false);

@@ -5,7 +5,8 @@ namespace HackUtils;
 type datetime = datetime\datetime;
 type timezone = datetime\timezone;
 
-type assoc<+T> = array<arraykey, T>;
+type key = arraykey;
+type map<+T> = array<key, T>;
 
 type fn0<+T> = (function(): T);
 type fn1<-T1, +T> = (function(T1): T);
