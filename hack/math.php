@@ -183,42 +183,6 @@ function intpow(int $base, int $exp): int {
   return \pow($base, $exp);
 }
 
-function sort_numeric<T as num>(
-  array<T> $nums,
-  bool $reverse = false,
-): array<T> {
-  if ($reverse) {
-    \rsort($nums, \SORT_NUMERIC);
-  } else {
-    \sort($nums, \SORT_NUMERIC);
-  }
-  return $nums;
-}
-
-function sort_values_numeric<Tk, Tv as num>(
-  array<Tk, Tv> $nums,
-  bool $reverse = false,
-): array<Tk, Tv> {
-  if ($reverse) {
-    \arsort($nums, \SORT_NUMERIC);
-  } else {
-    \asort($nums, \SORT_NUMERIC);
-  }
-  return $nums;
-}
-
-function sort_keys_numeric<Tk as num, Tv>(
-  array<Tk, Tv> $map,
-  bool $reverse = false,
-): array<Tk, Tv> {
-  if ($reverse) {
-    \krsort($map, \SORT_NUMERIC);
-  } else {
-    \ksort($map, \SORT_NUMERIC);
-  }
-  return $map;
-}
-
 function sum<T as num>(array<T> $list): T {
   return \array_sum($list);
 }

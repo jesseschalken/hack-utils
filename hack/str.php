@@ -1,6 +1,6 @@
 <?hh // strict
 
-namespace HackUtils\str;
+namespace HackUtils;
 
 use HackUtils as utils;
 use HackUtils\vector;
@@ -22,11 +22,11 @@ function from_hex(string $string): string {
   return $ret;
 }
 
-function shuffle(string $string): string {
+function str_shuffle(string $string): string {
   return \str_shuffle($string);
 }
 
-function reverse(string $string): string {
+function str_reverse(string $string): string {
   return \strrev($string);
 }
 
@@ -53,96 +53,6 @@ function trim_right(string $string, string $chars = TRIM_CHARS): string {
   return \rtrim($string, $chars);
 }
 
-/**
- * Prefixes characters with a backslash, including backslashes.
- */
-function escape_chars(string $s, string $chars): string {
-  if ($s === '')
-    return $s;
-  $s = replace($s, '\\', '\\\\');
-  $l = length($chars);
-  for ($i = 0; $i < $l; $i++) {
-    $c = $chars[$i];
-    $s = replace($s, $c, '\\'.$c);
-  }
-  return $s;
-}
-
-function encode_list(array<string> $list): string {
-  $r = '';
-  foreach ($list as $x) {
-    $r .= escape_chars($x, ';').';';
-  }
-  return $r;
-}
-
-function decode_list(string $s): array<string> {
-  $r = [];
-  $b = '';
-  $e = false;
-  $l = \strlen($s);
-  for ($i = 0; $i < $l; $i++) {
-    $c = $s[$i];
-    if ($e) {
-      $b .= $c;
-      $e = false;
-    } else if ($c === '\\') {
-      $e = true;
-    } else if ($c === ';') {
-      $r[] = $b;
-      $b = '';
-    } else {
-      $b .= $c;
-    }
-  }
-  return $r;
-}
-
-function encode_map(array<arraykey, string> $map): string {
-  $r = '';
-  foreach ($map as $k => $v) {
-    $k .= '';
-    $r .= escape_chars($k, '=;').'=';
-    $r .= escape_chars($v, '=;').';';
-  }
-  return $r;
-}
-
-function decode_map(string $s): array<arraykey, string> {
-  $r = [];
-  $k = null;
-  $b = '';
-  $l = \strlen($s);
-  $e = false;
-  for ($i = 0; $i < $l; $i++) {
-    $c = $s[$i];
-    if ($e) {
-      $b .= $c;
-      $e = false;
-    } else if ($c === '\\') {
-      $e = true;
-    } else if ($c === '=') {
-      // Make sure we are expecting a key
-      if ($k !== null) {
-        throw new \Exception('Double key');
-      }
-      $k = $b;
-      $b = '';
-    } else if ($c === ';') {
-      // Make sure we are expecting a value
-      if ($k === null) {
-        throw new \Exception('Value without key');
-      }
-      $r[$k] = $b;
-      $k = null;
-      $b = '';
-    } else {
-      $b .= $c;
-    }
-  }
-  return $r;
-}
-
 function split(
   string $string,
   string $delimiter = '',
@@ -163,17 +73,13 @@ function split(
       return [$string];
     }
     if (length($string) > $limit) {
-      $ret = \str_split(slice($string, 0, $limit - 1));
-      $ret[] = slice($string, $limit - 1);
+      $ret = \str_split(str_slice($string, 0, $limit - 1));
+      $ret[] = str_slice($string, $limit - 1);
       return $ret;
     }
     return \str_split($string);
   }
   return \explode($delimiter, $string, $limit);
-}
-
-function split_at(string $string, int $offset): (string, string) {
-  return tuple(slice($string, 0, $offset), slice($string, $offset));
 }
 
 /**
@@ -184,13 +90,13 @@ function lines(string $string): array<string> {
   $lines = split($string, "\n");
   // Remove a final \r at the end of any lines
   foreach ($lines as $i => $line) {
-    if (slice($line, -1) === "\r") {
-      $lines[$i] = slice($line, 0, -1);
+    if (str_slice($line, -1) === "\r") {
+      $lines[$i] = str_slice($line, 0, -1);
     }
   }
   // Remove a final empty line
-  if ($lines && $lines[utils\length($lines) - 1] === '') {
-    $lines = utils\slice($lines, 0, -1);
+  if ($lines && $lines[count($lines) - 1] === '') {
+    $lines = vec_slice($lines, 0, -1);
   }
   return $lines;
 }
@@ -203,62 +109,7 @@ function unlines(array<string> $lines, string $nl = "\n"): string {
   return $lines ? join($lines, $nl).$nl : '';
 }
 
-function is_empty(string $string): bool {
-  return $string === '';
-}
-
-function sort<T as arraykey>(
-  array<T> $strings,
-  bool $caseInsensitive = false,
-  bool $natural = false,
-  bool $reverse = false,
-): array<T> {
-  $flags = _sort_flags($caseInsensitive, $natural);
-  if ($reverse) {
-    \rsort($strings, $flags);
-  } else {
-    \sort($strings, $flags);
-  }
-  return $strings;
-}
-
-function sort_map<Tk, Tv as arraykey>(
-  array<Tk, Tv> $strings,
-  bool $caseInsensitive = false,
-  bool $natural = false,
-  bool $reverse = false,
-): array<Tk, Tv> {
-  $flags = _sort_flags($caseInsensitive, $natural);
-  if ($reverse) {
-    \arsort($strings, $flags);
-  } else {
-    \asort($strings, $flags);
-  }
-  return $strings;
-}
-
-function sort_map_keys<Tk as arraykey, Tv>(
-  array<Tk, Tv> $map,
-  bool $caseInsensitive = false,
-  bool $natural = false,
-  bool $reverse = false,
-): array<Tk, Tv> {
-  $flags = _sort_flags($caseInsensitive, $natural);
-  if ($reverse) {
-    \krsort($map, $flags);
-  } else {
-    \ksort($map, $flags);
-  }
-  return $map;
-}
-
-function _sort_flags(bool $caseInsensitive, bool $natural): int {
-  return
-    ($natural ? \SORT_NATURAL : \SORT_STRING) |
-    ($caseInsensitive ? \SORT_FLAG_CASE : 0);
-}
-
-function chunk(string $string, int $size): array<string> {
+function str_chunk(string $string, int $size): array<string> {
   if ($size < 1) {
     throw new \Exception("Chunk size must be >= 1");
   }
@@ -307,17 +158,18 @@ function replace_count(
   return tuple($result, $count);
 }
 
-function splice(
+function str_splice(
   string $string,
   int $offset,
-  int $length = 0x7FFFFFFF,
+  ?int $length = null,
   string $replacement = '',
 ): string {
-  return \substr_replace($string, $replacement, $offset, $length);
+  return
+    \substr_replace($string, $replacement, $offset, $length ?? 0x7FFFFFFF);
 }
 
-function slice(string $string, int $offset, int $length = 0x7FFFFFFF): string {
-  $ret = \substr($string, $offset, $length);
+function str_slice(string $string, int $offset, ?int $length = null): string {
+  $ret = \substr($string, $offset, $length ?? 0x7FFFFFFF);
   // \substr() returns false "on failure".
   return $ret === false ? '' : $ret;
 }
@@ -334,11 +186,11 @@ function pad_right(string $string, int $length, string $pad = ' '): string {
   return \str_pad($string, $length, $pad, \STR_PAD_RIGHT);
 }
 
-function repeat(string $string, int $times): string {
+function str_repeat(string $string, int $times): string {
   return \str_repeat($string, $times);
 }
 
-function from_code(int $ascii): string {
+function from_char_code(int $ascii): string {
   if ($ascii < 0 || $ascii >= 256) {
     throw new \Exception(
       'ASCII character code must be >= 0 and < 256: '.$ascii,
@@ -348,20 +200,11 @@ function from_code(int $ascii): string {
   return \chr($ascii);
 }
 
-function get_code_at(string $string, int $offset = 0): int {
-  $length = length($string);
-  if ($offset < 0) {
-    $offset += $length;
-  }
-  if ($offset < 0 || $offset >= $length) {
-    throw new \Exception(
-      \sprintf('Offset %d out of bounds in string "%s"', $offset, $string),
-    );
-  }
-  return \ord($string[$offset]);
+function char_code_at(string $string, int $offset = 0): int {
+  return \ord(char_at($string, $offset));
 }
 
-function compare(
+function str_cmp(
   string $a,
   string $b,
   bool $caseInsensitive = false,
@@ -374,7 +217,7 @@ function compare(
   return utils\sign($ret);
 }
 
-function find(
+function str_index_of(
   string $haystack,
   string $needle,
   int $offset = 0,
@@ -387,7 +230,7 @@ function find(
   return $ret === false ? null : $ret;
 }
 
-function find_last(
+function str_last_index_of(
   string $haystack,
   string $needle,
   int $offset = 0,
@@ -400,34 +243,38 @@ function find_last(
   return $ret === false ? null : $ret;
 }
 
-function count(string $haystack, string $needle, int $offset = 0): int {
+function str_count(string $haystack, string $needle, int $offset = 0): int {
   return \substr_count($haystack, $needle, $offset);
 }
 
-function contains(string $haystack, string $needle, int $offset = 0): bool {
-  return find($haystack, $needle, $offset) !== null;
+function str_contains(
+  string $haystack,
+  string $needle,
+  int $offset = 0,
+): bool {
+  return str_index_of($haystack, $needle, $offset) !== null;
 }
 
 function length(string $string): int {
   return \strlen($string);
 }
 
-function equal(
+function str_eq(
   string $a,
   string $b,
   bool $caseInsensitive = false,
   bool $natural = false,
 ): bool {
-  return compare($a, $b, $caseInsensitive, $natural) == 0;
+  return str_cmp($a, $b, $caseInsensitive, $natural) == 0;
 }
 
 function starts_with(string $string, string $prefix): bool {
-  return slice($string, 0, length($prefix)) === $prefix;
+  return str_slice($string, 0, length($prefix)) === $prefix;
 }
 
 function ends_with(string $string, string $suffix): bool {
   if ($suffix === '') {
     return true;
   }
-  return slice($string, -length($suffix)) === $suffix;
+  return str_slice($string, -length($suffix)) === $suffix;
 }

@@ -57,7 +57,7 @@ function all_xdigit(string $s): bool {
   return $s === '' || \ctype_xdigit($s);
 }
 
-function _char(string $s, int $i = 0): string {
+function char_at(string $s, int $i = 0): string {
   $l = \strlen($s);
   // Allow caller to specify negative offsets for characters from the end of
   // the string
@@ -73,50 +73,50 @@ function _char(string $s, int $i = 0): string {
 }
 
 function is_alnum(string $s, int $i = 0): bool {
-  return \ctype_alnum(_char($s, $i));
+  return \ctype_alnum(char_at($s, $i));
 }
 
 function is_blank(string $s, int $i = 0): bool {
-  $c = _char($s, $i);
+  $c = char_at($s, $i);
   return $c === ' ' || $c === "\t";
 }
 
 function is_alpha(string $s, int $i = 0): bool {
-  return \ctype_alpha(_char($s, $i));
+  return \ctype_alpha(char_at($s, $i));
 }
 
 function is_cntrl(string $s, int $i = 0): bool {
-  return \ctype_cntrl(_char($s, $i));
+  return \ctype_cntrl(char_at($s, $i));
 }
 
 function is_digit(string $s, int $i = 0): bool {
-  return \ctype_digit(_char($s, $i));
+  return \ctype_digit(char_at($s, $i));
 }
 
 function is_graph(string $s, int $i = 0): bool {
-  return \ctype_graph(_char($s, $i));
+  return \ctype_graph(char_at($s, $i));
 }
 
 function is_lower(string $s, int $i = 0): bool {
-  return \ctype_lower(_char($s, $i));
+  return \ctype_lower(char_at($s, $i));
 }
 
 function is_print(string $s, int $i = 0): bool {
-  return \ctype_print(_char($s, $i));
+  return \ctype_print(char_at($s, $i));
 }
 
 function is_punct(string $s, int $i = 0): bool {
-  return \ctype_punct(_char($s, $i));
+  return \ctype_punct(char_at($s, $i));
 }
 
 function is_space(string $s, int $i = 0): bool {
-  return \ctype_space(_char($s, $i));
+  return \ctype_space(char_at($s, $i));
 }
 
 function is_upper(string $s, int $i = 0): bool {
-  return \ctype_upper(_char($s, $i));
+  return \ctype_upper(char_at($s, $i));
 }
 
 function is_xdigit(string $s, int $i = 0): bool {
-  return \ctype_xdigit(_char($s, $i));
+  return \ctype_xdigit(char_at($s, $i));
 }

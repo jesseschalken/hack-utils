@@ -35,7 +35,7 @@ function concat_all<T>(array<array<T>> $vectors): array<T> {
   return $vectors ? \call_user_func_array('array_merge', $vectors) : [];
 }
 
-function pad<T>(array<T> $list, int $size, T $value): array<T> {
+function pad_array<T>(array<T> $list, int $size, T $value): array<T> {
   return \array_pad($list, $size, $value);
 }
 
@@ -43,12 +43,12 @@ function reverse<T>(array<T> $list): array<T> {
   return \array_reverse($list, false);
 }
 
-function index_of<T>(array<T> $list, T $value): ?int {
+function key_of<Tk, Tv>(array<Tk, Tv> $list, Tv $value): ?Tk {
   $ret = \array_search($list, $value, true);
   return $ret === false ? null : $ret;
 }
 
-function last_index_of<T>(array<T> $list, T $value): ?int {
+function last_key_of<Tk, Tv>(array<Tk, Tv> $list, Tv $value): ?Tk {
   $ret = new_null();
   foreach ($list as $k => $v) {
     if ($v === $value) {
@@ -58,7 +58,11 @@ function last_index_of<T>(array<T> $list, T $value): ?int {
   return $ret;
 }
 
-function slice<T>(array<T> $list, int $offset, ?int $length = null): array<T> {
+function vec_slice<T>(
+  array<T> $list,
+  int $offset,
+  ?int $length = null,
+): array<T> {
   return \array_slice($list, $offset, $length);
 }
 
@@ -114,7 +118,7 @@ function first<T>(array<T> $a): T {
 
 function last<T>(array<T> $a): T {
   _check_empty($a, 'get last element');
-  return $a[length($a) - 1];
+  return $a[count($a) - 1];
 }
 
 function _check_empty(array<mixed> $a, string $op): void {
@@ -126,7 +130,7 @@ function _check_empty(array<mixed> $a, string $op): void {
 /**
  * Returns a pair of (new list, removed elements).
  */
-function splice<T>(
+function vec_splice<T>(
   array<T> $list,
   int $offset,
   ?int $length = null,
@@ -145,17 +149,12 @@ function shuffle<T>(array<T> $list): array<T> {
   return $list;
 }
 
-function length(array<mixed> $list): int {
+function count(array<mixed> $list): int {
   return \count($list);
 }
 
 function range(int $start, int $end, int $step = 1): array<int> {
   return \range($start, $end, $step);
-}
-
-function sort<T>(array<T> $list, (function(T, T): int) $cmp): array<T> {
-  \usort($list, $cmp);
-  return $list;
 }
 
 function filter<T>(array<T> $list, (function(T): bool) $f): array<T> {
@@ -176,7 +175,7 @@ function map<Tin, Tout>(
 }
 
 function reduce<Tin, Tout>(
-  array<Tin> $list,
+  array<arraykey, Tin> $list,
   (function(Tout, Tin): Tout) $f,
   Tout $initial,
 ): Tout {
@@ -184,33 +183,14 @@ function reduce<Tin, Tout>(
 }
 
 function reduce_right<Tin, Tout>(
-  array<Tin> $list,
+  array<arraykey, Tin> $list,
   (function(Tout, Tin): Tout) $f,
   Tout $value,
 ): Tout {
-  for ($i = (\count($list) - 1); $i >= 0; $i--) {
-    $value = $f($value, $list[$i]);
+  foreach ($list as $v) {
+    $value = $f($value, $v);
   }
   return $value;
-}
-
-function zip<Ta, Tb>(array<Ta> $a, array<Tb> $b): array<(Ta, Tb)> {
-  $r = [];
-  $l = \min(\count($a), \count($b));
-  for ($i = 0; $i < $l; $i++) {
-    $r[] = tuple($a[$i], $b[$i]);
-  }
-  return $r;
-}
-
-function unzip<Ta, Tb>(array<(Ta, Tb)> $x): (array<Ta>, array<Tb>) {
-  $a = [];
-  $b = [];
-  foreach ($x as $p) {
-    $a[] = $p[0];
-    $b[] = $p[1];
-  }
-  return tuple($a, $b);
 }
 
 function diff<T as arraykey>(array<T> $a, array<T> $b): array<T> {
@@ -221,7 +201,7 @@ function intersect<T as arraykey>(array<T> $a, array<T> $b): array<T> {
   return \array_values(\array_intersect($a, $b));
 }
 
-function any<T>(array<T> $a, (function(T): bool) $f): bool {
+function any<T>(array<mixed, T> $a, (function(T): bool) $f): bool {
   foreach ($a as $x) {
     if ($f($x)) {
       return true;
@@ -230,7 +210,7 @@ function any<T>(array<T> $a, (function(T): bool) $f): bool {
   return false;
 }
 
-function all<T>(array<T> $a, (function(T): bool) $f): bool {
+function all<T>(array<mixed, T> $a, (function(T): bool) $f): bool {
   foreach ($a as $x) {
     if (!$f($x)) {
       return false;
@@ -240,7 +220,7 @@ function all<T>(array<T> $a, (function(T): bool) $f): bool {
 }
 
 function group_by<Tk, Tv>(
-  array<Tv> $a,
+  array<mixed, Tv> $a,
   (function(Tv): Tk) $f,
 ): array<Tk, array<Tv>> {
   $res = [];

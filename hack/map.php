@@ -216,36 +216,6 @@ function contains<T>(array<mixed, T> $map, T $value): bool {
   return \in_array($value, $map, true);
 }
 
-function sort_keys<Tk, Tv>(
-  array<Tk, Tv> $map,
-  ?(function(Tk, Tk): int) $cmp = null,
-): array<Tk, Tv> {
-  if ($cmp !== null) {
-    $ret = \uksort($map, $cmp);
-  } else {
-    $ret = \ksort($map, \SORT_STRING);
-  }
-  if ($ret === false) {
-    throw new \Exception(($cmp ? 'ksort' : 'uksort').'() failed');
-  }
-  return $map;
-}
-
-function sort_values<Tk, Tv>(
-  array<Tk, Tv> $map,
-  (function(Tv, Tv): int) $cmp,
-): array<Tk, Tv> {
-  \uasort($map, $cmp);
-  return $map;
-}
-
-function sort_pairs<Tk, Tv>(
-  array<Tk, Tv> $map,
-  (function((Tk, Tv), (Tk, Tv)): int) $cmp,
-): array<Tk, Tv> {
-  return from_pairs(sort(to_pairs($map), $cmp));
-}
-
 function filter_values<Tk, Tv>(
   array<Tk, Tv> $map,
   (function(Tv): bool) $f,
@@ -345,29 +315,4 @@ function reduce_pairs<Tk, Tv, Tout>(
  */
 function select<Tk, Tv>(array<Tk, Tv> $map, array<Tk> $keys): array<Tv> {
   return map($keys, $key ==> $map[$key]);
-}
-
-function zip_assoc<Tk, Ta, Tb>(
-  array<Tk, Ta> $a,
-  array<Tk, Tb> $b,
-): array<Tk, (Ta, Tb)> {
-  $ret = [];
-  foreach ($a as $k => $v) {
-    if (key_exists($b, $k)) {
-      $ret[$k] = tuple($v, $b[$k]);
-    }
-  }
-  return $ret;
-}
-
-function unzip_assoc<Tk, Ta, Tb>(
-  array<Tk, (Ta, Tb)> $map,
-): (array<Tk, Ta>, array<Tk, Tb>) {
-  $a = [];
-  $b = [];
-  foreach ($map as $k => $v) {
-    $a[$k] = $v[0];
-    $b[$k] = $v[1];
-  }
-  return tuple($a, $b);
 }
