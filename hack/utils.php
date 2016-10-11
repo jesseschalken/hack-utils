@@ -16,9 +16,14 @@ function new_null<T>(): ?T {
  * in the case of null.
  */
 function null_throws<T>(?T $value, string $message = "Unexpected null"): T {
-  if ($value === null)
-    throw new \Exception($message);
-  return $value;
+  return $value === null ? throw_(new \Exception($message)) : $value;
+}
+
+/**
+ * Throw an exception in the context of an expression.
+ */
+function throw_<T>(\Exception $e): T {
+  throw $e;
 }
 
 function if_null<T>(?T $x, T $y): T {
