@@ -1,6 +1,6 @@
 <?hh // strict
 
-namespace HackUtils\math;
+namespace HackUtils;
 
 const float PI = \M_PI;
 const float E = \M_E;
@@ -183,7 +183,10 @@ function intpow(int $base, int $exp): int {
   return \pow($base, $exp);
 }
 
-function sort<T as num>(array<T> $nums, bool $reverse = false): array<T> {
+function sort_numeric<T as num>(
+  array<T> $nums,
+  bool $reverse = false,
+): array<T> {
   if ($reverse) {
     \rsort($nums, \SORT_NUMERIC);
   } else {
@@ -192,7 +195,7 @@ function sort<T as num>(array<T> $nums, bool $reverse = false): array<T> {
   return $nums;
 }
 
-function sort_map<Tk, Tv as num>(
+function sort_values_numeric<Tk, Tv as num>(
   array<Tk, Tv> $nums,
   bool $reverse = false,
 ): array<Tk, Tv> {
@@ -204,7 +207,7 @@ function sort_map<Tk, Tv as num>(
   return $nums;
 }
 
-function sort_map_keys<Tk as num, Tv>(
+function sort_keys_numeric<Tk as num, Tv>(
   array<Tk, Tv> $map,
   bool $reverse = false,
 ): array<Tk, Tv> {
