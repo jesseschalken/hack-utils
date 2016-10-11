@@ -7,6 +7,7 @@ use HackUtils\math;
 use HackUtils\vector;
 use HackUtils\map;
 use HackUtils\set;
+use HackUtils as HU;
 
 newtype datetime = \DateTimeImmutable;
 newtype timezone = \DateTimeZone;
@@ -226,7 +227,7 @@ function from_parts(datetimeparts $parts, timezone $tz): datetime {
 
 function get_parts(datetime $dt): datetimeparts {
   list($year, $month, $day, $hour, $minute, $second, $microsecond) =
-    vector\map(str\split(format($dt, 'Y m d H i s u'), ' '), $x ==> (int) $x);
+    HU\map(str\split(format($dt, 'Y m d H i s u'), ' '), $x ==> (int) $x);
 
   return shape(
     Part::YEAR => $year,

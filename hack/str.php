@@ -189,8 +189,8 @@ function lines(string $string): array<string> {
     }
   }
   // Remove a final empty line
-  if ($lines && $lines[vector\length($lines) - 1] === '') {
-    $lines = vector\slice($lines, 0, -1);
+  if ($lines && $lines[utils\length($lines) - 1] === '') {
+    $lines = utils\slice($lines, 0, -1);
   }
   return $lines;
 }
@@ -371,7 +371,7 @@ function compare(
     $caseInsensitive
       ? ($natural ? \strnatcasecmp($a, $b) : \strcasecmp($a, $b))
       : ($natural ? \strnatcmp($a, $b) : \strcmp($a, $b));
-  return math\sign($ret);
+  return utils\sign($ret);
 }
 
 function find(

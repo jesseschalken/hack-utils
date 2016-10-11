@@ -104,7 +104,7 @@ final class ArrayVector<T> implements IVector<T> {
   public function concat<T2 super T>(
     IConstCollection<T2> $values,
   ): ArrayVector<T2> {
-    return new self(vector\concat($this->array, $values->toArray()));
+    return new self(concat($this->array, $values->toArray()));
   }
 
   public function equals(IConstCollection<mixed> $values): bool {
@@ -124,13 +124,13 @@ final class ArrayVector<T> implements IVector<T> {
   }
 
   public function addAll(IConstCollection<T> $values): void {
-    $this->array = vector\concat($this->array, $values->toArray());
+    $this->array = concat($this->array, $values->toArray());
   }
 
   public function chunk(int $size): ArrayVector<ArrayVector<T>> {
     return new self(
-      vector\map(
-        vector\chunk($this->array, $size),
+      map(
+        chunk($this->array, $size),
         function($chunk) {
           return new ArrayVector($chunk);
         },
@@ -139,7 +139,7 @@ final class ArrayVector<T> implements IVector<T> {
   }
 
   public function contains(mixed $value): bool {
-    return vector\contains($this->array, $value);
+    return contains($this->array, $value);
   }
 
   public function containsAll(IConstCollection<mixed> $values): bool {
@@ -156,7 +156,7 @@ final class ArrayVector<T> implements IVector<T> {
   }
 
   public function filter((function(T): bool) $f): ArrayVector<T> {
-    return new self(vector\filter($this->array, $f));
+    return new self(filter($this->array, $f));
   }
 
   public function fromArray(array<T> $array): void {
@@ -164,39 +164,39 @@ final class ArrayVector<T> implements IVector<T> {
   }
 
   public function get(int $index): T {
-    return vector\get($this->array, $index);
+    return get_offset($this->array, $index);
   }
 
   public function indexOf(mixed $value): ?int {
-    return vector\index_of($this->array, $value);
+    return index_of($this->array, $value);
   }
 
   public function lastIndexOf(mixed $value): ?int {
-    return vector\last_index_of($this->array, $value);
+    return last_index_of($this->array, $value);
   }
 
   public function length(): int {
-    return vector\length($this->array);
+    return length($this->array);
   }
 
   public function map<Tr>((function(T): Tr) $f): ArrayVector<Tr> {
-    return new self(vector\map($this->array, $f));
+    return new self(map($this->array, $f));
   }
 
   public function remove(T $value): void {
-    $this->array = vector\filter($this->array, $x ==> $x !== $value);
+    $this->array = filter($this->array, $x ==> $x !== $value);
   }
 
   public function removeAll(IConstCollection<T> $values): void {
-    $this->array = vector\filter($this->array, $x ==> !$values->contains($x));
+    $this->array = filter($this->array, $x ==> !$values->contains($x));
   }
 
   public function retain(T $value): void {
-    $this->array = vector\filter($this->array, $x ==> $x === $value);
+    $this->array = filter($this->array, $x ==> $x === $value);
   }
 
   public function retainAll(IConstCollection<T> $values): void {
-    $this->array = vector\filter($this->array, $x ==> $values->contains($x));
+    $this->array = filter($this->array, $x ==> $values->contains($x));
   }
 
   public function reverse(): void {
@@ -221,11 +221,11 @@ final class ArrayVector<T> implements IVector<T> {
   }
 
   public function slice(int $offset, ?int $length = null): ArrayVector<T> {
-    return new self(vector\slice($this->array, $offset, $length));
+    return new self(slice($this->array, $offset, $length));
   }
 
   public function reduce<Tr>((function(Tr, T): Tr) $f, Tr $init): Tr {
-    return vector\reduce($this->array, $f, $init);
+    return reduce($this->array, $f, $init);
   }
 
   public function sort((function(T, T): int) $cmp): void {
@@ -255,11 +255,11 @@ final class ArrayVector<T> implements IVector<T> {
   }
 
   public function prepend(IConstCollection<T> $values): void {
-    $this->array = vector\concat($values->toArray(), $this->array);
+    $this->array = concat($values->toArray(), $this->array);
   }
 
   public function append(IConstCollection<T> $values): void {
-    $this->array = vector\concat($this->array, $values->toArray());
+    $this->array = concat($this->array, $values->toArray());
   }
 
   public function pop(): T {
@@ -310,8 +310,8 @@ abstract class _ArrayMapBase<Tk, Tv, Tak as arraykey, Tav>
 
   public function chunk(int $size): ArrayVector<IMap<Tk, Tv>> {
     return new ArrayVector(
-      vector\map(
-        map\chunk($this->array, $size),
+      map(
+        chunk_assoc($this->array, $size),
         function($chunk) {
           return $this->makeSelf($chunk);
         },
@@ -347,7 +347,7 @@ abstract class _ArrayMapBase<Tk, Tv, Tak as arraykey, Tav>
   // }
 
   public function delete(int $i): void {
-    $this->array = fst(map\splice($this->array, $i, 1));
+    $this->array = fst(splice_assoc($this->array, $i, 1));
   }
 
   public function equals(IConstCollection<mixed> $values): bool {
@@ -376,7 +376,7 @@ abstract class _ArrayMapBase<Tk, Tv, Tak as arraykey, Tav>
 
   public function filter((function((Tk, Tv)): bool) $f): IMap<Tk, Tv> {
     $self = $this->makeSelf([]);
-    $self->fromArray(vector\filter($this->toArray(), $f));
+    $self->fromArray(filter($this->toArray(), $f));
     return $self;
   }
 

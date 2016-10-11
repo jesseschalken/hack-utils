@@ -55,7 +55,7 @@ function pcre_match_all(
     \PREG_SET_ORDER | \PREG_OFFSET_CAPTURE,
     $offset,
   );
-  return vector\map(
+  return map(
     $matches,
     function($match) {
       return _pcre_fix_match($match);
@@ -111,12 +111,12 @@ final class _EscapeCache {
   private static array<arraykey, string> $cache = [];
 
   public static function escape(string $regex): string {
-    $escaped = map\soft_get(self::$cache, $regex);
+    $escaped = get_key_or_null(self::$cache, $regex);
     if ($escaped !== null) {
       return $escaped;
     }
     // Dumb cache policy, but it works.
-    if (map\size(self::$cache) >= 10000) {
+    if (size(self::$cache) >= 10000) {
       self::$cache = [];
     }
     return (self::$cache[$regex] = _pcre_escape($regex));
