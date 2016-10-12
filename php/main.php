@@ -257,13 +257,19 @@ namespace HackUtils {
         : array();
   }
   function intersect($a, $b) {
-    return \array_values(\array_intersect($a, $b));
+    return \array_intersect($a, $b);
+  }
+  function intersect_assoc($a, $b) {
+    return \array_intersect_assoc($a, $b);
   }
   function intersect_keys($a, $b) {
     return \array_intersect_key($a, $b);
   }
   function diff($a, $b) {
-    return \array_values(\array_diff($a, $b));
+    return \array_diff($a, $b);
+  }
+  function diff_assoc($a, $b) {
+    return \array_diff_assoc($a, $b);
   }
   function diff_keys($a, $b) {
     return \array_intersect_key($a, $b);

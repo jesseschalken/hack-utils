@@ -364,8 +364,18 @@ function union_keys_all<Tk, Tv>(array<array<Tk, Tv>> $arrays): array<Tk, Tv> {
   return $arrays ? \call_user_func_array('array_replace', $arrays) : [];
 }
 
-function intersect<T as arraykey>(array<T> $a, array<T> $b): array<T> {
-  return \array_values(\array_intersect($a, $b));
+function intersect<Tk, Tv as arraykey>(
+  array<Tk, Tv> $a,
+  array<Tk, Tv> $b,
+): array<Tk, Tv> {
+  return \array_intersect($a, $b);
+}
+
+function intersect_assoc<Tk as arraykey, Tv as arraykey>(
+  array<Tk, Tv> $a,
+  array<Tk, Tv> $b,
+): array<Tk, Tv> {
+  return \array_intersect_assoc($a, $b);
 }
 
 /**
@@ -379,8 +389,18 @@ function intersect_keys<Tk as arraykey, Tv>(
   return \array_intersect_key($a, $b);
 }
 
-function diff<T as arraykey>(array<T> $a, array<T> $b): array<T> {
-  return \array_values(\array_diff($a, $b));
+function diff<Tk, Tv as arraykey>(
+  array<Tk, Tv> $a,
+  array<Tk, Tv> $b,
+): array<Tk, Tv> {
+  return \array_diff($a, $b);
+}
+
+function diff_assoc<Tk, Tv as arraykey>(
+  array<Tk, Tv> $a,
+  array<Tk, Tv> $b,
+): array<Tk, Tv> {
+  return \array_diff_assoc($a, $b);
 }
 
 /**
