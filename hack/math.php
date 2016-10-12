@@ -100,7 +100,7 @@ function log1p(float $number): float {
   return \log1p($number);
 }
 
-function log(float $arg, float $base = 0.0): float {
+function log(float $arg, float $base = E): float {
   return \log($arg, $base);
 }
 

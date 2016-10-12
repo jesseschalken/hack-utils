@@ -75,7 +75,7 @@ namespace HackUtils {
   function log1p($number) {
     return \log1p($number);
   }
-  function log($arg, $base = 0.0) {
+  function log($arg, $base = E) {
     return \log($arg, $base);
   }
   function cos($arg) {
