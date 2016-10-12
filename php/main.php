@@ -269,11 +269,12 @@ namespace HackUtils {
     return \array_intersect_key($a, $b);
   }
   function select($map, $keys) {
-    $ret = array();
-    foreach ($keys as $key) {
-      $ret[] = $map[$key];
-    }
-    return $ret;
+    return map(
+      $keys,
+      function($key) use ($map) {
+        return $map[$key];
+      }
+    );
   }
   function zip($a, $b) {
     $r = array();

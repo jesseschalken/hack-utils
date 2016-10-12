@@ -391,11 +391,7 @@ function diff_keys<Tk as arraykey, Tv>(
  * Extract multiple keys from a map at once.
  */
 function select<Tk, Tv>(array<Tk, Tv> $map, array<Tk> $keys): array<Tv> {
-  $ret = [];
-  foreach ($keys as $key) {
-    $ret[] = $map[$key];
-  }
-  return $ret;
+  return map($keys, $key ==> $map[$key]);
 }
 
 function zip<Ta, Tb>(array<Ta> $a, array<Tb> $b): array<(Ta, Tb)> {
