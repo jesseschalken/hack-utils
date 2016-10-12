@@ -650,8 +650,9 @@ function trim_right(string $string, string $chars = TRIM_CHARS): string {
 function split(
   string $string,
   string $delimiter = '',
-  int $limit = 0x7FFFFFFF,
+  ?int $limit = null,
 ): array<string> {
+  $limit = $limit ?? 0x7FFFFFFF;
   if ($limit < 1) {
     throw new \Exception("Limit must be >= 1");
   }

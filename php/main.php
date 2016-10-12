@@ -378,21 +378,16 @@ namespace HackUtils {
     $ret = \array_splice($list, $offset, $length, $replacement);
     return array($list, $ret);
   }
-  function find($haystack, $needle, $offset = 0, $caseInsensitive = false) {
+  function find($haystack, $needle, $offset = 0, $ci = false) {
     $ret =
-      \hacklib_cast_as_boolean($caseInsensitive)
+      \hacklib_cast_as_boolean($ci)
         ? \stripos($haystack, $needle, $offset)
         : \strpos($haystack, $needle, $offset);
     return ($ret === false) ? null : $ret;
   }
-  function find_last(
-    $haystack,
-    $needle,
-    $offset = 0,
-    $caseInsensitive = false
-  ) {
+  function find_last($haystack, $needle, $offset = 0, $ci = false) {
     $ret =
-      \hacklib_cast_as_boolean($caseInsensitive)
+      \hacklib_cast_as_boolean($ci)
         ? \strripos($haystack, $needle, $offset)
         : \strrpos($haystack, $needle, $offset);
     return ($ret === false) ? null : $ret;
@@ -459,7 +454,8 @@ namespace HackUtils {
   function trim_right($string, $chars = TRIM_CHARS) {
     return \rtrim($string, $chars);
   }
-  function split($string, $delimiter = "", $limit = 0x7FFFFFFF) {
+  function split($string, $delimiter = "", $limit = null) {
+    $limit = $limit ?? 0x7FFFFFFF;
     if ($limit < 1) {
       throw new \Exception("Limit must be >= 1");
     }
