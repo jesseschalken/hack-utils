@@ -3,7 +3,7 @@
 namespace HackUtils;
 
 function sort<T>(array<T> $list, (function(T, T): int) $cmp): array<T> {
-  \usort($list, $cmp);
+  _check_sort(\usort($list, $cmp), 'usort');
   return $list;
 }
 
@@ -11,7 +11,7 @@ function sort_assoc<Tk, Tv>(
   array<Tk, Tv> $map,
   (function(Tv, Tv): int) $cmp,
 ): array<Tk, Tv> {
-  \uasort($map, $cmp);
+  _check_sort(\uasort($map, $cmp), 'uasort');
   return $map;
 }
 
@@ -20,12 +20,9 @@ function sort_keys<Tk, Tv>(
   ?(function(Tk, Tk): int) $cmp = null,
 ): array<Tk, Tv> {
   if ($cmp !== null) {
-    $ret = \uksort($map, $cmp);
+    _check_sort(\uksort($map, $cmp), 'uksort');
   } else {
-    $ret = \ksort($map, \SORT_STRING);
-  }
-  if ($ret === false) {
-    throw new \Exception(($cmp ? 'ksort' : 'uksort').'() failed');
+    _check_sort(\ksort($map, \SORT_STRING), 'ksort');
   }
   return $map;
 }
@@ -39,9 +36,9 @@ function sort_pairs<Tk, Tv>(
 
 function num_sort<T as num>(array<T> $nums, bool $reverse = false): array<T> {
   if ($reverse) {
-    \rsort($nums, \SORT_NUMERIC);
+    _check_sort(\rsort($nums, \SORT_NUMERIC), 'rsort');
   } else {
-    \sort($nums, \SORT_NUMERIC);
+    _check_sort(\sort($nums, \SORT_NUMERIC), 'sort');
   }
   return $nums;
 }
@@ -51,9 +48,9 @@ function num_sort_assoc<Tk, Tv as num>(
   bool $reverse = false,
 ): array<Tk, Tv> {
   if ($reverse) {
-    \arsort($nums, \SORT_NUMERIC);
+    _check_sort(\arsort($nums, \SORT_NUMERIC), 'arsort');
   } else {
-    \asort($nums, \SORT_NUMERIC);
+    _check_sort(\asort($nums, \SORT_NUMERIC), 'asort');
   }
   return $nums;
 }
@@ -63,9 +60,9 @@ function num_sort_keys<Tk as num, Tv>(
   bool $reverse = false,
 ): array<Tk, Tv> {
   if ($reverse) {
-    \krsort($map, \SORT_NUMERIC);
+    _check_sort(\krsort($map, \SORT_NUMERIC), 'krsort');
   } else {
-    \ksort($map, \SORT_NUMERIC);
+    _check_sort(\ksort($map, \SORT_NUMERIC), 'ksort');
   }
   return $map;
 }
@@ -82,9 +79,9 @@ function str_sort<T as arraykey>(
 ): array<T> {
   $flags = _str_sort_flags($ci, $natural);
   if ($reverse) {
-    \rsort($strings, $flags);
+    _check_sort(\rsort($strings, $flags), 'rsort');
   } else {
-    \sort($strings, $flags);
+    _check_sort(\sort($strings, $flags), 'sort');
   }
   return $strings;
 }
@@ -97,9 +94,9 @@ function str_sort_assoc<Tk, Tv as arraykey>(
 ): array<Tk, Tv> {
   $flags = _str_sort_flags($ci, $natural);
   if ($reverse) {
-    \arsort($strings, $flags);
+    _check_sort(\arsort($strings, $flags), 'arsort');
   } else {
-    \asort($strings, $flags);
+    _check_sort(\asort($strings, $flags), 'asort');
   }
   return $strings;
 }
@@ -112,9 +109,9 @@ function str_sort_keys<Tk as arraykey, Tv>(
 ): array<Tk, Tv> {
   $flags = _str_sort_flags($ci, $natural);
   if ($reverse) {
-    \krsort($map, $flags);
+    _check_sort(\krsort($map, $flags), 'krsort');
   } else {
-    \ksort($map, $flags);
+    _check_sort(\ksort($map, $flags), 'ksort');
   }
   return $map;
 }
@@ -130,4 +127,10 @@ function str_unique<Tk, Tv as arraykey>(
 function _str_sort_flags(bool $ci, bool $natural): int {
   return
     ($natural ? \SORT_NATURAL : \SORT_STRING) | ($ci ? \SORT_FLAG_CASE : 0);
+}
+
+function _check_sort(bool $ret, string $func): void {
+  if ($ret === false) {
+    throw new \Exception("$func() failed");
+  }
 }

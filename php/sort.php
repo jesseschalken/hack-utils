@@ -2,23 +2,18 @@
 namespace HackUtils {
   require_once ($GLOBALS["HACKLIB_ROOT"]);
   function sort($list, $cmp) {
-    \usort($list, $cmp);
+    _check_sort(\usort($list, $cmp), "usort");
     return $list;
   }
   function sort_assoc($map, $cmp) {
-    \uasort($map, $cmp);
+    _check_sort(\uasort($map, $cmp), "uasort");
     return $map;
   }
   function sort_keys($map, $cmp = null) {
     if ($cmp !== null) {
-      $ret = \uksort($map, $cmp);
+      _check_sort(\uksort($map, $cmp), "uksort");
     } else {
-      $ret = \ksort($map, \SORT_STRING);
-    }
-    if ($ret === false) {
-      throw new \Exception(
-        (\hacklib_cast_as_boolean($cmp) ? "ksort" : "uksort")."() failed"
-      );
+      _check_sort(\ksort($map, \SORT_STRING), "ksort");
     }
     return $map;
   }
@@ -27,25 +22,25 @@ namespace HackUtils {
   }
   function num_sort($nums, $reverse = false) {
     if (\hacklib_cast_as_boolean($reverse)) {
-      \rsort($nums, \SORT_NUMERIC);
+      _check_sort(\rsort($nums, \SORT_NUMERIC), "rsort");
     } else {
-      \sort($nums, \SORT_NUMERIC);
+      _check_sort(\sort($nums, \SORT_NUMERIC), "sort");
     }
     return $nums;
   }
   function num_sort_assoc($nums, $reverse = false) {
     if (\hacklib_cast_as_boolean($reverse)) {
-      \arsort($nums, \SORT_NUMERIC);
+      _check_sort(\arsort($nums, \SORT_NUMERIC), "arsort");
     } else {
-      \asort($nums, \SORT_NUMERIC);
+      _check_sort(\asort($nums, \SORT_NUMERIC), "asort");
     }
     return $nums;
   }
   function num_sort_keys($map, $reverse = false) {
     if (\hacklib_cast_as_boolean($reverse)) {
-      \krsort($map, \SORT_NUMERIC);
+      _check_sort(\krsort($map, \SORT_NUMERIC), "krsort");
     } else {
-      \ksort($map, \SORT_NUMERIC);
+      _check_sort(\ksort($map, \SORT_NUMERIC), "ksort");
     }
     return $map;
   }
@@ -60,9 +55,9 @@ namespace HackUtils {
   ) {
     $flags = _str_sort_flags($ci, $natural);
     if (\hacklib_cast_as_boolean($reverse)) {
-      \rsort($strings, $flags);
+      _check_sort(\rsort($strings, $flags), "rsort");
     } else {
-      \sort($strings, $flags);
+      _check_sort(\sort($strings, $flags), "sort");
     }
     return $strings;
   }
@@ -74,9 +69,9 @@ namespace HackUtils {
   ) {
     $flags = _str_sort_flags($ci, $natural);
     if (\hacklib_cast_as_boolean($reverse)) {
-      \arsort($strings, $flags);
+      _check_sort(\arsort($strings, $flags), "arsort");
     } else {
-      \asort($strings, $flags);
+      _check_sort(\asort($strings, $flags), "asort");
     }
     return $strings;
   }
@@ -88,9 +83,9 @@ namespace HackUtils {
   ) {
     $flags = _str_sort_flags($ci, $natural);
     if (\hacklib_cast_as_boolean($reverse)) {
-      \krsort($map, $flags);
+      _check_sort(\krsort($map, $flags), "krsort");
     } else {
-      \ksort($map, $flags);
+      _check_sort(\ksort($map, $flags), "ksort");
     }
     return $map;
   }
@@ -101,5 +96,10 @@ namespace HackUtils {
     return
       (\hacklib_cast_as_boolean($natural) ? \SORT_NATURAL : \SORT_STRING) |
       (\hacklib_cast_as_boolean($ci) ? \SORT_FLAG_CASE : 0);
+  }
+  function _check_sort($ret, $func) {
+    if ($ret === false) {
+      throw new \Exception($func."() failed");
+    }
   }
 }
