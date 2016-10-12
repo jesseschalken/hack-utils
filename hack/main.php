@@ -237,7 +237,11 @@ function get_key<Tk as arraykey, Tv>(array<Tk, Tv> $array, Tk $key): Tv {
   return $res;
 }
 
-function set_key<Tk, Tv>(array<Tk, Tv> $array, Tk $key, Tv $val): array<Tk, Tv> {
+function set_key<Tk, Tv>(
+  array<Tk, Tv> $array,
+  Tk $key,
+  Tv $val,
+): array<Tk, Tv> {
   $array[$key] = $val;
   return $array;
 }
@@ -314,7 +318,10 @@ function separate<Tk, Tv>(array<Tk, Tv> $array): (array<Tk>, array<Tv>) {
   return tuple($ks, $vs);
 }
 
-function from_keys<Tk, Tv>(array<Tk> $keys, Tv $value): array<Tk, Tv> {
+function from_keys<Tk as arraykey, Tv>(
+  array<Tk> $keys,
+  Tv $value,
+): array<Tk, Tv> {
   return \array_fill_keys($keys, $value);
 }
 
@@ -436,6 +443,62 @@ function unzip_assoc<Tk, Ta, Tb>(
     $b[$k] = $v[1];
   }
   return tuple($a, $b);
+}
+
+function transpose<T>(array<array<T>> $arrays): array<array<T>> {
+  $num = 0;
+  foreach ($arrays as $array) {
+    $num = max($num, count($array));
+  }
+  $ret = repeat([], $num);
+  foreach ($arrays as $array) {
+    $i = 0;
+    foreach ($array as $v) {
+      $ret[$i++][] = $v;
+    }
+  }
+  return $ret;
+}
+
+function transpose_assoc<Tk1, Tk2, Tv>(
+  array<Tk1, array<Tk2, Tv>> $arrays,
+): array<Tk2, array<Tk1, Tv>> {
+  $ret = [];
+  foreach ($arrays as $k1 => $array) {
+    foreach ($array as $k2 => $v) {
+      $ret[$k2][$k1] = $v;
+    }
+  }
+  return $ret;
+}
+
+function transpose_num_assoc<Tk, Tv>(
+  array<array<Tk, Tv>> $arrays,
+): array<Tk, array<Tv>> {
+  $ret = [];
+  foreach ($arrays as $array) {
+    foreach ($array as $k => $v) {
+      $ret[$k][] = $v;
+    }
+  }
+  return $ret;
+}
+
+function transpose_assoc_num<Tk, Tv>(
+  array<Tk, array<Tv>> $arrays,
+): array<array<Tk, Tv>> {
+  $num = 0;
+  foreach ($arrays as $array) {
+    $num = max($num, count($array));
+  }
+  $ret = repeat([], $num);
+  foreach ($arrays as $k => $array) {
+    $i = 0;
+    foreach ($array as $v) {
+      $ret[$i++][$k] = $v;
+    }
+  }
+  return $ret;
 }
 
 function shuffle<T>(array<T> $array): array<T> {

@@ -311,6 +311,52 @@ namespace HackUtils {
     }
     return array($a, $b);
   }
+  function transpose($arrays) {
+    $num = 0;
+    foreach ($arrays as $array) {
+      $num = max($num, count($array));
+    }
+    $ret = repeat(array(), $num);
+    foreach ($arrays as $array) {
+      $i = 0;
+      foreach ($array as $v) {
+        $ret[$i++][] = $v;
+      }
+    }
+    return $ret;
+  }
+  function transpose_assoc($arrays) {
+    $ret = array();
+    foreach ($arrays as $k1 => $array) {
+      foreach ($array as $k2 => $v) {
+        $ret[$k2][$k1] = $v;
+      }
+    }
+    return $ret;
+  }
+  function transpose_num_assoc($arrays) {
+    $ret = array();
+    foreach ($arrays as $array) {
+      foreach ($array as $k => $v) {
+        $ret[$k][] = $v;
+      }
+    }
+    return $ret;
+  }
+  function transpose_assoc_num($arrays) {
+    $num = 0;
+    foreach ($arrays as $array) {
+      $num = max($num, count($array));
+    }
+    $ret = repeat(array(), $num);
+    foreach ($arrays as $k => $array) {
+      $i = 0;
+      foreach ($array as $v) {
+        $ret[$i++][$k] = $v;
+      }
+    }
+    return $ret;
+  }
   function shuffle($array) {
     \shuffle($array);
     return $array;
