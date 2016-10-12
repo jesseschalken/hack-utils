@@ -251,7 +251,10 @@ namespace HackUtils {
     return \array_replace($a, $b);
   }
   function union_keys_all($maps) {
-    return \call_user_func_array("array_replace", $maps);
+    return
+      \hacklib_cast_as_boolean($maps)
+        ? \call_user_func_array("array_replace", $maps)
+        : array();
   }
   function intersect($a, $b) {
     return \array_values(\array_intersect($a, $b));

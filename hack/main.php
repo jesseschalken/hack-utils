@@ -354,7 +354,7 @@ function union_keys<Tk, Tv>(
  * If a key exists in multiple arrays, the value from the later array is used.
  */
 function union_keys_all<Tk, Tv>(array<array<Tk, Tv>> $maps): array<Tk, Tv> {
-  return \call_user_func_array('array_replace', $maps);
+  return $maps ? \call_user_func_array('array_replace', $maps) : [];
 }
 
 function intersect<T as arraykey>(array<T> $a, array<T> $b): array<T> {
