@@ -544,10 +544,10 @@ function find(
   string $haystack,
   string $needle,
   int $offset = 0,
-  bool $caseInsensitive = false,
+  bool $ci = false,
 ): ?int {
   $ret =
-    $caseInsensitive
+    $ci
       ? \stripos($haystack, $needle, $offset)
       : \strpos($haystack, $needle, $offset);
   return $ret === false ? null : $ret;
@@ -557,10 +557,10 @@ function find_last(
   string $haystack,
   string $needle,
   int $offset = 0,
-  bool $caseInsensitive = false,
+  bool $ci = false,
 ): ?int {
   $ret =
-    $caseInsensitive
+    $ci
       ? \strripos($haystack, $needle, $offset)
       : \strrpos($haystack, $needle, $offset);
   return $ret === false ? null : $ret;
