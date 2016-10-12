@@ -17,7 +17,7 @@ const string PCRE_EXTRA = 'X';
 const string PCRE_UTF8 = 'u';
 const string PCRE_STUDY = 'S';
 
-type match = array<arraykey, (string, int)>;
+type pcre_match = array<arraykey, (string, int)>;
 
 function pcre_quote(string $text): string {
   return \preg_quote($text);
@@ -28,7 +28,7 @@ function pcre_match(
   string $subject,
   string $options = '',
   int $offset = 0,
-): ?match {
+): ?pcre_match {
   $match = [];
   $count = \preg_match(
     _pcre_compose($regex, $options),
@@ -46,7 +46,7 @@ function pcre_match_all(
   string $subject,
   string $options,
   int $offset = 0,
-): array<match> {
+): array<pcre_match> {
   $matches = [];
   \preg_match_all(
     _pcre_compose($regex, $options),
@@ -144,7 +144,7 @@ function _pcre_escape(string $regex): string {
   return $result;
 }
 
-function _pcre_fix_match(match $match): match {
+function _pcre_fix_match(pcre_match $match): pcre_match {
   // A sub pattern will exist in $subPatterns if it didn't match
   // only if a later sub pattern matched.
   //
