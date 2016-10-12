@@ -2,36 +2,36 @@
 
 namespace HackUtils;
 
-function sort<T>(array<T> $list, (function(T, T): int) $cmp): array<T> {
-  _check_sort(\usort($list, $cmp), 'usort');
-  return $list;
+function sort<T>(array<T> $array, (function(T, T): int) $cmp): array<T> {
+  _check_sort(\usort($array, $cmp), 'usort');
+  return $array;
 }
 
 function sort_assoc<Tk, Tv>(
-  array<Tk, Tv> $map,
+  array<Tk, Tv> $array,
   (function(Tv, Tv): int) $cmp,
 ): array<Tk, Tv> {
-  _check_sort(\uasort($map, $cmp), 'uasort');
-  return $map;
+  _check_sort(\uasort($array, $cmp), 'uasort');
+  return $array;
 }
 
 function sort_keys<Tk, Tv>(
-  array<Tk, Tv> $map,
+  array<Tk, Tv> $array,
   ?(function(Tk, Tk): int) $cmp = null,
 ): array<Tk, Tv> {
   if ($cmp !== null) {
-    _check_sort(\uksort($map, $cmp), 'uksort');
+    _check_sort(\uksort($array, $cmp), 'uksort');
   } else {
-    _check_sort(\ksort($map, \SORT_STRING), 'ksort');
+    _check_sort(\ksort($array, \SORT_STRING), 'ksort');
   }
-  return $map;
+  return $array;
 }
 
 function sort_pairs<Tk, Tv>(
-  array<Tk, Tv> $map,
+  array<Tk, Tv> $array,
   (function((Tk, Tv), (Tk, Tv)): int) $cmp,
 ): array<Tk, Tv> {
-  return from_pairs(sort(to_pairs($map), $cmp));
+  return from_pairs(sort(to_pairs($array), $cmp));
 }
 
 function num_sort<T as num>(array<T> $nums, bool $reverse = false): array<T> {
@@ -56,19 +56,19 @@ function num_sort_assoc<Tk, Tv as num>(
 }
 
 function num_sort_keys<Tk as num, Tv>(
-  array<Tk, Tv> $map,
+  array<Tk, Tv> $array,
   bool $reverse = false,
 ): array<Tk, Tv> {
   if ($reverse) {
-    _check_sort(\krsort($map, \SORT_NUMERIC), 'krsort');
+    _check_sort(\krsort($array, \SORT_NUMERIC), 'krsort');
   } else {
-    _check_sort(\ksort($map, \SORT_NUMERIC), 'ksort');
+    _check_sort(\ksort($array, \SORT_NUMERIC), 'ksort');
   }
-  return $map;
+  return $array;
 }
 
-function num_unique<Tk, Tv as num>(array<Tk, Tv> $map): array<Tk, Tv> {
-  return \array_unique($map, \SORT_NUMERIC);
+function num_unique<Tk, Tv as num>(array<Tk, Tv> $array): array<Tk, Tv> {
+  return \array_unique($array, \SORT_NUMERIC);
 }
 
 function str_sort<T as arraykey>(
@@ -102,26 +102,26 @@ function str_sort_assoc<Tk, Tv as arraykey>(
 }
 
 function str_sort_keys<Tk as arraykey, Tv>(
-  array<Tk, Tv> $map,
+  array<Tk, Tv> $array,
   bool $ci = false,
   bool $natural = false,
   bool $reverse = false,
 ): array<Tk, Tv> {
   $flags = _str_sort_flags($ci, $natural);
   if ($reverse) {
-    _check_sort(\krsort($map, $flags), 'krsort');
+    _check_sort(\krsort($array, $flags), 'krsort');
   } else {
-    _check_sort(\ksort($map, $flags), 'ksort');
+    _check_sort(\ksort($array, $flags), 'ksort');
   }
-  return $map;
+  return $array;
 }
 
 function str_unique<Tk, Tv as arraykey>(
-  array<Tk, Tv> $map,
+  array<Tk, Tv> $array,
   bool $ci = false,
   bool $natural = false,
 ): array<Tk, Tv> {
-  return \array_unique($map, _str_sort_flags($ci, $natural));
+  return \array_unique($array, _str_sort_flags($ci, $natural));
 }
 
 function _str_sort_flags(bool $ci, bool $natural): int {

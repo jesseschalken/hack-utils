@@ -138,10 +138,10 @@ namespace HackUtils {
     }
     return \pow($base, $exp);
   }
-  function sum($list) {
-    return \array_sum($list);
+  function sum($array) {
+    return \array_sum($array);
   }
-  function product($list) {
-    return \array_product($list);
+  function product($array) {
+    return \array_product($array);
   }
 }

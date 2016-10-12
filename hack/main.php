@@ -125,53 +125,53 @@ function range(int $start, int $end, int $step = 1): array<int> {
   return \range($start, $end, $step);
 }
 
-function filter<T>(array<T> $list, (function(T): bool) $f): array<T> {
-  $ret = filter_assoc($list, $f);
+function filter<T>(array<T> $array, (function(T): bool) $f): array<T> {
+  $ret = filter_assoc($array, $f);
   // array_filter() preserves keys, so if some elements were removed,
   // renumber keys 0,1...N.
-  return count($ret) != count($list) ? values($ret) : $list;
+  return count($ret) != count($array) ? values($ret) : $array;
 }
 
 function filter_assoc<Tk, Tv>(
-  array<Tk, Tv> $map,
+  array<Tk, Tv> $array,
   (function(Tv): bool) $f,
 ): array<Tk, Tv> {
-  return \array_filter($map, $f);
+  return \array_filter($array, $f);
 }
 
 function map<Tin, Tout>(
-  array<Tin> $list,
+  array<Tin> $array,
   (function(Tin): Tout) $f,
 ): array<Tout> {
-  return \array_map($f, $list);
+  return \array_map($f, $array);
 }
 
 function map_assoc<Tk, Tv1, Tv2>(
-  array<Tk, Tv1> $map,
+  array<Tk, Tv1> $array,
   (function(Tv1): Tv2) $f,
 ): array<Tk, Tv2> {
-  return \array_map($f, $map);
+  return \array_map($f, $array);
 }
 
 function reduce<Tin, Tout>(
-  array<arraykey, Tin> $list,
+  array<arraykey, Tin> $array,
   (function(Tout, Tin): Tout) $f,
   Tout $initial,
 ): Tout {
-  return \array_reduce($list, $f, $initial);
+  return \array_reduce($array, $f, $initial);
 }
 
 function reduce_right<Tin, Tout>(
-  array<arraykey, Tin> $list,
+  array<arraykey, Tin> $array,
   (function(Tout, Tin): Tout) $f,
   Tout $value,
 ): Tout {
   // Messy, but the easiest way of iterating through an array in reverse
   // without creating a copy.
-  \end($list);
-  while (!\is_null($key = \key($list))) {
-    $value = $f($value, \current($list));
-    \prev($list);
+  \end($array);
+  while (!\is_null($key = \key($array))) {
+    $value = $f($value, \current($array));
+    \prev($array);
   }
   return $value;
 }
@@ -213,9 +213,9 @@ function keys_to_uppper<Tk, Tv>(array<Tk, Tv> $array): array<Tk, Tv> {
   return \array_change_key_case($array, \CASE_UPPER);
 }
 
-function to_pairs<Tk, Tv>(array<Tk, Tv> $map): array<(Tk, Tv)> {
+function to_pairs<Tk, Tv>(array<Tk, Tv> $array): array<(Tk, Tv)> {
   $r = [];
-  foreach ($map as $k => $v) {
+  foreach ($array as $k => $v) {
     $r[] = tuple($k, $v);
   }
   return $r;
@@ -229,33 +229,33 @@ function from_pairs<Tk, Tv>(array<(Tk, Tv)> $pairs): array<Tk, Tv> {
   return $r;
 }
 
-function get_key<Tk as arraykey, Tv>(array<Tk, Tv> $map, Tk $key): Tv {
-  $res = $map[$key];
-  if ($res === null && !key_exists($map, $key)) {
+function get_key<Tk as arraykey, Tv>(array<Tk, Tv> $array, Tk $key): Tv {
+  $res = $array[$key];
+  if ($res === null && !key_exists($array, $key)) {
     throw new \Exception("Key '$key' does not exist in map");
   }
   return $res;
 }
 
-function set_key<Tk, Tv>(array<Tk, Tv> $map, Tk $key, Tv $val): array<Tk, Tv> {
-  $map[$key] = $val;
-  return $map;
+function set_key<Tk, Tv>(array<Tk, Tv> $array, Tk $key, Tv $val): array<Tk, Tv> {
+  $array[$key] = $val;
+  return $array;
 }
 
-function get_key_or_null<Tk, Tv>(array<Tk, Tv> $map, Tk $key): ?Tv {
-  return $map[$key] ?? new_null();
+function get_key_or_null<Tk, Tv>(array<Tk, Tv> $array, Tk $key): ?Tv {
+  return $array[$key] ?? new_null();
 }
 
 function get_key_or_default<Tk, Tv>(
-  array<Tk, Tv> $map,
+  array<Tk, Tv> $array,
   Tk $key,
   Tv $default,
 ): Tv {
-  return key_exists($map, $key) ? $map[$key] : $default;
+  return key_exists($array, $key) ? $array[$key] : $default;
 }
 
-function key_exists<Tk>(array<Tk, mixed> $map, Tk $key): bool {
-  return \array_key_exists($key, $map);
+function key_exists<Tk>(array<Tk, mixed> $array, Tk $key): bool {
+  return \array_key_exists($key, $array);
 }
 
 function get_offset<T>(array<T> $v, int $i): T {
@@ -294,20 +294,20 @@ function fixkeys(array<arraykey> $keys): array<string> {
 }
 
 function column<Tk as arraykey, Tv>(
-  array<array<Tk, Tv>> $maps,
+  array<array<Tk, Tv>> $arrays,
   Tk $key,
 ): array<Tv> {
-  return \array_column($maps, $key);
+  return \array_column($arrays, $key);
 }
 
 function combine<Tk, Tv>(array<Tk> $keys, array<Tv> $values): array<Tk, Tv> {
   return \array_combine($keys, $values);
 }
 
-function separate<Tk, Tv>(array<Tk, Tv> $map): (array<Tk>, array<Tv>) {
+function separate<Tk, Tv>(array<Tk, Tv> $array): (array<Tk>, array<Tv>) {
   $ks = [];
   $vs = [];
-  foreach ($map as $k => $v) {
+  foreach ($array as $k => $v) {
     $ks[] = $k;
     $vs[] = $v;
   }
@@ -319,25 +319,25 @@ function from_keys<Tk, Tv>(array<Tk> $keys, Tv $value): array<Tk, Tv> {
 }
 
 function flip<Tk as arraykey, Tv as arraykey>(
-  array<Tk, Tv> $map,
+  array<Tk, Tv> $array,
 ): array<Tv, Tk> {
-  return \array_flip($map);
+  return \array_flip($array);
 }
 
 function flip_count<T as arraykey>(array<arraykey, T> $values): array<T, int> {
   return \array_count_values($values);
 }
 
-function keys<Tk>(array<Tk, mixed> $map): array<Tk> {
-  return \array_keys($map);
+function keys<Tk>(array<Tk, mixed> $array): array<Tk> {
+  return \array_keys($array);
 }
 
-function keys_strings(array<arraykey, mixed> $map): array<string> {
-  return map(keys($map), $k ==> ''.$k);
+function keys_strings(array<arraykey, mixed> $array): array<string> {
+  return map(keys($array), $k ==> ''.$k);
 }
 
-function values<Tv>(array<mixed, Tv> $map): array<Tv> {
-  return \array_values($map);
+function values<Tv>(array<mixed, Tv> $array): array<Tv> {
+  return \array_values($array);
 }
 
 /**
@@ -353,8 +353,8 @@ function union_keys<Tk, Tv>(
 /**
  * If a key exists in multiple arrays, the value from the later array is used.
  */
-function union_keys_all<Tk, Tv>(array<array<Tk, Tv>> $maps): array<Tk, Tv> {
-  return $maps ? \call_user_func_array('array_replace', $maps) : [];
+function union_keys_all<Tk, Tv>(array<array<Tk, Tv>> $arrays): array<Tk, Tv> {
+  return $arrays ? \call_user_func_array('array_replace', $arrays) : [];
 }
 
 function intersect<T as arraykey>(array<T> $a, array<T> $b): array<T> {
@@ -390,8 +390,8 @@ function diff_keys<Tk as arraykey, Tv>(
 /**
  * Extract multiple keys from a map at once.
  */
-function select<Tk, Tv>(array<Tk, Tv> $map, array<Tk> $keys): array<Tv> {
-  return map($keys, $key ==> $map[$key]);
+function select<Tk, Tv>(array<Tk, Tv> $array, array<Tk> $keys): array<Tv> {
+  return map($keys, $key ==> $array[$key]);
 }
 
 function zip<Ta, Tb>(array<Ta> $a, array<Tb> $b): array<(Ta, Tb)> {
@@ -427,53 +427,53 @@ function unzip<Ta, Tb>(array<(Ta, Tb)> $x): (array<Ta>, array<Tb>) {
 }
 
 function unzip_assoc<Tk, Ta, Tb>(
-  array<Tk, (Ta, Tb)> $map,
+  array<Tk, (Ta, Tb)> $array,
 ): (array<Tk, Ta>, array<Tk, Tb>) {
   $a = [];
   $b = [];
-  foreach ($map as $k => $v) {
+  foreach ($array as $k => $v) {
     $a[$k] = $v[0];
     $b[$k] = $v[1];
   }
   return tuple($a, $b);
 }
 
-function shuffle<T>(array<T> $list): array<T> {
-  \shuffle($list);
-  return $list;
+function shuffle<T>(array<T> $array): array<T> {
+  \shuffle($array);
+  return $array;
 }
 
 function shuffle_string(string $string): string {
   return \str_shuffle($string);
 }
 
-function reverse<T>(array<T> $list): array<T> {
-  return \array_reverse($list, false);
+function reverse<T>(array<T> $array): array<T> {
+  return \array_reverse($array, false);
 }
 
-function reverse_assoc<Tk, Tv>(array<Tk, Tv> $map): array<Tk, Tv> {
-  return \array_reverse($map, true);
+function reverse_assoc<Tk, Tv>(array<Tk, Tv> $array): array<Tk, Tv> {
+  return \array_reverse($array, true);
 }
 
 function reverse_string(string $string): string {
   return \strrev($string);
 }
 
-function chunk<T>(array<T> $list, int $size): array<array<T>> {
+function chunk<T>(array<T> $array, int $size): array<array<T>> {
   if ($size < 1) {
     throw new \Exception("Chunk size must be >= 1");
   }
-  return \array_chunk($list, $size, false);
+  return \array_chunk($array, $size, false);
 }
 
 function chunk_assoc<Tk, Tv>(
-  array<Tk, Tv> $map,
+  array<Tk, Tv> $array,
   int $size,
 ): array<array<Tk, Tv>> {
   if ($size < 1) {
     throw new \Exception("Chunk size must be >= 1");
   }
-  return \array_chunk($map, $size, true);
+  return \array_chunk($array, $size, true);
 }
 
 function chunk_string(string $string, int $size): array<string> {
@@ -502,19 +502,19 @@ function slice(string $string, int $offset, ?int $length = null): string {
 }
 
 function slice_array<T>(
-  array<T> $list,
+  array<T> $array,
   int $offset,
   ?int $length = null,
 ): array<T> {
-  return \array_slice($list, $offset, $length);
+  return \array_slice($array, $offset, $length);
 }
 
 function slice_assoc<Tk, Tv>(
-  array<Tk, Tv> $map,
+  array<Tk, Tv> $array,
   int $offset,
   ?int $length = null,
 ): array<Tk, Tv> {
-  return \array_slice($map, $offset, $length, true);
+  return \array_slice($array, $offset, $length, true);
 }
 
 function splice(
@@ -531,13 +531,13 @@ function splice(
  * Returns a pair of (new list, removed elements).
  */
 function splice_array<T>(
-  array<T> $list,
+  array<T> $array,
   int $offset,
   ?int $length = null,
   array<T> $replacement = [],
 ): (array<T>, array<T>) {
-  $ret = \array_splice($list, $offset, $length, $replacement);
-  return tuple($list, $ret);
+  $ret = \array_splice($array, $offset, $length, $replacement);
+  return tuple($array, $ret);
 }
 
 function find(
@@ -746,8 +746,8 @@ function pad(string $string, int $length, string $pad = ' '): string {
   return \str_pad($string, $length, $pad, \STR_PAD_BOTH);
 }
 
-function pad_array<T>(array<T> $list, int $size, T $value): array<T> {
-  return \array_pad($list, $size, $value);
+function pad_array<T>(array<T> $array, int $size, T $value): array<T> {
+  return \array_pad($array, $size, $value);
 }
 
 function pad_left(string $string, int $length, string $pad = ' '): string {

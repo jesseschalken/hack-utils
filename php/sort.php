@@ -1,24 +1,24 @@
 <?php
 namespace HackUtils {
   require_once ($GLOBALS["HACKLIB_ROOT"]);
-  function sort($list, $cmp) {
-    _check_sort(\usort($list, $cmp), "usort");
-    return $list;
+  function sort($array, $cmp) {
+    _check_sort(\usort($array, $cmp), "usort");
+    return $array;
   }
-  function sort_assoc($map, $cmp) {
-    _check_sort(\uasort($map, $cmp), "uasort");
-    return $map;
+  function sort_assoc($array, $cmp) {
+    _check_sort(\uasort($array, $cmp), "uasort");
+    return $array;
   }
-  function sort_keys($map, $cmp = null) {
+  function sort_keys($array, $cmp = null) {
     if ($cmp !== null) {
-      _check_sort(\uksort($map, $cmp), "uksort");
+      _check_sort(\uksort($array, $cmp), "uksort");
     } else {
-      _check_sort(\ksort($map, \SORT_STRING), "ksort");
+      _check_sort(\ksort($array, \SORT_STRING), "ksort");
     }
-    return $map;
+    return $array;
   }
-  function sort_pairs($map, $cmp) {
-    return from_pairs(sort(to_pairs($map), $cmp));
+  function sort_pairs($array, $cmp) {
+    return from_pairs(sort(to_pairs($array), $cmp));
   }
   function num_sort($nums, $reverse = false) {
     if (\hacklib_cast_as_boolean($reverse)) {
@@ -36,16 +36,16 @@ namespace HackUtils {
     }
     return $nums;
   }
-  function num_sort_keys($map, $reverse = false) {
+  function num_sort_keys($array, $reverse = false) {
     if (\hacklib_cast_as_boolean($reverse)) {
-      _check_sort(\krsort($map, \SORT_NUMERIC), "krsort");
+      _check_sort(\krsort($array, \SORT_NUMERIC), "krsort");
     } else {
-      _check_sort(\ksort($map, \SORT_NUMERIC), "ksort");
+      _check_sort(\ksort($array, \SORT_NUMERIC), "ksort");
     }
-    return $map;
+    return $array;
   }
-  function num_unique($map) {
-    return \array_unique($map, \SORT_NUMERIC);
+  function num_unique($array) {
+    return \array_unique($array, \SORT_NUMERIC);
   }
   function str_sort(
     $strings,
@@ -76,21 +76,21 @@ namespace HackUtils {
     return $strings;
   }
   function str_sort_keys(
-    $map,
+    $array,
     $ci = false,
     $natural = false,
     $reverse = false
   ) {
     $flags = _str_sort_flags($ci, $natural);
     if (\hacklib_cast_as_boolean($reverse)) {
-      _check_sort(\krsort($map, $flags), "krsort");
+      _check_sort(\krsort($array, $flags), "krsort");
     } else {
-      _check_sort(\ksort($map, $flags), "ksort");
+      _check_sort(\ksort($array, $flags), "ksort");
     }
-    return $map;
+    return $array;
   }
-  function str_unique($map, $ci = false, $natural = false) {
-    return \array_unique($map, _str_sort_flags($ci, $natural));
+  function str_unique($array, $ci = false, $natural = false) {
+    return \array_unique($array, _str_sort_flags($ci, $natural));
   }
   function _str_sort_flags($ci, $natural) {
     return

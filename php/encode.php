@@ -13,9 +13,9 @@ namespace HackUtils {
     }
     return $s;
   }
-  function encode_list($list) {
+  function encode_list($array) {
     $r = "";
-    foreach ($list as $x) {
+    foreach ($array as $x) {
       $r .= escape_chars($x, ";").";";
     }
     return $r;
@@ -45,9 +45,9 @@ namespace HackUtils {
     }
     return $r;
   }
-  function encode_map($map) {
+  function encode_map($array) {
     $r = "";
-    foreach ($map as $k => $v) {
+    foreach ($array as $k => $v) {
       $k .= "";
       $r .= escape_chars($k, "=;")."=";
       $r .= escape_chars($v, "=;").";";

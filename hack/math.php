@@ -183,10 +183,10 @@ function intpow(int $base, int $exp): int {
   return \pow($base, $exp);
 }
 
-function sum<T as num>(array<T> $list): T {
-  return \array_sum($list);
+function sum<T as num>(array<T> $array): T {
+  return \array_sum($array);
 }
 
-function product<T as num>(array<T> $list): T {
-  return \array_product($list);
+function product<T as num>(array<T> $array): T {
+  return \array_product($array);
 }

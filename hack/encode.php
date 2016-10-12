@@ -17,9 +17,9 @@ function escape_chars(string $s, string $chars): string {
   return $s;
 }
 
-function encode_list(array<string> $list): string {
+function encode_list(array<string> $array): string {
   $r = '';
-  foreach ($list as $x) {
+  foreach ($array as $x) {
     $r .= escape_chars($x, ';').';';
   }
   return $r;
@@ -47,9 +47,9 @@ function decode_list(string $s): array<string> {
   return $r;
 }
 
-function encode_map(array<arraykey, string> $map): string {
+function encode_map(array<arraykey, string> $array): string {
   $r = '';
-  foreach ($map as $k => $v) {
+  foreach ($array as $k => $v) {
     $k .= '';
     $r .= escape_chars($k, '=;').'=';
     $r .= escape_chars($v, '=;').';';

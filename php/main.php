@@ -81,28 +81,28 @@ namespace HackUtils {
   function range($start, $end, $step = 1) {
     return \range($start, $end, $step);
   }
-  function filter($list, $f) {
-    $ret = filter_assoc($list, $f);
+  function filter($array, $f) {
+    $ret = filter_assoc($array, $f);
     return
-      \hacklib_not_equals(count($ret), count($list)) ? values($ret) : $list;
+      \hacklib_not_equals(count($ret), count($array)) ? values($ret) : $array;
   }
-  function filter_assoc($map, $f) {
-    return \array_filter($map, $f);
+  function filter_assoc($array, $f) {
+    return \array_filter($array, $f);
   }
-  function map($list, $f) {
-    return \array_map($f, $list);
+  function map($array, $f) {
+    return \array_map($f, $array);
   }
-  function map_assoc($map, $f) {
-    return \array_map($f, $map);
+  function map_assoc($array, $f) {
+    return \array_map($f, $array);
   }
-  function reduce($list, $f, $initial) {
-    return \array_reduce($list, $f, $initial);
+  function reduce($array, $f, $initial) {
+    return \array_reduce($array, $f, $initial);
   }
-  function reduce_right($list, $f, $value) {
-    \end($list);
-    while (!\hacklib_cast_as_boolean(\is_null($key = \key($list)))) {
-      $value = $f($value, \current($list));
-      \prev($list);
+  function reduce_right($array, $f, $value) {
+    \end($array);
+    while (!\hacklib_cast_as_boolean(\is_null($key = \key($array)))) {
+      $value = $f($value, \current($array));
+      \prev($array);
     }
     return $value;
   }
@@ -135,9 +135,9 @@ namespace HackUtils {
   function keys_to_uppper($array) {
     return \array_change_key_case($array, \CASE_UPPER);
   }
-  function to_pairs($map) {
+  function to_pairs($array) {
     $r = array();
-    foreach ($map as $k => $v) {
+    foreach ($array as $k => $v) {
       $r[] = array($k, $v);
     }
     return $r;
@@ -149,29 +149,29 @@ namespace HackUtils {
     }
     return $r;
   }
-  function get_key($map, $key) {
-    $res = $map[$key];
+  function get_key($array, $key) {
+    $res = $array[$key];
     if (($res === null) &&
-        (!\hacklib_cast_as_boolean(key_exists($map, $key)))) {
+        (!\hacklib_cast_as_boolean(key_exists($array, $key)))) {
       throw new \Exception("Key '".$key."' does not exist in map");
     }
     return $res;
   }
-  function set_key($map, $key, $val) {
-    $map[$key] = $val;
-    return $map;
+  function set_key($array, $key, $val) {
+    $array[$key] = $val;
+    return $array;
   }
-  function get_key_or_null($map, $key) {
-    return $map[$key] ?? new_null();
+  function get_key_or_null($array, $key) {
+    return $array[$key] ?? new_null();
   }
-  function get_key_or_default($map, $key, $default) {
+  function get_key_or_default($array, $key, $default) {
     return
-      \hacklib_cast_as_boolean(key_exists($map, $key))
-        ? $map[$key]
+      \hacklib_cast_as_boolean(key_exists($array, $key))
+        ? $array[$key]
         : $default;
   }
-  function key_exists($map, $key) {
-    return \array_key_exists($key, $map);
+  function key_exists($array, $key) {
+    return \array_key_exists($key, $array);
   }
   function get_offset($v, $i) {
     $l = \count($v);
@@ -209,16 +209,16 @@ namespace HackUtils {
       }
     );
   }
-  function column($maps, $key) {
-    return \array_column($maps, $key);
+  function column($arrays, $key) {
+    return \array_column($arrays, $key);
   }
   function combine($keys, $values) {
     return \array_combine($keys, $values);
   }
-  function separate($map) {
+  function separate($array) {
     $ks = array();
     $vs = array();
-    foreach ($map as $k => $v) {
+    foreach ($array as $k => $v) {
       $ks[] = $k;
       $vs[] = $v;
     }
@@ -227,33 +227,33 @@ namespace HackUtils {
   function from_keys($keys, $value) {
     return \array_fill_keys($keys, $value);
   }
-  function flip($map) {
-    return \array_flip($map);
+  function flip($array) {
+    return \array_flip($array);
   }
   function flip_count($values) {
     return \array_count_values($values);
   }
-  function keys($map) {
-    return \array_keys($map);
+  function keys($array) {
+    return \array_keys($array);
   }
-  function keys_strings($map) {
+  function keys_strings($array) {
     return map(
-      keys($map),
+      keys($array),
       function($k) {
         return "".$k;
       }
     );
   }
-  function values($map) {
-    return \array_values($map);
+  function values($array) {
+    return \array_values($array);
   }
   function union_keys($a, $b) {
     return \array_replace($a, $b);
   }
-  function union_keys_all($maps) {
+  function union_keys_all($arrays) {
     return
-      \hacklib_cast_as_boolean($maps)
-        ? \call_user_func_array("array_replace", $maps)
+      \hacklib_cast_as_boolean($arrays)
+        ? \call_user_func_array("array_replace", $arrays)
         : array();
   }
   function intersect($a, $b) {
@@ -268,11 +268,11 @@ namespace HackUtils {
   function diff_keys($a, $b) {
     return \array_intersect_key($a, $b);
   }
-  function select($map, $keys) {
+  function select($array, $keys) {
     return map(
       $keys,
-      function($key) use ($map) {
-        return $map[$key];
+      function($key) use ($array) {
+        return $array[$key];
       }
     );
   }
@@ -302,42 +302,42 @@ namespace HackUtils {
     }
     return array($a, $b);
   }
-  function unzip_assoc($map) {
+  function unzip_assoc($array) {
     $a = array();
     $b = array();
-    foreach ($map as $k => $v) {
+    foreach ($array as $k => $v) {
       $a[$k] = $v[0];
       $b[$k] = $v[1];
     }
     return array($a, $b);
   }
-  function shuffle($list) {
-    \shuffle($list);
-    return $list;
+  function shuffle($array) {
+    \shuffle($array);
+    return $array;
   }
   function shuffle_string($string) {
     return \str_shuffle($string);
   }
-  function reverse($list) {
-    return \array_reverse($list, false);
+  function reverse($array) {
+    return \array_reverse($array, false);
   }
-  function reverse_assoc($map) {
-    return \array_reverse($map, true);
+  function reverse_assoc($array) {
+    return \array_reverse($array, true);
   }
   function reverse_string($string) {
     return \strrev($string);
   }
-  function chunk($list, $size) {
+  function chunk($array, $size) {
     if ($size < 1) {
       throw new \Exception("Chunk size must be >= 1");
     }
-    return \array_chunk($list, $size, false);
+    return \array_chunk($array, $size, false);
   }
-  function chunk_assoc($map, $size) {
+  function chunk_assoc($array, $size) {
     if ($size < 1) {
       throw new \Exception("Chunk size must be >= 1");
     }
-    return \array_chunk($map, $size, true);
+    return \array_chunk($array, $size, true);
   }
   function chunk_string($string, $size) {
     if ($size < 1) {
@@ -359,24 +359,24 @@ namespace HackUtils {
     $ret = \substr($string, $offset, $length ?? 0x7FFFFFFF);
     return ($ret === false) ? "" : $ret;
   }
-  function slice_array($list, $offset, $length = null) {
-    return \array_slice($list, $offset, $length);
+  function slice_array($array, $offset, $length = null) {
+    return \array_slice($array, $offset, $length);
   }
-  function slice_assoc($map, $offset, $length = null) {
-    return \array_slice($map, $offset, $length, true);
+  function slice_assoc($array, $offset, $length = null) {
+    return \array_slice($array, $offset, $length, true);
   }
   function splice($string, $offset, $length = null, $replacement = "") {
     return
       \substr_replace($string, $replacement, $offset, $length ?? 0x7FFFFFFF);
   }
   function splice_array(
-    $list,
+    $array,
     $offset,
     $length = null,
     $replacement = array()
   ) {
-    $ret = \array_splice($list, $offset, $length, $replacement);
-    return array($list, $ret);
+    $ret = \array_splice($array, $offset, $length, $replacement);
+    return array($array, $ret);
   }
   function find($haystack, $needle, $offset = 0, $ci = false) {
     $ret =
@@ -519,8 +519,8 @@ namespace HackUtils {
   function pad($string, $length, $pad = " ") {
     return \str_pad($string, $length, $pad, \STR_PAD_BOTH);
   }
-  function pad_array($list, $size, $value) {
-    return \array_pad($list, $size, $value);
+  function pad_array($array, $size, $value) {
+    return \array_pad($array, $size, $value);
   }
   function pad_left($string, $length, $pad = " ") {
     return \str_pad($string, $length, $pad, \STR_PAD_LEFT);
