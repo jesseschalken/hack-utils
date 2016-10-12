@@ -2,9 +2,6 @@
 namespace HackUtils {
   require_once ($GLOBALS["HACKLIB_ROOT"]);
   function is_vector($x) {
-    if (!\hacklib_cast_as_boolean(\is_array($x))) {
-      return false;
-    }
     $i = 0;
     foreach ($x as $k => $v) {
       if ($k !== ($i++)) {

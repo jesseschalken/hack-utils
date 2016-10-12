@@ -1,9 +1,6 @@
 <?php
 namespace HackUtils {
   require_once ($GLOBALS["HACKLIB_ROOT"]);
-  use \HackUtils\vector;
-  use \HackUtils\map;
-  use function \HackUtils\new_null;
   const PCRE_CASELESS = "i";
   const PCRE_MULTILINE = "m";
   const PCRE_DOTALL = "s";

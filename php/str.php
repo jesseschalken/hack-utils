@@ -48,7 +48,7 @@ namespace HackUtils {
     }
     return \explode($delimiter, $string, $limit);
   }
-  function lines($string) {
+  function split_lines($string) {
     $lines = split($string, "\n");
     foreach ($lines as $i => $line) {
       if (slice($line, -1) === "\r") {
@@ -61,11 +61,11 @@ namespace HackUtils {
     }
     return $lines;
   }
-  function unlines($lines, $nl = "\n") {
-    return \hacklib_cast_as_boolean($lines) ? (join($lines, $nl).$nl) : "";
-  }
   function join($strings, $delimiter = "") {
     return \implode($delimiter, $strings);
+  }
+  function join_lines($lines, $nl = "\n") {
+    return \hacklib_cast_as_boolean($lines) ? (join($lines, $nl).$nl) : "";
   }
   function replace($subject, $search, $replace, $ci = false) {
     $count = 0;
@@ -142,9 +142,10 @@ namespace HackUtils {
     return slice($string, 0, length($prefix)) === $prefix;
   }
   function ends_with($string, $suffix) {
-    if ($suffix === "") {
-      return true;
-    }
-    return slice($string, -length($suffix)) === $suffix;
+    $length = length($suffix);
+    return
+      \hacklib_cast_as_boolean($length)
+        ? (slice($string, -$length) === $suffix)
+        : true;
   }
 }

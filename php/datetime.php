@@ -1,11 +1,6 @@
 <?php
-namespace HackUtils\datetime {
+namespace HackUtils\DateTime {
   require_once ($GLOBALS["HACKLIB_ROOT"]);
-  use \HackUtils\str;
-  use \HackUtils\math;
-  use \HackUtils\vector;
-  use \HackUtils\map;
-  use \HackUtils\set;
   use \HackUtils as HU;
   class Exception extends \Exception {}
   class ParseException extends Exception {}
