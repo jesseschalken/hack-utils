@@ -18,40 +18,49 @@ final class _Cache {
 }
 
 function assert_string(): type_assert<string> {
-  return _Cache::$string ?: _Cache::$string =
-    $x ==> \is_string($x) ? $x : _type_error($x, 'string');
+  return _Cache::$string ?: _Cache::$string = function($x) {
+    return \is_string($x) ? $x : _type_error($x, 'string');
+  };
 }
 
 function assert_float(): type_assert<float> {
-  return _Cache::$float ?: _Cache::$float =
-    $x ==> \is_float($x) ? $x : _type_error($x, 'float');
+  return _Cache::$float ?: _Cache::$float = function($x) {
+    return \is_float($x) ? $x : _type_error($x, 'float');
+  };
 }
 
 function assert_int(): type_assert<int> {
-  return _Cache::$int ?: _Cache::$int =
-    $x ==> \is_int($x) ? $x : _type_error($x, 'int');
+  return _Cache::$int ?: _Cache::$int = function($x) {
+    return \is_int($x) ? $x : _type_error($x, 'int');
+  };
 }
 
 function assert_bool(): type_assert<bool> {
-  return _Cache::$bool ?: _Cache::$bool =
-    $x ==> \is_bool($x) ? $x : _type_error($x, 'bool');
+  return _Cache::$bool ?: _Cache::$bool = function($x) {
+    return \is_bool($x) ? $x : _type_error($x, 'bool');
+  };
 }
 
 function assert_resource(): type_assert<resource> {
-  return _Cache::$resource ?: _Cache::$resource =
-    $x ==> \is_resource($x) ? $x : _type_error($x, 'bool');
+  return _Cache::$resource ?: _Cache::$resource = function($x) {
+    return \is_resource($x) ? $x : _type_error($x, 'bool');
+  };
 }
 
 function assert_null<T>(): type_assert<?T> {
-  return $x ==> $x === null ? null : _type_error($x, 'null');
+  return function($x) {
+    return $x === null ? null : _type_error($x, 'null');
+  };
 }
 
 function assert_nullable<T>(type_assert<T> $t): type_assert<?T> {
-  return $x ==> $x === null ? null : $t($x);
+  return function($x) use ($t) {
+    return $x === null ? null : $t($x);
+  };
 }
 
 function assert_array<T>(type_assert<T> $t): type_assert<array<T>> {
-  return $x ==> {
+  return function($x) use ($t) {
     $x =
       \is_array($x) && is_vector($x)
         ? $x
@@ -64,7 +73,7 @@ function assert_assoc<Tk, Tv>(
   type_assert<Tk> $ak,
   type_assert<Tv> $av,
 ): type_assert<array<Tk, Tv>> {
-  return $x ==> {
+  return function($x) use ($ak, $av) {
     $x = \is_array($x) ? $x : _type_error($x, 'array (map-like)');
     $r = [];
     foreach ($x as $k => $v) {
@@ -75,11 +84,13 @@ function assert_assoc<Tk, Tv>(
 }
 
 function assert_object<T>(classname<T> $class): type_assert<T> {
-  return $x ==> $x instanceof $class ? $x : _type_error($x, $class);
+  return function($x) use ($class) {
+    return $x instanceof $class ? $x : _type_error($x, $class);
+  };
 }
 
 function assert_num(): type_assert<num> {
-  return _Cache::$num ?: _Cache::$num = $x ==> {
+  return _Cache::$num ?: _Cache::$num = function($x) {
     if (\is_float($x))
       return $x;
     if (\is_int($x))
@@ -89,7 +100,7 @@ function assert_num(): type_assert<num> {
 }
 
 function assert_arraykey(): type_assert<arraykey> {
-  return _Cache::$arraykey ?: _Cache::$arraykey = $x ==> {
+  return _Cache::$arraykey ?: _Cache::$arraykey = function($x) {
     if (\is_string($x))
       return $x;
     if (\is_int($x))
@@ -123,9 +134,12 @@ function assert_pair<Ta, Tb>(
   type_assert<Ta> $a,
   type_assert<Tb> $b,
 ): type_assert<(Ta, Tb)> {
-  return $x ==> \is_array($x) && \count($x) == 2 && is_vector($x)
-    ? tuple($a($x[0]), $b($x[1]))
-    : _type_error($x, 'pair (vector array of length 2)');
+  return function($x) use ($a, $b) {
+    return
+      \is_array($x) && \count($x) == 2 && is_vector($x)
+        ? tuple($a($x[0]), $b($x[1]))
+        : _type_error($x, 'pair (vector array of length 2)');
+  };
 }
 
 function _typeof(mixed $x): string {

@@ -44,53 +44,41 @@ namespace HackUtils {
   function all_xdigit($s) {
     return ($s === "") || \hacklib_cast_as_boolean(\ctype_xdigit($s));
   }
-  function _char($s, $i = 0) {
-    $l = \strlen($s);
-    if ($i < 0) {
-      $i += $l;
-    }
-    if (($i < 0) || ($i >= $l)) {
-      throw new \Exception(
-        "String offset ".$i." out of bounds in string of length ".$l
-      );
-    }
-    return $s[$i];
-  }
   function is_alnum($s, $i = 0) {
-    return \ctype_alnum(_char($s, $i));
+    return \ctype_alnum(char_at($s, $i));
   }
   function is_blank($s, $i = 0) {
-    $c = _char($s, $i);
+    $c = char_at($s, $i);
     return ($c === " ") || ($c === "\t");
   }
   function is_alpha($s, $i = 0) {
-    return \ctype_alpha(_char($s, $i));
+    return \ctype_alpha(char_at($s, $i));
   }
   function is_cntrl($s, $i = 0) {
-    return \ctype_cntrl(_char($s, $i));
+    return \ctype_cntrl(char_at($s, $i));
   }
   function is_digit($s, $i = 0) {
-    return \ctype_digit(_char($s, $i));
+    return \ctype_digit(char_at($s, $i));
   }
   function is_graph($s, $i = 0) {
-    return \ctype_graph(_char($s, $i));
+    return \ctype_graph(char_at($s, $i));
   }
   function is_lower($s, $i = 0) {
-    return \ctype_lower(_char($s, $i));
+    return \ctype_lower(char_at($s, $i));
   }
   function is_print($s, $i = 0) {
-    return \ctype_print(_char($s, $i));
+    return \ctype_print(char_at($s, $i));
   }
   function is_punct($s, $i = 0) {
-    return \ctype_punct(_char($s, $i));
+    return \ctype_punct(char_at($s, $i));
   }
   function is_space($s, $i = 0) {
-    return \ctype_space(_char($s, $i));
+    return \ctype_space(char_at($s, $i));
   }
   function is_upper($s, $i = 0) {
-    return \ctype_upper(_char($s, $i));
+    return \ctype_upper(char_at($s, $i));
   }
   function is_xdigit($s, $i = 0) {
-    return \ctype_xdigit(_char($s, $i));
+    return \ctype_xdigit(char_at($s, $i));
   }
 }

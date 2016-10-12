@@ -5,10 +5,10 @@ namespace HackUtils {
     return null;
   }
   function null_throws($value, $message = "Unexpected null") {
-    if ($value === null) {
-      throw new \Exception($message);
-    }
-    return $value;
+    return ($value === null) ? throw_(new \Exception($message)) : $value;
+  }
+  function throw_($e) {
+    throw $e;
   }
   function if_null($x, $y) {
     return ($x === null) ? $y : $x;

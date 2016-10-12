@@ -39,7 +39,7 @@ namespace HackUtils {
       \PREG_SET_ORDER | \PREG_OFFSET_CAPTURE,
       $offset
     );
-    return vector\map(
+    return map(
       $matches,
       function($match) {
         return _pcre_fix_match($match);
@@ -84,11 +84,11 @@ namespace HackUtils {
   final class _EscapeCache {
     private static $cache = array();
     public static function escape($regex) {
-      $escaped = map\soft_get(self::$cache, $regex);
+      $escaped = get_key_or_null(self::$cache, $regex);
       if ($escaped !== null) {
         return $escaped;
       }
-      if (map\size(self::$cache) >= 10000) {
+      if (size(self::$cache) >= 10000) {
         self::$cache = array();
       }
       return self::$cache[$regex] = _pcre_escape($regex);

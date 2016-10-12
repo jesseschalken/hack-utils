@@ -6,6 +6,7 @@ namespace HackUtils\datetime {
   use \HackUtils\vector;
   use \HackUtils\map;
   use \HackUtils\set;
+  use \HackUtils as HU;
   class Exception extends \Exception {}
   class ParseException extends Exception {}
   class FormatException extends Exception {}
@@ -153,8 +154,8 @@ namespace HackUtils\datetime {
   }
   function get_parts($dt) {
     list($year, $month, $day, $hour, $minute, $second, $microsecond) =
-      vector\map(
-        str\split(format($dt, "Y m d H i s u"), " "),
+      HU\map(
+        HU\split(format($dt, "Y m d H i s u"), " "),
         function($x) {
           return (int) $x;
         }
