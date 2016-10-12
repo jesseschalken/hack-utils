@@ -148,7 +148,7 @@ function diff<T as arraykey>(array<T> $a, array<T> $b): array<T> {
 }
 
 /**
- * Returns an array with keys that exist in the first arrau but not the second,
+ * Returns an array with keys that exist in the first array but not the second,
  * using values from the first array.
  */
 function diff_keys<Tk as arraykey, Tv>(
