@@ -1,12 +1,7 @@
 <?hh // strict
 
-namespace HackUtils\datetime;
+namespace HackUtils\DateTime;
 
-use HackUtils\str;
-use HackUtils\math;
-use HackUtils\vector;
-use HackUtils\map;
-use HackUtils\set;
 use HackUtils as HU;
 
 newtype datetime = \DateTimeImmutable;

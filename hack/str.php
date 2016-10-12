@@ -70,7 +70,7 @@ function split(
  * Split a string into lines terminated by \n or \r\n.
  * A final line terminator is optional.
  */
-function lines(string $string): array<string> {
+function split_lines(string $string): array<string> {
   $lines = split($string, "\n");
   // Remove a final \r at the end of any lines
   foreach ($lines as $i => $line) {
@@ -85,16 +85,16 @@ function lines(string $string): array<string> {
   return $lines;
 }
 
+function join(array<string> $strings, string $delimiter = ''): string {
+  return \implode($delimiter, $strings);
+}
+
 /**
  * Join lines back together with the given line separator. A final
  * separator is included in the output.
  */
-function unlines(array<string> $lines, string $nl = "\n"): string {
+function join_lines(array<string> $lines, string $nl = "\n"): string {
   return $lines ? join($lines, $nl).$nl : '';
-}
-
-function join(array<string> $strings, string $delimiter = ''): string {
-  return \implode($delimiter, $strings);
 }
 
 function replace(
@@ -203,8 +203,6 @@ function starts_with(string $string, string $prefix): bool {
 }
 
 function ends_with(string $string, string $suffix): bool {
-  if ($suffix === '') {
-    return true;
-  }
-  return slice($string, -length($suffix)) === $suffix;
+  $length = length($suffix);
+  return $length ? slice($string, -$length) === $suffix : true;
 }

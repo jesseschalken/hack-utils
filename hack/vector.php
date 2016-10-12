@@ -2,10 +2,7 @@
 
 namespace HackUtils;
 
-function is_vector(mixed $x): bool {
-  if (!\is_array($x)) {
-    return false;
-  }
+function is_vector(array<mixed, mixed> $x): bool {
   $i = 0;
   foreach ($x as $k => $v) {
     if ($k !== $i++) {

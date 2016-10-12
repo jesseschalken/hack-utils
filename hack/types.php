@@ -2,8 +2,8 @@
 
 namespace HackUtils;
 
-type datetime = datetime\datetime;
-type timezone = datetime\timezone;
+type datetime = DateTime\datetime;
+type timezone = DateTime\timezone;
 
 type key = arraykey;
 type map<+T> = array<key, T>;

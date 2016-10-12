@@ -2,10 +2,6 @@
 
 namespace HackUtils;
 
-use HackUtils\vector;
-use HackUtils\map;
-use function HackUtils\new_null;
-
 const string PCRE_CASELESS = 'i';
 const string PCRE_MULTILINE = 'm';
 const string PCRE_DOTALL = 's';
