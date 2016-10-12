@@ -37,10 +37,7 @@ function sort_pairs<Tk, Tv>(
   return from_pairs(sort(to_pairs($map), $cmp));
 }
 
-function num_sort<T as num>(
-  array<T> $nums,
-  bool $reverse = false,
-): array<T> {
+function num_sort<T as num>(array<T> $nums, bool $reverse = false): array<T> {
   if ($reverse) {
     \rsort($nums, \SORT_NUMERIC);
   } else {
@@ -71,6 +68,10 @@ function num_sort_keys<Tk as num, Tv>(
     \ksort($map, \SORT_NUMERIC);
   }
   return $map;
+}
+
+function num_unique<Tk, Tv as num>(array<Tk, Tv> $map): array<Tk, Tv> {
+  return \array_unique($map, \SORT_NUMERIC);
 }
 
 function str_sort<T as arraykey>(
@@ -118,8 +119,15 @@ function str_sort_keys<Tk as arraykey, Tv>(
   return $map;
 }
 
+function str_unique<Tk, Tv as arraykey>(
+  array<Tk, Tv> $map,
+  bool $ci = false,
+  bool $natural = false,
+): array<Tk, Tv> {
+  return \array_unique($map, _str_sort_flags($ci, $natural));
+}
+
 function _str_sort_flags(bool $ci, bool $natural): int {
   return
-    ($natural ? \SORT_NATURAL : \SORT_STRING) |
-    ($ci ? \SORT_FLAG_CASE : 0);
+    ($natural ? \SORT_NATURAL : \SORT_STRING) | ($ci ? \SORT_FLAG_CASE : 0);
 }

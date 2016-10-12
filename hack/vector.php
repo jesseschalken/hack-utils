@@ -15,20 +15,12 @@ function is_vector(mixed $x): bool {
   return true;
 }
 
-function count_values<T as arraykey>(array<T> $values): array<T, int> {
-  return \array_count_values($values);
-}
-
 function concat<T>(array<T> $a, array<T> $b): array<T> {
   return \array_merge($a, $b);
 }
 
 function concat_all<T>(array<array<T>> $vectors): array<T> {
   return $vectors ? \call_user_func_array('array_merge', $vectors) : [];
-}
-
-function pad_array<T>(array<T> $list, int $size, T $value): array<T> {
-  return \array_pad($list, $size, $value);
 }
 
 function get_offset<T>(array<T> $v, int $i): T {
@@ -76,16 +68,6 @@ function shift<T>(array<T> $v): (T, array<T>) {
   return tuple($x, $v);
 }
 
-function first<T>(array<T> $a): T {
-  _check_empty($a, 'get first element');
-  return $a[0];
-}
-
-function last<T>(array<T> $a): T {
-  _check_empty($a, 'get last element');
-  return $a[count($a) - 1];
-}
-
 function _check_empty(array<mixed> $a, string $op): void {
   if (!$a) {
     throw new \Exception("Cannot $op: Array is empty");
@@ -97,13 +79,17 @@ function range(int $start, int $end, int $step = 1): array<int> {
 }
 
 function filter<T>(array<T> $list, (function(T): bool) $f): array<T> {
-  $ret = \array_filter($list, $f);
+  $ret = filter_assoc($list, $f);
   // array_filter() preserves keys, so if some elements were removed,
   // renumber keys 0,1...N.
-  if (\count($ret) < \count($list)) {
-    $ret = \array_values($ret);
-  }
-  return $ret;
+  return count($ret) != count($list) ? values($ret) : $list;
+}
+
+function filter_assoc<Tk, Tv>(
+  array<Tk, Tv> $map,
+  (function(Tv): bool) $f,
+): array<Tk, Tv> {
+  return \array_filter($map, $f);
 }
 
 function map<Tin, Tout>(
@@ -111,6 +97,13 @@ function map<Tin, Tout>(
   (function(Tin): Tout) $f,
 ): array<Tout> {
   return \array_map($f, $list);
+}
+
+function map_assoc<Tk, Tv1, Tv2>(
+  array<Tk, Tv1> $map,
+  (function(Tv1): Tv2) $f,
+): array<Tk, Tv2> {
+  return \array_map($f, $map);
 }
 
 function reduce<Tin, Tout>(
@@ -136,18 +129,6 @@ function reduce_right<Tin, Tout>(
   return $value;
 }
 
-function unique<T as arraykey>(array<T> $list): array<T> {
-  return \array_unique($list);
-}
-
-function diff<T as arraykey>(array<T> $a, array<T> $b): array<T> {
-  return \array_values(\array_diff($a, $b));
-}
-
-function intersect<T as arraykey>(array<T> $a, array<T> $b): array<T> {
-  return \array_values(\array_intersect($a, $b));
-}
-
 function any<T>(array<mixed, T> $a, (function(T): bool) $f): bool {
   foreach ($a as $x) {
     if ($f($x)) {
@@ -166,7 +147,7 @@ function all<T>(array<mixed, T> $a, (function(T): bool) $f): bool {
   return true;
 }
 
-function group_by<Tk, Tv>(
+function group_by<Tk as arraykey, Tv>(
   array<mixed, Tv> $a,
   (function(Tv): Tk) $f,
 ): array<Tk, array<Tv>> {

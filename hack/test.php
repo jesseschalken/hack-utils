@@ -21,7 +21,7 @@ function run_tests(): void {
   assert_eqaul(from_hex("00ff20"), "\x00\xff\x20");
   assert_eqaul(from_hex("00Ff20"), "\x00\xff\x20");
 
-  assert_eqaul(len(str_shuffle("abc")), 3);
+  assert_eqaul(length(str_shuffle("abc")), 3);
 
   assert_eqaul(reverse_string("abc"), 'cba');
   assert_eqaul(reverse_string(""), '');
@@ -57,18 +57,18 @@ function run_tests(): void {
   assert_eqaul(join(['abc'], ','), 'abc');
   assert_eqaul(join(['a', 'bc'], ','), 'a,bc');
 
-  assert_eqaul(find_replace('abc', 'b', 'lol'), tuple('alolc', 1));
-  assert_eqaul(find_replace('abc', 'B', 'lol'), tuple('abc', 0));
-  assert_eqaul(find_replace('abc', 'B', 'lol', true), tuple('alolc', 1));
+  assert_eqaul(replace('abc', 'b', 'lol'), tuple('alolc', 1));
+  assert_eqaul(replace('abc', 'B', 'lol'), tuple('abc', 0));
+  assert_eqaul(replace('abc', 'B', 'lol', true), tuple('alolc', 1));
 
-  assert_eqaul(replace('abc', 1, 1), 'ac');
-  assert_eqaul(replace('abc', 1, 1, 'lol'), 'alolc');
+  assert_eqaul(splice('abc', 1, 1), 'ac');
+  assert_eqaul(splice('abc', 1, 1, 'lol'), 'alolc');
 
-  assert_eqaul(sub('abc', 1, 1), 'b');
-  assert_eqaul(sub('abc', -1, 1), 'c');
-  assert_eqaul(sub('abc', 1, -1), 'b');
-  assert_eqaul(sub('abc', 1), 'bc');
-  assert_eqaul(sub('abc', -1), 'c');
+  assert_eqaul(slice('abc', 1, 1), 'b');
+  assert_eqaul(slice('abc', -1, 1), 'c');
+  assert_eqaul(slice('abc', 1, -1), 'b');
+  assert_eqaul(slice('abc', 1), 'bc');
+  assert_eqaul(slice('abc', -1), 'c');
 
   assert_eqaul(pad('abc', 3), 'abc');
   assert_eqaul(pad('abc', 4), 'abc ');

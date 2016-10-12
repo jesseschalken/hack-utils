@@ -168,7 +168,7 @@ function sqrt(float $arg): float {
   return \sqrt($arg);
 }
 
-function cmp<T as num>(T $x, T $y): int {
+function cmp(num $x, num $y): int {
   return sign($x - $y);
 }
 

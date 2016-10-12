@@ -51,6 +51,10 @@ function get_key_or_default<Tk, Tv>(
   return key_exists($map, $key) ? $map[$key] : $default;
 }
 
+function key_exists<Tk>(array<Tk, mixed> $map, Tk $key): bool {
+  return \array_key_exists($key, $map);
+}
+
 /**
  * The key of a map is actually a string, but PHP converts intish strings to
  * ints. Use this function to convert them back.
@@ -94,8 +98,8 @@ function flip<Tk as arraykey, Tv as arraykey>(
   return \array_flip($map);
 }
 
-function key_exists<Tk>(array<Tk, mixed> $map, Tk $key): bool {
-  return \array_key_exists($key, $map);
+function flip_count<T as arraykey>(array<arraykey, T> $values): array<T, int> {
+  return \array_count_values($values);
 }
 
 function keys<Tk>(array<Tk, mixed> $map): array<Tk> {
@@ -113,15 +117,19 @@ function values<Tv>(array<mixed, Tv> $map): array<Tv> {
 /**
  * If a key exists in both arrays, the value from the second array is used.
  */
-function union<Tk, Tv>(array<Tk, Tv> $a, array<Tk, Tv> $b): array<Tk, Tv> {
+function union_keys<Tk, Tv>(array<Tk, Tv> $a, array<Tk, Tv> $b): array<Tk, Tv> {
   return \array_replace($a, $b);
 }
 
 /**
  * If a key exists in multiple arrays, the value from the later array is used.
  */
-function union_all<Tk, Tv>(array<array<Tk, Tv>> $maps): array<Tk, Tv> {
+function union_keys_all<Tk, Tv>(array<array<Tk, Tv>> $maps): array<Tk, Tv> {
   return \call_user_func_array('array_replace', $maps);
+}
+
+function intersect<T as arraykey>(array<T> $a, array<T> $b): array<T> {
+  return \array_values(\array_intersect($a, $b));
 }
 
 /**
@@ -135,6 +143,10 @@ function intersect_keys<Tk as arraykey, Tv>(
   return \array_intersect_key($a, $b);
 }
 
+function diff<T as arraykey>(array<T> $a, array<T> $b): array<T> {
+  return \array_values(\array_diff($a, $b));
+}
+
 /**
  * Returns an array with keys that exist in the first arrau but not the second,
  * using values from the first array.
@@ -144,20 +156,6 @@ function diff_keys<Tk as arraykey, Tv>(
   array<Tk, Tv> $b,
 ): array<Tk, Tv> {
   return \array_intersect_key($a, $b);
-}
-
-function filter_assoc<Tk, Tv>(
-  array<Tk, Tv> $map,
-  (function(Tv): bool) $f,
-): array<Tk, Tv> {
-  return \array_filter($map, $f);
-}
-
-function map_assoc<Tk, Tv1, Tv2>(
-  array<Tk, Tv1> $map,
-  (function(Tv1): Tv2) $f,
-): array<Tk, Tv2> {
-  return \array_map($f, $map);
 }
 
 /**

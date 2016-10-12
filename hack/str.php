@@ -14,10 +14,6 @@ function from_hex(string $string): string {
   return $ret;
 }
 
-function str_count(string $haystack, string $needle, int $offset = 0): int {
-  return \substr_count($haystack, $needle, $offset);
-}
-
 function to_lower(string $string): string {
   return \strtolower($string);
 }
@@ -60,9 +56,9 @@ function split(
     if ($limit == 1) {
       return [$string];
     }
-    if (len($string) > $limit) {
-      $ret = \str_split(sub($string, 0, $limit - 1));
-      $ret[] = sub($string, $limit - 1);
+    if (length($string) > $limit) {
+      $ret = \str_split(slice($string, 0, $limit - 1));
+      $ret[] = slice($string, $limit - 1);
       return $ret;
     }
     return \str_split($string);
@@ -78,13 +74,13 @@ function lines(string $string): array<string> {
   $lines = split($string, "\n");
   // Remove a final \r at the end of any lines
   foreach ($lines as $i => $line) {
-    if (sub($line, -1) === "\r") {
-      $lines[$i] = sub($line, 0, -1);
+    if (slice($line, -1) === "\r") {
+      $lines[$i] = slice($line, 0, -1);
     }
   }
   // Remove a final empty line
   if ($lines && $lines[count($lines) - 1] === '') {
-    $lines = slice($lines, 0, -1);
+    $lines = slice_array($lines, 0, -1);
   }
   return $lines;
 }
@@ -101,15 +97,15 @@ function join(array<string> $strings, string $delimiter = ''): string {
   return \implode($delimiter, $strings);
 }
 
-function find_replace(
+function replace(
   string $subject,
   string $search,
   string $replace,
-  bool $caseInsensitive = false,
+  bool $ci = false,
 ): string {
   $count = 0;
   $result =
-    $caseInsensitive
+    $ci
       ? \str_ireplace($search, $replace, $subject)
       : \str_replace($search, $replace, $subject);
   if (!\is_string($result)) {
@@ -118,15 +114,15 @@ function find_replace(
   return $result;
 }
 
-function find_replace_count(
+function replace_count(
   string $subject,
   string $search,
   string $replace,
-  bool $caseInsensitive = false,
+  bool $ci = false,
 ): (string, int) {
   $count = 0;
   $result =
-    $caseInsensitive
+    $ci
       ? \str_ireplace($search, $replace, $subject, $count)
       : \str_replace($search, $replace, $subject, $count);
   if (!\is_string($result)) {
@@ -137,6 +133,10 @@ function find_replace_count(
 
 function pad(string $string, int $length, string $pad = ' '): string {
   return \str_pad($string, $length, $pad, \STR_PAD_BOTH);
+}
+
+function pad_array<T>(array<T> $list, int $size, T $value): array<T> {
+  return \array_pad($list, $size, $value);
 }
 
 function pad_left(string $string, int $length, string $pad = ' '): string {
@@ -179,11 +179,11 @@ function char_code_at(string $string, int $offset = 0): int {
 function str_cmp(
   string $a,
   string $b,
-  bool $caseInsensitive = false,
+  bool $ci = false,
   bool $natural = false,
 ): int {
   $ret =
-    $caseInsensitive
+    $ci
       ? ($natural ? \strnatcasecmp($a, $b) : \strcasecmp($a, $b))
       : ($natural ? \strnatcmp($a, $b) : \strcmp($a, $b));
   return sign($ret);
@@ -192,19 +192,19 @@ function str_cmp(
 function str_eq(
   string $a,
   string $b,
-  bool $caseInsensitive = false,
+  bool $ci = false,
   bool $natural = false,
 ): bool {
-  return str_cmp($a, $b, $caseInsensitive, $natural) == 0;
+  return str_cmp($a, $b, $ci, $natural) == 0;
 }
 
 function starts_with(string $string, string $prefix): bool {
-  return sub($string, 0, len($prefix)) === $prefix;
+  return slice($string, 0, length($prefix)) === $prefix;
 }
 
 function ends_with(string $string, string $suffix): bool {
   if ($suffix === '') {
     return true;
   }
-  return sub($string, -len($suffix)) === $suffix;
+  return slice($string, -length($suffix)) === $suffix;
 }

@@ -23,11 +23,11 @@ function reverse_string(string $string): string {
   return \strrev($string);
 }
 
-function chunk<T>(array<T> $map, int $size): array<array<T>> {
+function chunk<T>(array<T> $list, int $size): array<array<T>> {
   if ($size < 1) {
     throw new \Exception("Chunk size must be >= 1");
   }
-  return \array_chunk($map, $size, false);
+  return \array_chunk($list, $size, false);
 }
 
 function chunk_assoc<Tk, Tv>(
@@ -59,13 +59,17 @@ function repeat_string(string $string, int $count): string {
   return \str_repeat($string, $count);
 }
 
-function sub(string $string, int $offset, ?int $length = null): string {
+function slice(string $string, int $offset, ?int $length = null): string {
   $ret = \substr($string, $offset, $length ?? 0x7FFFFFFF);
   // \substr() returns false "on failure".
   return $ret === false ? '' : $ret;
 }
 
-function slice<T>(array<T> $list, int $offset, ?int $length = null): array<T> {
+function slice_array<T>(
+  array<T> $list,
+  int $offset,
+  ?int $length = null,
+): array<T> {
   return \array_slice($list, $offset, $length);
 }
 
@@ -77,7 +81,7 @@ function slice_assoc<Tk, Tv>(
   return \array_slice($map, $offset, $length, true);
 }
 
-function replace(
+function splice(
   string $string,
   int $offset,
   ?int $length = null,
@@ -90,7 +94,7 @@ function replace(
 /**
  * Returns a pair of (new list, removed elements).
  */
-function splice<T>(
+function splice_array<T>(
   array<T> $list,
   int $offset,
   ?int $length = null,
@@ -126,11 +130,15 @@ function find_last(
   return $ret === false ? null : $ret;
 }
 
+function find_count(string $haystack, string $needle, int $offset = 0): int {
+  return \substr_count($haystack, $needle, $offset);
+}
+
 function contains(string $haystack, string $needle, int $offset = 0): bool {
   return find($haystack, $needle, $offset) !== null;
 }
 
-function len(string $string): int {
+function length(string $string): int {
   return \strlen($string);
 }
 
