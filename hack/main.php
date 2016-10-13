@@ -627,6 +627,9 @@ function find(
   int $offset = 0,
   bool $ci = false,
 ): ?int {
+  if (\PHP_VERSION_ID < 70100 && $offset < 0) {
+    $offset += length($haystack);
+  }
   $ret =
     $ci
       ? \stripos($haystack, $needle, $offset)
@@ -640,6 +643,9 @@ function find_last(
   int $offset = 0,
   bool $ci = false,
 ): ?int {
+  if (\PHP_VERSION_ID < 70100 && $offset < 0) {
+    $offset += length($haystack);
+  }
   $ret =
     $ci
       ? \strripos($haystack, $needle, $offset)

@@ -430,6 +430,9 @@ namespace HackUtils {
     return array($array, $ret);
   }
   function find($haystack, $needle, $offset = 0, $ci = false) {
+    if ((\PHP_VERSION_ID < 70100) && ($offset < 0)) {
+      $offset += length($haystack);
+    }
     $ret =
       \hacklib_cast_as_boolean($ci)
         ? \stripos($haystack, $needle, $offset)
@@ -437,6 +440,9 @@ namespace HackUtils {
     return ($ret === false) ? null : $ret;
   }
   function find_last($haystack, $needle, $offset = 0, $ci = false) {
+    if ((\PHP_VERSION_ID < 70100) && ($offset < 0)) {
+      $offset += length($haystack);
+    }
     $ret =
       \hacklib_cast_as_boolean($ci)
         ? \strripos($haystack, $needle, $offset)

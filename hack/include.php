@@ -1,14 +1,12 @@
 <?hh // strict
 
-require_once __DIR__.'/types.php';
-require_once __DIR__.'/vector.php';
-require_once __DIR__.'/map.php';
-require_once __DIR__.'/str.php';
-require_once __DIR__.'/set.php';
-require_once __DIR__.'/tuple.php';
-require_once __DIR__.'/utils.php';
-require_once __DIR__.'/regex.php';
+require_once __DIR__.'/main.php';
+require_once __DIR__.'/pcre.php';
 require_once __DIR__.'/math.php';
-require_once __DIR__.'/Rational.php';
-require_once __DIR__.'/ArrayRef.php';
-require_once __DIR__.'/AssocArrayRef.php';
+require_once __DIR__.'/ctype.php';
+require_once __DIR__.'/DateTime.php';
+require_once __DIR__.'/encode.php';
+require_once __DIR__.'/json.php';
+require_once __DIR__.'/sort.php';
+require_once __DIR__.'/test.php';
+require_once __DIR__.'/type_assert.php';
