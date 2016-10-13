@@ -1,7 +1,7 @@
 <?php
 
 function hacklib_cast_as_boolean($x) {
-  return (bool) $x;
+  return $x;
 }
 
 function hacklib_equals($a, $b) {
