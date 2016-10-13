@@ -20,7 +20,7 @@ namespace HackUtils {
   function sort_pairs($array, $cmp) {
     return from_pairs(sort(to_pairs($array), $cmp));
   }
-  function num_sort($nums, $reverse = false) {
+  function sort_nums($nums, $reverse = false) {
     if (\hacklib_cast_as_boolean($reverse)) {
       _check_sort(\rsort($nums, \SORT_NUMERIC), "rsort");
     } else {
@@ -28,7 +28,7 @@ namespace HackUtils {
     }
     return $nums;
   }
-  function num_sort_assoc($nums, $reverse = false) {
+  function sort_nums_assoc($nums, $reverse = false) {
     if (\hacklib_cast_as_boolean($reverse)) {
       _check_sort(\arsort($nums, \SORT_NUMERIC), "arsort");
     } else {
@@ -36,7 +36,7 @@ namespace HackUtils {
     }
     return $nums;
   }
-  function num_sort_keys($array, $reverse = false) {
+  function sort_nums_keys($array, $reverse = false) {
     if (\hacklib_cast_as_boolean($reverse)) {
       _check_sort(\krsort($array, \SORT_NUMERIC), "krsort");
     } else {
@@ -44,16 +44,13 @@ namespace HackUtils {
     }
     return $array;
   }
-  function num_unique($array) {
-    return \array_unique($array, \SORT_NUMERIC);
-  }
-  function str_sort(
+  function sort_strings(
     $strings,
     $ci = false,
     $natural = false,
     $reverse = false
   ) {
-    $flags = _str_sort_flags($ci, $natural);
+    $flags = _string_sort_flags($ci, $natural);
     if (\hacklib_cast_as_boolean($reverse)) {
       _check_sort(\rsort($strings, $flags), "rsort");
     } else {
@@ -61,13 +58,13 @@ namespace HackUtils {
     }
     return $strings;
   }
-  function str_sort_assoc(
+  function sort_strings_assoc(
     $strings,
     $ci = false,
     $natural = false,
     $reverse = false
   ) {
-    $flags = _str_sort_flags($ci, $natural);
+    $flags = _string_sort_flags($ci, $natural);
     if (\hacklib_cast_as_boolean($reverse)) {
       _check_sort(\arsort($strings, $flags), "arsort");
     } else {
@@ -75,13 +72,13 @@ namespace HackUtils {
     }
     return $strings;
   }
-  function str_sort_keys(
+  function sort_strings_keys(
     $array,
     $ci = false,
     $natural = false,
     $reverse = false
   ) {
-    $flags = _str_sort_flags($ci, $natural);
+    $flags = _string_sort_flags($ci, $natural);
     if (\hacklib_cast_as_boolean($reverse)) {
       _check_sort(\krsort($array, $flags), "krsort");
     } else {
@@ -89,10 +86,13 @@ namespace HackUtils {
     }
     return $array;
   }
-  function str_unique($array, $ci = false, $natural = false) {
-    return \array_unique($array, _str_sort_flags($ci, $natural));
+  function unique_nums($array) {
+    return \array_unique($array, \SORT_NUMERIC);
   }
-  function _str_sort_flags($ci, $natural) {
+  function unique_strings($array, $ci = false, $natural = false) {
+    return \array_unique($array, _string_sort_flags($ci, $natural));
+  }
+  function _string_sort_flags($ci, $natural) {
     return
       (\hacklib_cast_as_boolean($natural) ? \SORT_NATURAL : \SORT_STRING) |
       (\hacklib_cast_as_boolean($ci) ? \SORT_FLAG_CASE : 0);

@@ -14,105 +14,131 @@ namespace HackUtils {
   function max($a, $b) {
     return \max($a, $b);
   }
-  function abs($number) {
-    return \abs($number);
+  function abs($x) {
+    return \abs($x);
   }
-  function to_single_precision($f) {
-    $unpack = unpack("f", pack("f", $f));
+  function to_single_precision($x) {
+    $unpack = unpack("f", pack("f", $x));
     return $unpack[1];
   }
-  function sign($n) {
-    return ((int) ($n > 0)) - ((int) ($n < 0));
+  function sign($x) {
+    return ((int) ($x > 0)) - ((int) ($x < 0));
   }
-  function is_finite($val) {
+  function is_finite($x) {
     return
-      \hacklib_cast_as_boolean(\is_int($val)) ||
-      \hacklib_cast_as_boolean(\is_finite($val));
+      \hacklib_cast_as_boolean(\is_int($x)) ||
+      \hacklib_cast_as_boolean(\is_finite($x));
   }
-  function is_infinite($val) {
+  function is_infinite($x) {
     return
-      \hacklib_cast_as_boolean(\is_float($val)) &&
-      \hacklib_cast_as_boolean(\is_infinite($val));
+      \hacklib_cast_as_boolean(\is_float($x)) &&
+      \hacklib_cast_as_boolean(\is_infinite($x));
   }
-  function is_nan($val) {
+  function is_nan($x) {
     return
-      \hacklib_cast_as_boolean(\is_float($val)) &&
-      \hacklib_cast_as_boolean(\is_nan($val));
+      \hacklib_cast_as_boolean(\is_float($x)) &&
+      \hacklib_cast_as_boolean(\is_nan($x));
   }
-  function is_negative($val) {
+  function is_negative($x) {
     return
-      \hacklib_cast_as_boolean(\is_int($val))
-        ? ($val < 0)
-        : (($val < 0.0) || (($val === 0.0) && ("-0" === ((string) $val))));
+      \hacklib_cast_as_boolean(\is_int($x))
+        ? ($x < 0)
+        : (($x < 0.0) || (($x === 0.0) && ("-0" === ((string) $x))));
   }
-  function ceil($number) {
-    return \ceil($number);
+  function ceil($x) {
+    return \ceil($x);
   }
-  function floor($number) {
-    return \floor($number);
+  function floor($x) {
+    return \floor($x);
   }
-  function trunc($number) {
-    return ($number < 0.0) ? ceil($number) : floor($number);
+  function trunc($x) {
+    return ($x < 0.0) ? ceil($x) : floor($x);
   }
-  function deg2rad($number) {
-    return \deg2rad($number);
+  function round_half_up($x) {
+    return floor($x + 0.5);
   }
-  function rad2deg($number) {
-    return \rad2deg($number);
+  function round_half_down($x) {
+    return ceil($x - 0.5);
+  }
+  function round_half_to_zero($x) {
+    return ($x > 0.0) ? round_half_down($x) : round_half_up($x);
+  }
+  function round_half_to_inf($x) {
+    return ($x > 0.0) ? round_half_up($x) : round_half_down($x);
+  }
+  function round_half_to_even($x) {
+    $r = round_half_up($x);
+    if (($r - $x) == 0.5) {
+      $r = round_half_up($x / 2.0) * 2.0;
+    }
+    return $r;
+  }
+  function round_half_to_odd($x) {
+    $r = round_half_up($x);
+    if (($r - $x) == 0.5) {
+      $r = (round_half_up(($x - 1.0) / 2.0) * 2.0) + 1.0;
+    }
+    return $r;
+  }
+  function deg2rad($x) {
+    return \deg2rad($x);
+  }
+  function rad2deg($x) {
+    return \rad2deg($x);
   }
   function pow($base, $exp) {
     return \pow($base, $exp);
   }
-  function exp($arg) {
-    return \exp($arg);
+  function exp($x) {
+    return \exp($x);
   }
-  function expm1($arg) {
-    return \expm1($arg);
+  function expm1($x) {
+    return \expm1($x);
   }
-  function log10($arg) {
-    return \log10($arg);
+  function log10($x) {
+    return \log10($x);
   }
-  function log1p($number) {
-    return \log1p($number);
+  function log1p($x) {
+    return \log1p($x);
   }
-  function log($arg, $base = E) {
-    return \log($arg, $base);
+  function log($x, $base = E) {
+    return \log($x, $base);
   }
-  function cos($arg) {
-    return \cos($arg);
+  function cos($x) {
+    return \cos($x);
   }
-  function cosh($arg) {
-    return \cosh($arg);
+  function cosh($x) {
+    return \cosh($x);
   }
-  function sin($arg) {
-    return \sin($arg);
+  function sin($x) {
+    return \sin($x);
   }
-  function sinh($arg) {
-    return \sinh($arg);
+  function sinh($x) {
+    return \sinh($x);
   }
-  function tan($arg) {
-    return \tan($arg);
+  function tan($x) {
+    return \tan($x);
   }
-  function tanh($arg) {
-    return \tanh($arg);
+  function tanh($x) {
+    return \tanh($x);
   }
-  function acos($arg) {
-    return \acos($arg);
+  function acos($x) {
+    return \acos($x);
   }
-  function acosh($arg) {
-    return \acosh($arg);
+  function acosh($x) {
+    return \acosh($x);
   }
-  function asin($arg) {
-    return \asin($arg);
+  function asin($x) {
+    return \asin($x);
   }
-  function asinh($arg) {
-    return \asinh($arg);
+  function asinh($x) {
+    return \asinh($x);
   }
-  function atan($arg) {
-    return \atan($arg);
+  function atan($x) {
+    return \atan($x);
   }
-  function atanh($arg) {
-    return \atanh($arg);
+  function atanh($x) {
+    return \atanh($x);
   }
   function atan2($y, $x) {
     return \atan2($y, $x);
@@ -123,8 +149,8 @@ namespace HackUtils {
   function fmod($x, $y) {
     return \fmod($x, $y);
   }
-  function sqrt($arg) {
-    return \sqrt($arg);
+  function sqrt($x) {
+    return \sqrt($x);
   }
   function cmp($x, $y) {
     return sign($x - $y);

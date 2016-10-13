@@ -60,7 +60,9 @@ namespace HackUtils {
     return $v;
   }
   function pop($v) {
-    _check_empty($v, "remove last element");
+    if (!\hacklib_cast_as_boolean($v)) {
+      throw new \Exception("Cannot pop last element: Array is empty");
+    }
     $x = \array_pop($v);
     return array($v, $x);
   }
@@ -69,14 +71,11 @@ namespace HackUtils {
     return $v;
   }
   function shift($v) {
-    _check_empty($v, "remove first element");
+    if (!\hacklib_cast_as_boolean($v)) {
+      throw new \Exception("Cannot shift first element: Array is empty");
+    }
     $x = \array_shift($v);
     return array($x, $v);
-  }
-  function _check_empty($a, $op) {
-    if (!\hacklib_cast_as_boolean($a)) {
-      throw new \Exception("Cannot ".$op.": Array is empty");
-    }
   }
   function range($start, $end, $step = 1) {
     return \range($start, $end, $step);
