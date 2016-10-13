@@ -19,137 +19,167 @@ function max<T as num>(T $a, T $b): T {
   return \max($a, $b);
 }
 
-function abs<T as num>(T $number): T {
-  return \abs($number);
+function abs<T as num>(T $x): T {
+  return \abs($x);
 }
 
-function to_single_precision(float $f): float {
-  $unpack = unpack('f', pack('f', $f));
+function to_single_precision(float $x): float {
+  $unpack = unpack('f', pack('f', $x));
   return $unpack[1];
 }
 
-function sign(num $n): int {
-  return (int) ($n > 0) - (int) ($n < 0);
+function sign(num $x): int {
+  return (int) ($x > 0) - (int) ($x < 0);
 }
 
-function is_finite(num $val): bool {
-  return \is_int($val) || \is_finite($val);
+function is_finite(num $x): bool {
+  return \is_int($x) || \is_finite($x);
 }
 
-function is_infinite(num $val): bool {
-  return \is_float($val) && \is_infinite($val);
+function is_infinite(num $x): bool {
+  return \is_float($x) && \is_infinite($x);
 }
 
-function is_nan(num $val): bool {
-  return \is_float($val) && \is_nan($val);
+function is_nan(num $x): bool {
+  return \is_float($x) && \is_nan($x);
 }
 
 /**
  * Returns true for the float -0.0.
  */
-function is_negative(num $val): bool {
+function is_negative(num $x): bool {
   return
-    \is_int($val)
-      ? ($val < 0)
-      : ($val < 0.0 || ($val === 0.0 && '-0' === (string) $val));
+    \is_int($x)
+      ? ($x < 0)
+      : ($x < 0.0 || ($x === 0.0 && '-0' === (string) $x));
 }
 
-function ceil(float $number): float {
-  return \ceil($number);
+function ceil(float $x): float {
+  return \ceil($x);
 }
 
-function floor(float $number): float {
-  return \floor($number);
+function floor(float $x): float {
+  return \floor($x);
 }
 
-function trunc(float $number): float {
-  return $number < 0.0 ? ceil($number) : floor($number);
+function trunc(float $x): float {
+  return $x < 0.0 ? ceil($x) : floor($x);
 }
 
-// function round(
-//   double $val,
-//   int $precision = 0,
-//   int $mode = PHP_ROUND_HALF_UP,
-// ): php_math_round;
-
-function deg2rad(float $number): float {
-  return \deg2rad($number);
+function round_half_up(float $x): float {
+  return floor($x + 0.5);
 }
 
-function rad2deg(float $number): float {
-  return \rad2deg($number);
+function round_half_down(float $x): float {
+  return ceil($x - 0.5);
+}
+
+function round_half_to_zero(float $x): float {
+  return $x > 0.0 ? round_half_down($x) : round_half_up($x);
+}
+
+function round_half_to_inf(float $x): float {
+  return $x > 0.0 ? round_half_up($x) : round_half_down($x);
+}
+
+function round_half_to_even(float $x): float {
+  $r = round_half_up($x);
+  // If it was a tie break
+  if (($r - $x) == 0.5) {
+    // Round to the nearest even number
+    $r = round_half_up($x / 2.0) * 2.0;
+  }
+  return $r;
+}
+
+function round_half_to_odd(float $x): float {
+  $r = round_half_up($x);
+  // If it was a tie break
+  if (($r - $x) == 0.5) {
+    // Round to the nearest odd number
+    $r = round_half_up(($x - 1.0) / 2.0) * 2.0 + 1.0;
+  }
+  return $r;
+}
+
+function deg2rad(float $x): float {
+  return \deg2rad($x);
+}
+
+function rad2deg(float $x): float {
+  return \rad2deg($x);
 }
 
 function pow(float $base, float $exp): float {
   return \pow($base, $exp);
 }
 
-function exp(float $arg): float {
-  return \exp($arg);
+function exp(float $x): float {
+  return \exp($x);
 }
 
-function expm1(float $arg): float {
-  return \expm1($arg);
+function expm1(float $x): float {
+  return \expm1($x);
 }
 
-function log10(float $arg): float {
-  return \log10($arg);
+function log10(float $x): float {
+  return \log10($x);
 }
 
-function log1p(float $number): float {
-  return \log1p($number);
+function log1p(float $x): float {
+  return \log1p($x);
 }
 
-function log(float $arg, float $base = E): float {
-  return \log($arg, $base);
+function log(float $x, float $base = E): float {
+  return \log($x, $base);
 }
 
-function cos(float $arg): float {
-  return \cos($arg);
+function cos(float $x): float {
+  return \cos($x);
 }
 
-function cosh(float $arg): float {
-  return \cosh($arg);
+function cosh(float $x): float {
+  return \cosh($x);
 }
 
-function sin(float $arg): float {
-  return \sin($arg);
+function sin(float $x): float {
+  return \sin($x);
 }
 
-function sinh(float $arg): float {
-  return \sinh($arg);
+function sinh(float $x): float {
+  return \sinh($x);
 }
 
-function tan(float $arg): float {
-  return \tan($arg);
+function tan(float $x): float {
+  return \tan($x);
 }
 
-function tanh(float $arg): float {
-  return \tanh($arg);
+function tanh(float $x): float {
+  return \tanh($x);
 }
 
-function acos(float $arg): float {
-  return \acos($arg);
+function acos(float $x): float {
+  return \acos($x);
 }
 
-function acosh(float $arg): float {
-  return \acosh($arg);
+function acosh(float $x): float {
+  return \acosh($x);
 }
 
-function asin(float $arg): float {
-  return \asin($arg);
+function asin(float $x): float {
+  return \asin($x);
 }
 
-function asinh(float $arg): float {
-  return \asinh($arg);
+function asinh(float $x): float {
+  return \asinh($x);
 }
 
-function atan(float $arg): float {
-  return \atan($arg);
+function atan(float $x): float {
+  return \atan($x);
 }
 
-function atanh(float $arg): float {
-  return \atanh($arg);
+function atanh(float $x): float {
+  return \atanh($x);
 }
 
 function atan2(float $y, float $x): float {
@@ -164,8 +194,8 @@ function fmod(float $x, float $y): float {
   return \fmod($x, $y);
 }
 
-function sqrt(float $arg): float {
-  return \sqrt($arg);
+function sqrt(float $x): float {
+  return \sqrt($x);
 }
 
 function cmp(num $x, num $y): int {

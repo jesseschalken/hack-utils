@@ -99,7 +99,9 @@ function push<T>(array<T> $v, T $x): array<T> {
 }
 
 function pop<T>(array<T> $v): (array<T>, T) {
-  _check_empty($v, 'remove last element');
+  if (!$v) {
+    throw new \Exception('Cannot pop last element: Array is empty');
+  }
   $x = \array_pop($v);
   return tuple($v, $x);
 }
@@ -110,15 +112,11 @@ function unshift<T>(T $x, array<T> $v): array<T> {
 }
 
 function shift<T>(array<T> $v): (T, array<T>) {
-  _check_empty($v, 'remove first element');
+  if (!$v) {
+    throw new \Exception('Cannot shift first element: Array is empty');
+  }
   $x = \array_shift($v);
   return tuple($x, $v);
-}
-
-function _check_empty(array<mixed> $a, string $op): void {
-  if (!$a) {
-    throw new \Exception("Cannot $op: Array is empty");
-  }
 }
 
 function range(int $start, int $end, int $step = 1): array<int> {

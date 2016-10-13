@@ -34,7 +34,10 @@ function sort_pairs<Tk, Tv>(
   return from_pairs(sort(to_pairs($array), $cmp));
 }
 
-function num_sort<T as num>(array<T> $nums, bool $reverse = false): array<T> {
+function sort_nums<T as num>(
+  array<T> $nums,
+  bool $reverse = false,
+): array<T> {
   if ($reverse) {
     _check_sort(\rsort($nums, \SORT_NUMERIC), 'rsort');
   } else {
@@ -43,7 +46,7 @@ function num_sort<T as num>(array<T> $nums, bool $reverse = false): array<T> {
   return $nums;
 }
 
-function num_sort_assoc<Tk, Tv as num>(
+function sort_nums_assoc<Tk, Tv as num>(
   array<Tk, Tv> $nums,
   bool $reverse = false,
 ): array<Tk, Tv> {
@@ -55,7 +58,7 @@ function num_sort_assoc<Tk, Tv as num>(
   return $nums;
 }
 
-function num_sort_keys<Tk as num, Tv>(
+function sort_nums_keys<Tk as num, Tv>(
   array<Tk, Tv> $array,
   bool $reverse = false,
 ): array<Tk, Tv> {
@@ -67,17 +70,13 @@ function num_sort_keys<Tk as num, Tv>(
   return $array;
 }
 
-function num_unique<Tk, Tv as num>(array<Tk, Tv> $array): array<Tk, Tv> {
-  return \array_unique($array, \SORT_NUMERIC);
-}
-
-function str_sort<T as arraykey>(
+function sort_strings<T as arraykey>(
   array<T> $strings,
   bool $ci = false,
   bool $natural = false,
   bool $reverse = false,
 ): array<T> {
-  $flags = _str_sort_flags($ci, $natural);
+  $flags = _string_sort_flags($ci, $natural);
   if ($reverse) {
     _check_sort(\rsort($strings, $flags), 'rsort');
   } else {
@@ -86,13 +85,13 @@ function str_sort<T as arraykey>(
   return $strings;
 }
 
-function str_sort_assoc<Tk, Tv as arraykey>(
+function sort_strings_assoc<Tk, Tv as arraykey>(
   array<Tk, Tv> $strings,
   bool $ci = false,
   bool $natural = false,
   bool $reverse = false,
 ): array<Tk, Tv> {
-  $flags = _str_sort_flags($ci, $natural);
+  $flags = _string_sort_flags($ci, $natural);
   if ($reverse) {
     _check_sort(\arsort($strings, $flags), 'arsort');
   } else {
@@ -101,13 +100,13 @@ function str_sort_assoc<Tk, Tv as arraykey>(
   return $strings;
 }
 
-function str_sort_keys<Tk as arraykey, Tv>(
+function sort_strings_keys<Tk as arraykey, Tv>(
   array<Tk, Tv> $array,
   bool $ci = false,
   bool $natural = false,
   bool $reverse = false,
 ): array<Tk, Tv> {
-  $flags = _str_sort_flags($ci, $natural);
+  $flags = _string_sort_flags($ci, $natural);
   if ($reverse) {
     _check_sort(\krsort($array, $flags), 'krsort');
   } else {
@@ -116,15 +115,19 @@ function str_sort_keys<Tk as arraykey, Tv>(
   return $array;
 }
 
-function str_unique<Tk, Tv as arraykey>(
+function unique_nums<Tk, Tv as num>(array<Tk, Tv> $array): array<Tk, Tv> {
+  return \array_unique($array, \SORT_NUMERIC);
+}
+
+function unique_strings<Tk, Tv as arraykey>(
   array<Tk, Tv> $array,
   bool $ci = false,
   bool $natural = false,
 ): array<Tk, Tv> {
-  return \array_unique($array, _str_sort_flags($ci, $natural));
+  return \array_unique($array, _string_sort_flags($ci, $natural));
 }
 
-function _str_sort_flags(bool $ci, bool $natural): int {
+function _string_sort_flags(bool $ci, bool $natural): int {
   return
     ($natural ? \SORT_NATURAL : \SORT_STRING) | ($ci ? \SORT_FLAG_CASE : 0);
 }
