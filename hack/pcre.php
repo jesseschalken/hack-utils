@@ -15,6 +15,22 @@ const string PCRE_STUDY = 'S';
 
 type pcre_match = array<arraykey, (string, int)>;
 
+/**
+ * Convenience function to get the text for a subpattern.
+ */
+function pcre_match_get(pcre_match $match, arraykey $subPattern = 0): ?string {
+  $subPattern = get_key_or_null($match, $subPattern);
+  return $subPattern !== null ? $subPattern[0] : new_null();
+}
+
+/**
+ * Convenience function to get the offset for a subpattern.
+ */
+function pcre_match_offset(pcre_match $match, arraykey $subPattern = 0): ?int {
+  $subPattern = get_key_or_null($match, $subPattern);
+  return $subPattern !== null ? $subPattern[1] : new_null();
+}
+
 function pcre_quote(string $text): string {
   return \preg_quote($text);
 }
@@ -124,7 +140,7 @@ function _pcre_escape(string $regex): string {
   // I'm really hoping this simple state machine will get jitted to efficient
   // machine code.
   $result = '';
-  $length = strlen($regex);
+  $length = length($regex);
   $escape = false;
   for ($i = 0; $i < $length; $i++) {
     $char = $regex[$i];
