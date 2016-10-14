@@ -227,7 +227,7 @@ function from_pairs<Tk, Tv>(array<(Tk, Tv)> $pairs): array<Tk, Tv> {
   return $r;
 }
 
-function get_key<Tk as arraykey, Tv>(array<Tk, Tv> $array, Tk $key): Tv {
+function get<Tk as arraykey, Tv>(array<Tk, Tv> $array, Tk $key): Tv {
   $res = $array[$key];
   if ($res === null && !key_exists($array, $key)) {
     throw new \Exception("Key '$key' does not exist in map");
@@ -235,20 +235,16 @@ function get_key<Tk as arraykey, Tv>(array<Tk, Tv> $array, Tk $key): Tv {
   return $res;
 }
 
-function set_key<Tk, Tv>(
-  array<Tk, Tv> $array,
-  Tk $key,
-  Tv $val,
-): array<Tk, Tv> {
+function set<Tk, Tv>(array<Tk, Tv> $array, Tk $key, Tv $val): array<Tk, Tv> {
   $array[$key] = $val;
   return $array;
 }
 
-function get_key_or_null<Tk, Tv>(array<Tk, Tv> $array, Tk $key): ?Tv {
-  return $array[$key] ?? new_null();
+function get_or_null<Tk, Tv>(array<Tk, Tv> $array, Tk $key): ?Tv {
+  return $array[$key] ?? null;
 }
 
-function get_key_or_default<Tk, Tv>(
+function get_or_default<Tk, Tv>(
   array<Tk, Tv> $array,
   Tk $key,
   Tv $default,
@@ -281,18 +277,6 @@ function set_offset<T>(array<T> $v, int $i, T $x): array<T> {
   }
   $v[$i] = $x;
   return $v;
-}
-
-/**
- * The key of a map is actually a string, but PHP converts intish strings to
- * ints. Use this function to convert them back.
- */
-function fixkey(arraykey $key): string {
-  return $key.'';
-}
-
-function fixkeys(array<arraykey> $keys): array<string> {
-  return map($keys, $key ==> $key.'');
 }
 
 function column<Tk as arraykey, Tv>(
@@ -417,6 +401,13 @@ function diff_keys<Tk as arraykey, Tv>(
  */
 function select<Tk, Tv>(array<Tk, Tv> $array, array<Tk> $keys): array<Tv> {
   return map($keys, $key ==> $array[$key]);
+}
+
+function select_or_null<Tk, Tv>(
+  array<Tk, Tv> $array,
+  array<Tk> $keys,
+): array<?Tv> {
+  return map($keys, $key ==> get_or_null($array, $key));
 }
 
 function zip<Ta, Tb>(array<Ta> $a, array<Tb> $b): array<(Ta, Tb)> {
