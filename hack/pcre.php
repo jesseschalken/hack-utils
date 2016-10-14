@@ -19,7 +19,7 @@ type pcre_match = array<arraykey, (string, int)>;
  * Convenience function to get the text for a subpattern.
  */
 function pcre_match_get(pcre_match $match, arraykey $subPattern = 0): ?string {
-  $subPattern = get_key_or_null($match, $subPattern);
+  $subPattern = get_or_null($match, $subPattern);
   return $subPattern !== null ? $subPattern[0] : new_null();
 }
 
@@ -27,7 +27,7 @@ function pcre_match_get(pcre_match $match, arraykey $subPattern = 0): ?string {
  * Convenience function to get the offset for a subpattern.
  */
 function pcre_match_offset(pcre_match $match, arraykey $subPattern = 0): ?int {
-  $subPattern = get_key_or_null($match, $subPattern);
+  $subPattern = get_or_null($match, $subPattern);
   return $subPattern !== null ? $subPattern[1] : new_null();
 }
 
@@ -123,7 +123,7 @@ final class _EscapeCache {
   private static array<arraykey, string> $cache = [];
 
   public static function escape(string $regex): string {
-    $escaped = get_key_or_null(self::$cache, $regex);
+    $escaped = get_or_null(self::$cache, $regex);
     if ($escaped !== null) {
       return $escaped;
     }
