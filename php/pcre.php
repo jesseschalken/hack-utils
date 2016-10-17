@@ -11,6 +11,14 @@ namespace HackUtils {
   const PCRE_EXTRA = "X";
   const PCRE_UTF8 = "u";
   const PCRE_STUDY = "S";
+  function pcre_match_get($match, $subPattern = 0) {
+    $subPattern = get_or_null($match, $subPattern);
+    return ($subPattern !== null) ? $subPattern[0] : new_null();
+  }
+  function pcre_match_offset($match, $subPattern = 0) {
+    $subPattern = get_or_null($match, $subPattern);
+    return ($subPattern !== null) ? $subPattern[1] : new_null();
+  }
   function pcre_quote($text) {
     return \preg_quote($text);
   }
@@ -81,7 +89,7 @@ namespace HackUtils {
   final class _EscapeCache {
     private static $cache = array();
     public static function escape($regex) {
-      $escaped = get_key_or_null(self::$cache, $regex);
+      $escaped = get_or_null(self::$cache, $regex);
       if ($escaped !== null) {
         return $escaped;
       }
@@ -93,7 +101,7 @@ namespace HackUtils {
   }
   function _pcre_escape($regex) {
     $result = "";
-    $length = strlen($regex);
+    $length = length($regex);
     $escape = false;
     for ($i = 0; $i < $length; $i++) {
       $char = $regex[$i];

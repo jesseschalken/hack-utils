@@ -3,7 +3,7 @@
 namespace HackUtils;
 
 function _assert_equal<T>(T $actual, T $expected): void {
-  if ($actual !== $expected) {
+  if (!_is_equal($actual, $expected)) {
     throw new \Exception(
       \sprintf(
         "Expected %s, got %s",
@@ -12,6 +12,19 @@ function _assert_equal<T>(T $actual, T $expected): void {
       ),
     );
   }
+}
+
+function _is_equal<T>(T $a, T $b): bool {
+  if (\is_float($a) && \is_float($b)) {
+    // Consider NAN as equal to itself (PHP doesn't)
+    if (\is_nan($a) && \is_nan($b))
+      return true;
+    // Don't consider -0.0 and 0.0 as equal (PHP does)
+    if (($a.'') !== ($b.''))
+      return false;
+  }
+  // TODO Recurse arrays
+  return $a === $b;
 }
 
 function _run_tests(): void {
@@ -157,6 +170,60 @@ function _run_tests(): void {
   _assert_equal(starts_with('abbb', ''), true);
   _assert_equal(starts_with('', ''), true);
   _assert_equal(starts_with('', 'a'), false);
+
+  print "round_half_down\n";
+  _assert_equal(round_half_down(0.5), 0.0);
+  _assert_equal(round_half_down(1.5), 1.0);
+  _assert_equal(round_half_down(-0.5), -1.0);
+  _assert_equal(round_half_down(-1.5), -2.0);
+  _assert_equal(round_half_down(INF), INF);
+  _assert_equal(round_half_down(-INF), -INF);
+  _assert_equal(round_half_down(NAN), NAN);
+
+  print "round_half_up\n";
+  _assert_equal(round_half_up(0.5), 1.0);
+  _assert_equal(round_half_up(1.5), 2.0);
+  _assert_equal(round_half_up(-0.5), 0.0);
+  _assert_equal(round_half_up(-1.5), -1.0);
+  _assert_equal(round_half_up(INF), INF);
+  _assert_equal(round_half_up(-INF), -INF);
+  _assert_equal(round_half_up(NAN), NAN);
+
+  print "round_half_to_inf\n";
+  _assert_equal(round_half_to_inf(0.5), 1.0);
+  _assert_equal(round_half_to_inf(1.5), 2.0);
+  _assert_equal(round_half_to_inf(-0.5), -1.0);
+  _assert_equal(round_half_to_inf(-1.5), -2.0);
+  _assert_equal(round_half_to_inf(INF), INF);
+  _assert_equal(round_half_to_inf(-INF), -INF);
+  _assert_equal(round_half_to_inf(NAN), NAN);
+
+  print "round_half_to_zero\n";
+  _assert_equal(round_half_to_zero(0.5), 0.0);
+  _assert_equal(round_half_to_zero(1.5), 1.0);
+  _assert_equal(round_half_to_zero(-0.5), 0.0);
+  _assert_equal(round_half_to_zero(-1.5), -1.0);
+  _assert_equal(round_half_to_zero(INF), INF);
+  _assert_equal(round_half_to_zero(-INF), -INF);
+  _assert_equal(round_half_to_zero(NAN), NAN);
+
+  print "round_half_to_even\n";
+  _assert_equal(round_half_to_even(0.5), 0.0);
+  _assert_equal(round_half_to_even(1.5), 2.0);
+  _assert_equal(round_half_to_even(-0.5), 0.0);
+  _assert_equal(round_half_to_even(-1.5), -2.0);
+  _assert_equal(round_half_to_even(INF), INF);
+  _assert_equal(round_half_to_even(-INF), -INF);
+  _assert_equal(round_half_to_even(NAN), NAN);
+
+  print "round_half_to_odd\n";
+  _assert_equal(round_half_to_odd(0.5), 1.0);
+  _assert_equal(round_half_to_odd(1.5), 1.0);
+  _assert_equal(round_half_to_odd(-0.5), -1.0);
+  _assert_equal(round_half_to_odd(-1.5), -1.0);
+  _assert_equal(round_half_to_odd(INF), INF);
+  _assert_equal(round_half_to_odd(-INF), -INF);
+  _assert_equal(round_half_to_odd(NAN), NAN);
 
   print "okay\n";
 }

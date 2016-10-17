@@ -148,7 +148,7 @@ namespace HackUtils {
     }
     return $r;
   }
-  function get_key($array, $key) {
+  function get($array, $key) {
     $res = $array[$key];
     if (($res === null) &&
         (!\hacklib_cast_as_boolean(key_exists($array, $key)))) {
@@ -156,14 +156,14 @@ namespace HackUtils {
     }
     return $res;
   }
-  function set_key($array, $key, $val) {
+  function set($array, $key, $val) {
     $array[$key] = $val;
     return $array;
   }
-  function get_key_or_null($array, $key) {
-    return $array[$key] ?? new_null();
+  function get_or_null($array, $key) {
+    return $array[$key] ?? null;
   }
-  function get_key_or_default($array, $key, $default) {
+  function get_or_default($array, $key, $default) {
     return
       \hacklib_cast_as_boolean(key_exists($array, $key))
         ? $array[$key]
@@ -196,17 +196,6 @@ namespace HackUtils {
     }
     $v[$i] = $x;
     return $v;
-  }
-  function fixkey($key) {
-    return $key."";
-  }
-  function fixkeys($keys) {
-    return map(
-      $keys,
-      function($key) {
-        return $key."";
-      }
-    );
   }
   function column($arrays, $key) {
     return \array_column($arrays, $key);
@@ -278,6 +267,14 @@ namespace HackUtils {
       $keys,
       function($key) use ($array) {
         return $array[$key];
+      }
+    );
+  }
+  function select_or_null($array, $keys) {
+    return map(
+      $keys,
+      function($key) use ($array) {
+        return get_or_null($array, $key);
       }
     );
   }

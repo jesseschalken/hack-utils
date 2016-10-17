@@ -407,7 +407,12 @@ function select_or_null<Tk, Tv>(
   array<Tk, Tv> $array,
   array<Tk> $keys,
 ): array<?Tv> {
-  return map($keys, $key ==> get_or_null($array, $key));
+  return map(
+    $keys,
+    function($key) use ($array) {
+      return get_or_null($array, $key);
+    },
+  );
 }
 
 function zip<Ta, Tb>(array<Ta> $a, array<Tb> $b): array<(Ta, Tb)> {
