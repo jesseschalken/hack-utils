@@ -51,16 +51,14 @@ namespace HackUtils {
   }
   function concat_all($vectors) {
     return
-      \hacklib_cast_as_boolean($vectors)
-        ? \call_user_func_array("array_merge", $vectors)
-        : array();
+      $vectors ? \call_user_func_array("array_merge", $vectors) : array();
   }
   function push($v, $x) {
     \array_push($v, $x);
     return $v;
   }
   function pop($v) {
-    if (!\hacklib_cast_as_boolean($v)) {
+    if (!$v) {
       throw new \Exception("Cannot pop last element: Array is empty");
     }
     $x = \array_pop($v);
@@ -71,7 +69,7 @@ namespace HackUtils {
     return $v;
   }
   function shift($v) {
-    if (!\hacklib_cast_as_boolean($v)) {
+    if (!$v) {
       throw new \Exception("Cannot shift first element: Array is empty");
     }
     $x = \array_shift($v);
@@ -82,8 +80,7 @@ namespace HackUtils {
   }
   function filter($array, $f) {
     $ret = filter_assoc($array, $f);
-    return
-      \hacklib_not_equals(count($ret), count($array)) ? values($ret) : $array;
+    return (count($ret) != count($array)) ? values($ret) : $array;
   }
   function filter_assoc($array, $f) {
     return \array_filter($array, $f);
@@ -99,7 +96,7 @@ namespace HackUtils {
   }
   function reduce_right($array, $f, $value) {
     \end($array);
-    while (!\hacklib_cast_as_boolean(\is_null($key = \key($array)))) {
+    while (!\is_null($key = \key($array))) {
       $value = $f($value, \current($array));
       \prev($array);
     }
@@ -114,7 +111,7 @@ namespace HackUtils {
   }
   function any($a, $f) {
     foreach ($a as $x) {
-      if (\hacklib_cast_as_boolean($f($x))) {
+      if ($f($x)) {
         return true;
       }
     }
@@ -122,7 +119,7 @@ namespace HackUtils {
   }
   function all($a, $f) {
     foreach ($a as $x) {
-      if (!\hacklib_cast_as_boolean($f($x))) {
+      if (!$f($x)) {
         return false;
       }
     }
@@ -150,8 +147,7 @@ namespace HackUtils {
   }
   function get($array, $key) {
     $res = $array[$key];
-    if (($res === null) &&
-        (!\hacklib_cast_as_boolean(key_exists($array, $key)))) {
+    if (($res === null) && (!key_exists($array, $key))) {
       throw new \Exception("Key '".$key."' does not exist in map");
     }
     return $res;
@@ -164,10 +160,7 @@ namespace HackUtils {
     return $array[$key] ?? null;
   }
   function get_or_default($array, $key, $default) {
-    return
-      \hacklib_cast_as_boolean(key_exists($array, $key))
-        ? $array[$key]
-        : $default;
+    return key_exists($array, $key) ? $array[$key] : $default;
   }
   function key_exists($array, $key) {
     return \array_key_exists($key, $array);
@@ -240,9 +233,7 @@ namespace HackUtils {
   }
   function union_keys_all($arrays) {
     return
-      \hacklib_cast_as_boolean($arrays)
-        ? \call_user_func_array("array_replace", $arrays)
-        : array();
+      $arrays ? \call_user_func_array("array_replace", $arrays) : array();
   }
   function intersect($a, $b) {
     return \array_intersect($a, $b);
@@ -289,7 +280,7 @@ namespace HackUtils {
   function zip_assoc($a, $b) {
     $ret = array();
     foreach ($a as $k => $v) {
-      if (\hacklib_cast_as_boolean(key_exists($b, $k))) {
+      if (key_exists($b, $k)) {
         $ret[$k] = array($v, $b[$k]);
       }
     }
@@ -392,7 +383,7 @@ namespace HackUtils {
       throw new \Exception("Chunk size must be >= 1");
     }
     $ret = \str_split($string, $size);
-    if (!\hacklib_cast_as_boolean(\is_array($ret))) {
+    if (!\is_array($ret)) {
       throw new \Exception("str_split() failed");
     }
     return $ret;
@@ -431,7 +422,7 @@ namespace HackUtils {
       $offset += length($haystack);
     }
     $ret =
-      \hacklib_cast_as_boolean($ci)
+      $ci
         ? \stripos($haystack, $needle, $offset)
         : \strpos($haystack, $needle, $offset);
     return ($ret === false) ? null : $ret;
@@ -441,7 +432,7 @@ namespace HackUtils {
       $offset += length($haystack);
     }
     $ret =
-      \hacklib_cast_as_boolean($ci)
+      $ci
         ? \strripos($haystack, $needle, $offset)
         : \strrpos($haystack, $needle, $offset);
     return ($ret === false) ? null : $ret;
@@ -470,7 +461,7 @@ namespace HackUtils {
   }
   function find_last_key($array, $value) {
     \end($array);
-    while (!\hacklib_cast_as_boolean(\is_null($key = \key($array)))) {
+    while (!\is_null($key = \key($array))) {
       if (\current($array) === $value) {
         return $key;
       }
@@ -486,7 +477,7 @@ namespace HackUtils {
   }
   function from_hex($string) {
     $ret = \hex2bin($string);
-    if (!\hacklib_cast_as_boolean(\is_string($ret))) {
+    if (!\is_string($ret)) {
       throw new \Exception("Invalid hex string: ".$string);
     }
     return $ret;
@@ -517,7 +508,7 @@ namespace HackUtils {
       if ($string === "") {
         return array();
       }
-      if (\hacklib_equals($limit, 1)) {
+      if ($limit == 1) {
         return array($string);
       }
       if (length($string) > $limit) {
@@ -536,8 +527,7 @@ namespace HackUtils {
         $lines[$i] = slice($line, 0, -1);
       }
     }
-    if (\hacklib_cast_as_boolean($lines) &&
-        ($lines[count($lines) - 1] === "")) {
+    if ($lines && ($lines[count($lines) - 1] === "")) {
       $lines = slice_array($lines, 0, -1);
     }
     return $lines;
@@ -546,15 +536,15 @@ namespace HackUtils {
     return \implode($delimiter, $strings);
   }
   function join_lines($lines, $nl = "\n") {
-    return \hacklib_cast_as_boolean($lines) ? (join($lines, $nl).$nl) : "";
+    return $lines ? (join($lines, $nl).$nl) : "";
   }
   function replace($subject, $search, $replace, $ci = false) {
     $count = 0;
     $result =
-      \hacklib_cast_as_boolean($ci)
+      $ci
         ? \str_ireplace($search, $replace, $subject)
         : \str_replace($search, $replace, $subject);
-    if (!\hacklib_cast_as_boolean(\is_string($result))) {
+    if (!\is_string($result)) {
       throw new \Exception("str_i?replace() failed");
     }
     return $result;
@@ -562,10 +552,10 @@ namespace HackUtils {
   function replace_count($subject, $search, $replace, $ci = false) {
     $count = 0;
     $result =
-      \hacklib_cast_as_boolean($ci)
+      $ci
         ? \str_ireplace($search, $replace, $subject, $count)
         : \str_replace($search, $replace, $subject, $count);
-    if (!\hacklib_cast_as_boolean(\is_string($result))) {
+    if (!\is_string($result)) {
       throw new \Exception("str_i?replace() failed");
     }
     return array($result, $count);
@@ -607,26 +597,19 @@ namespace HackUtils {
   }
   function str_cmp($a, $b, $ci = false, $natural = false) {
     $ret =
-      \hacklib_cast_as_boolean($ci)
-        ? (\hacklib_cast_as_boolean($natural)
-             ? \strnatcasecmp($a, $b)
-             : \strcasecmp($a, $b))
-        : (\hacklib_cast_as_boolean($natural)
-             ? \strnatcmp($a, $b)
-             : \strcmp($a, $b));
+      $ci
+        ? ($natural ? \strnatcasecmp($a, $b) : \strcasecmp($a, $b))
+        : ($natural ? \strnatcmp($a, $b) : \strcmp($a, $b));
     return sign($ret);
   }
   function str_eq($a, $b, $ci = false, $natural = false) {
-    return \hacklib_equals(str_cmp($a, $b, $ci, $natural), 0);
+    return str_cmp($a, $b, $ci, $natural) == 0;
   }
   function starts_with($string, $prefix) {
     return slice($string, 0, length($prefix)) === $prefix;
   }
   function ends_with($string, $suffix) {
     $length = length($suffix);
-    return
-      \hacklib_cast_as_boolean($length)
-        ? (slice($string, -$length) === $suffix)
-        : true;
+    return $length ? (slice($string, -$length) === $suffix) : true;
   }
 }

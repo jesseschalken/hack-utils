@@ -21,7 +21,7 @@ namespace HackUtils {
     return from_pairs(sort(to_pairs($array), $cmp));
   }
   function sort_nums($nums, $reverse = false) {
-    if (\hacklib_cast_as_boolean($reverse)) {
+    if ($reverse) {
       _check_sort(\rsort($nums, \SORT_NUMERIC), "rsort");
     } else {
       _check_sort(\sort($nums, \SORT_NUMERIC), "sort");
@@ -29,7 +29,7 @@ namespace HackUtils {
     return $nums;
   }
   function sort_nums_assoc($nums, $reverse = false) {
-    if (\hacklib_cast_as_boolean($reverse)) {
+    if ($reverse) {
       _check_sort(\arsort($nums, \SORT_NUMERIC), "arsort");
     } else {
       _check_sort(\asort($nums, \SORT_NUMERIC), "asort");
@@ -37,7 +37,7 @@ namespace HackUtils {
     return $nums;
   }
   function sort_nums_keys($array, $reverse = false) {
-    if (\hacklib_cast_as_boolean($reverse)) {
+    if ($reverse) {
       _check_sort(\krsort($array, \SORT_NUMERIC), "krsort");
     } else {
       _check_sort(\ksort($array, \SORT_NUMERIC), "ksort");
@@ -51,7 +51,7 @@ namespace HackUtils {
     $reverse = false
   ) {
     $flags = _string_sort_flags($ci, $natural);
-    if (\hacklib_cast_as_boolean($reverse)) {
+    if ($reverse) {
       _check_sort(\rsort($strings, $flags), "rsort");
     } else {
       _check_sort(\sort($strings, $flags), "sort");
@@ -65,7 +65,7 @@ namespace HackUtils {
     $reverse = false
   ) {
     $flags = _string_sort_flags($ci, $natural);
-    if (\hacklib_cast_as_boolean($reverse)) {
+    if ($reverse) {
       _check_sort(\arsort($strings, $flags), "arsort");
     } else {
       _check_sort(\asort($strings, $flags), "asort");
@@ -79,7 +79,7 @@ namespace HackUtils {
     $reverse = false
   ) {
     $flags = _string_sort_flags($ci, $natural);
-    if (\hacklib_cast_as_boolean($reverse)) {
+    if ($reverse) {
       _check_sort(\krsort($array, $flags), "krsort");
     } else {
       _check_sort(\ksort($array, $flags), "ksort");
@@ -94,8 +94,7 @@ namespace HackUtils {
   }
   function _string_sort_flags($ci, $natural) {
     return
-      (\hacklib_cast_as_boolean($natural) ? \SORT_NATURAL : \SORT_STRING) |
-      (\hacklib_cast_as_boolean($ci) ? \SORT_FLAG_CASE : 0);
+      ($natural ? \SORT_NATURAL : \SORT_STRING) | ($ci ? \SORT_FLAG_CASE : 0);
   }
   function _check_sort($ret, $func) {
     if ($ret === false) {

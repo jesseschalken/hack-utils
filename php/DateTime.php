@@ -12,23 +12,20 @@ namespace HackUtils\DateTime {
     public static $singleton = null;
   }
   function utc_timezone() {
-    return
-      clone (\hacklib_cast_as_boolean(_UTCTimeZone::$singleton) ?: (_UTCTimeZone::$singleton =
-                                                                      create_timezone(
-                                                                        "UTC"
-                                                                      )));
+    return clone (_UTCTimeZone::$singleton ?: (_UTCTimeZone::$singleton =
+                                                 create_timezone("UTC")));
   }
   function parse($format, $string, $tz) {
     $result = \DateTimeImmutable::createFromFormat("!".$format, $string, $tz);
     $errors = \DateTimeImmutable::getLastErrors();
-    if (\hacklib_cast_as_boolean($errors[\hacklib_id("warning_count")]) ||
-        \hacklib_cast_as_boolean($errors[\hacklib_id("error_count")]) ||
+    if ($errors["warning_count"] ||
+        $errors["error_count"] ||
         (!($result instanceof \DateTimeImmutable))) {
       $message = array();
-      foreach ($errors[\hacklib_id("errors")] as $offset => $m) {
+      foreach ($errors["errors"] as $offset => $m) {
         $message[] = $m." at offset ".$offset;
       }
-      foreach ($errors[\hacklib_id("warnings")] as $offset => $m) {
+      foreach ($errors["warnings"] as $offset => $m) {
         $message[] = $m." at offset ".$offset;
       }
       throw new ParseException(
@@ -78,10 +75,10 @@ namespace HackUtils\DateTime {
     return array($sec, $usec);
   }
   function from_timestamp($sec, $tz, $usec = 0) {
-    if (\hacklib_cast_as_boolean($usec)) {
+    if ($usec) {
       list($sec, $usec) = _overflow_usec($sec, $usec);
     }
-    if (!\hacklib_cast_as_boolean($usec)) {
+    if (!$usec) {
       $ret = new \DateTimeImmutable("@".$sec, $tz);
     } else {
       $utc = utc_timezone();
@@ -104,7 +101,7 @@ namespace HackUtils\DateTime {
     return $dt->setTime($hour, $minute, $second);
   }
   function set_microsecond($dt, $microsecond) {
-    if (\hacklib_not_equals(get_microsecond($dt), $microsecond)) {
+    if (get_microsecond($dt) != $microsecond) {
       $dt =
         from_timestamp(get_timestamp($dt), get_timezone($dt), $microsecond);
     }
@@ -170,13 +167,9 @@ namespace HackUtils\DateTime {
     return (int) format($dt, $f[$part]);
   }
   function now($tz, $withMicroseconds = false) {
-    if (\hacklib_cast_as_boolean($withMicroseconds)) {
+    if ($withMicroseconds) {
       $time = \gettimeofday();
-      return from_timestamp(
-        $time[\hacklib_id("sec")],
-        $tz,
-        $time[\hacklib_id("usec")]
-      );
+      return from_timestamp($time["sec"], $tz, $time["usec"]);
     } else {
       return new \DateTimeImmutable("now", $tz);
     }

@@ -32,8 +32,7 @@ namespace HackUtils {
       $offset
     );
     _pcre_check_last_error();
-    return
-      \hacklib_cast_as_boolean($count) ? _pcre_fix_match($match) : new_null();
+    return $count ? _pcre_fix_match($match) : new_null();
   }
   function pcre_match_all($regex, $subject, $options, $offset = 0) {
     $matches = array();
@@ -65,7 +64,7 @@ namespace HackUtils {
       ($limit === null) ? (-1) : \max(0, $limit)
     );
     _pcre_check_last_error();
-    if (!\hacklib_cast_as_boolean(\is_string($result))) {
+    if (!\is_string($result)) {
       throw new PCREException("preg_replace() failed");
     }
     return $result;
@@ -77,7 +76,7 @@ namespace HackUtils {
       ($limit === null) ? (-1) : max(1, $limit)
     );
     _pcre_check_last_error();
-    if (!\hacklib_cast_as_boolean(\is_array($pieces))) {
+    if (!\is_array($pieces)) {
       throw new PCREException("preg_split() failed");
     }
     return $pieces;
@@ -105,7 +104,7 @@ namespace HackUtils {
     $escape = false;
     for ($i = 0; $i < $length; $i++) {
       $char = $regex[$i];
-      if (\hacklib_cast_as_boolean($escape)) {
+      if ($escape) {
         $escape = false;
       } else {
         if ($char === "/") {
@@ -122,7 +121,7 @@ namespace HackUtils {
   }
   function _pcre_fix_match($match) {
     foreach ($match as $k => $v) {
-      if (\hacklib_equals($v[1], -1)) {
+      if ($v[1] == (-1)) {
         unset($match[$k]);
       }
     }

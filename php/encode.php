@@ -27,7 +27,7 @@ namespace HackUtils {
     $l = \strlen($s);
     for ($i = 0; $i < $l; $i++) {
       $c = $s[$i];
-      if (\hacklib_cast_as_boolean($e)) {
+      if ($e) {
         $b .= $c;
         $e = false;
       } else {
@@ -62,7 +62,7 @@ namespace HackUtils {
     $e = false;
     for ($i = 0; $i < $l; $i++) {
       $c = $s[$i];
-      if (\hacklib_cast_as_boolean($e)) {
+      if ($e) {
         $b .= $c;
         $e = false;
       } else {

@@ -2,7 +2,7 @@
 namespace HackUtils {
   require_once ($GLOBALS["HACKLIB_ROOT"]);
   function _assert_equal($actual, $expected) {
-    if (!\hacklib_cast_as_boolean(_is_equal($actual, $expected))) {
+    if (!_is_equal($actual, $expected)) {
       throw new \Exception(
         \sprintf(
           "Expected %s, got %s",
@@ -13,10 +13,8 @@ namespace HackUtils {
     }
   }
   function _is_equal($a, $b) {
-    if (\hacklib_cast_as_boolean(\is_float($a)) &&
-        \hacklib_cast_as_boolean(\is_float($b))) {
-      if (\hacklib_cast_as_boolean(\is_nan($a)) &&
-          \hacklib_cast_as_boolean(\is_nan($b))) {
+    if (\is_float($a) && \is_float($b)) {
+      if (\is_nan($a) && \is_nan($b)) {
         return true;
       }
       if (($a."") !== ($b."")) {

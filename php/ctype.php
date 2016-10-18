@@ -2,7 +2,7 @@
 namespace HackUtils {
   require_once ($GLOBALS["HACKLIB_ROOT"]);
   function all_alnum($s) {
-    return ($s === "") || \hacklib_cast_as_boolean(\ctype_alnum($s));
+    return ($s === "") || \ctype_alnum($s);
   }
   function all_blank($s) {
     $l = \strlen($s);
@@ -15,34 +15,34 @@ namespace HackUtils {
     return true;
   }
   function all_alpha($s) {
-    return ($s === "") || \hacklib_cast_as_boolean(\ctype_alpha($s));
+    return ($s === "") || \ctype_alpha($s);
   }
   function all_cntrl($s) {
-    return ($s === "") || \hacklib_cast_as_boolean(\ctype_cntrl($s));
+    return ($s === "") || \ctype_cntrl($s);
   }
   function all_digit($s) {
-    return ($s === "") || \hacklib_cast_as_boolean(\ctype_digit($s));
+    return ($s === "") || \ctype_digit($s);
   }
   function all_graph($s) {
-    return ($s === "") || \hacklib_cast_as_boolean(\ctype_graph($s));
+    return ($s === "") || \ctype_graph($s);
   }
   function all_lower($s) {
-    return ($s === "") || \hacklib_cast_as_boolean(\ctype_lower($s));
+    return ($s === "") || \ctype_lower($s);
   }
   function all_print($s) {
-    return ($s === "") || \hacklib_cast_as_boolean(\ctype_print($s));
+    return ($s === "") || \ctype_print($s);
   }
   function all_punct($s) {
-    return ($s === "") || \hacklib_cast_as_boolean(\ctype_punct($s));
+    return ($s === "") || \ctype_punct($s);
   }
   function all_space($s) {
-    return ($s === "") || \hacklib_cast_as_boolean(\ctype_space($s));
+    return ($s === "") || \ctype_space($s);
   }
   function all_upper($s) {
-    return ($s === "") || \hacklib_cast_as_boolean(\ctype_upper($s));
+    return ($s === "") || \ctype_upper($s);
   }
   function all_xdigit($s) {
-    return ($s === "") || \hacklib_cast_as_boolean(\ctype_xdigit($s));
+    return ($s === "") || \ctype_xdigit($s);
   }
   function is_alnum($s, $i = 0) {
     return \ctype_alnum(char_at($s, $i));

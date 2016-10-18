@@ -25,23 +25,17 @@ namespace HackUtils {
     return ((int) ($x > 0)) - ((int) ($x < 0));
   }
   function is_finite($x) {
-    return
-      \hacklib_cast_as_boolean(\is_int($x)) ||
-      \hacklib_cast_as_boolean(\is_finite($x));
+    return \is_int($x) || \is_finite($x);
   }
   function is_infinite($x) {
-    return
-      \hacklib_cast_as_boolean(\is_float($x)) &&
-      \hacklib_cast_as_boolean(\is_infinite($x));
+    return \is_float($x) && \is_infinite($x);
   }
   function is_nan($x) {
-    return
-      \hacklib_cast_as_boolean(\is_float($x)) &&
-      \hacklib_cast_as_boolean(\is_nan($x));
+    return \is_float($x) && \is_nan($x);
   }
   function is_negative($x) {
     return
-      \hacklib_cast_as_boolean(\is_int($x))
+      \is_int($x)
         ? ($x < 0)
         : (($x < 0.0) || (($x === 0.0) && ("-0" === ((string) $x))));
   }
