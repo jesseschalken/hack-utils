@@ -27,17 +27,14 @@ function sort_keys<Tk, Tv>(
   return $array;
 }
 
-function sort_pairs<Tk, Tv>(
+function sort_pairs<Tk as arraykey, Tv>(
   array<Tk, Tv> $array,
   (function((Tk, Tv), (Tk, Tv)): int) $cmp,
 ): array<Tk, Tv> {
   return from_pairs(sort(to_pairs($array), $cmp));
 }
 
-function sort_nums<T as num>(
-  array<T> $nums,
-  bool $reverse = false,
-): array<T> {
+function sort_nums<T as num>(array<T> $nums, bool $reverse = false): array<T> {
   if ($reverse) {
     _check_sort(\rsort($nums, \SORT_NUMERIC), 'rsort');
   } else {

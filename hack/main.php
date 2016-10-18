@@ -219,7 +219,9 @@ function to_pairs<Tk, Tv>(array<Tk, Tv> $array): array<(Tk, Tv)> {
   return $r;
 }
 
-function from_pairs<Tk, Tv>(array<(Tk, Tv)> $pairs): array<Tk, Tv> {
+function from_pairs<Tk as arraykey, Tv>(
+  array<(Tk, Tv)> $pairs,
+): array<Tk, Tv> {
   $r = [];
   foreach ($pairs as $p) {
     $r[$p[0]] = $p[1];
@@ -233,6 +235,24 @@ function get<Tk as arraykey, Tv>(array<Tk, Tv> $array, Tk $key): Tv {
     throw new \Exception("Key '$key' does not exist in map");
   }
   return $res;
+}
+
+/**
+ * Get the key/value pair at the specified offset. Useful to get the first/last
+ * key/value.
+ *
+ * get_pair($map, 0)[0] // first key
+ * get_pair($map, 0)[1] // first value
+ * get_pair($map, -1)[0] // last key
+ * get_pair($map, -1)[1] // last value
+ */
+function get_pair<Tk, Tv>(array<Tk, Tv> $array, int $offset): (Tk, Tv) {
+  foreach (slice_assoc($array, $offset) as $k => $v) {
+    return tuple($k, $v);
+  }
+  throw new \Exception(
+    "Offset $offset is out of bounds in array of size ".size($array),
+  );
 }
 
 function set<Tk, Tv>(array<Tk, Tv> $array, Tk $key, Tv $val): array<Tk, Tv> {
@@ -679,7 +699,7 @@ function find_keys<Tk, Tv>(array<Tk, Tv> $array, Tv $value): array<Tk> {
 }
 
 function find_last_key<Tk, Tv>(array<Tk, Tv> $array, Tv $value): ?Tk {
-  // Messy, but the easiest way to iterator in reverse that works
+  // Messy, but the easiest way to iterate in reverse that works
   // with both vector and associative arrays and doesn't create a copy.
   \end($array);
   while (!\is_null($key = \key($array))) {
