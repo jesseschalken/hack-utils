@@ -152,6 +152,14 @@ namespace HackUtils {
     }
     return $res;
   }
+  function get_pair($array, $offset) {
+    foreach (slice_assoc($array, $offset) as $k => $v) {
+      return array($k, $v);
+    }
+    throw new \Exception(
+      "Offset ".$offset." is out of bounds in array of size ".size($array)
+    );
+  }
   function set($array, $key, $val) {
     $array[$key] = $val;
     return $array;
