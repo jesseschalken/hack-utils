@@ -33,11 +33,8 @@ namespace HackUtils {
   function is_nan($x) {
     return \is_float($x) && \is_nan($x);
   }
-  function is_negative($x) {
-    return
-      \is_int($x)
-        ? ($x < 0)
-        : (($x < 0.0) || (($x === 0.0) && ("-0" === ((string) $x))));
+  function signbit($x) {
+    return ($x < 0) || ((!$x) && \is_float($x) && ("-0" === ((string) $x)));
   }
   function ceil($x) {
     return \ceil($x);

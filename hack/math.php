@@ -47,11 +47,8 @@ function is_nan(num $x): bool {
 /**
  * Returns true for the float -0.0.
  */
-function is_negative(num $x): bool {
-  return
-    \is_int($x)
-      ? ($x < 0)
-      : ($x < 0.0 || ($x === 0.0 && '-0' === (string) $x));
+function signbit(num $x): bool {
+  return $x < 0 || (!$x && \is_float($x) && '-0' === (string) $x);
 }
 
 function ceil(float $x): float {
