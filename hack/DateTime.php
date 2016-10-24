@@ -178,16 +178,14 @@ function set_timezone(datetime $dt, timezone $tz): datetime {
   return $dt->setTimezone($tz);
 }
 
-final class Part {
-  const int YEAR = 0;
-  const int MONTH = 1;
-  const int DAY = 2;
-  const int HOUR = 3;
-  const int MINUTE = 4;
-  const int SECOND = 5;
-  const int MICROSECOND = 6;
-
-  private function __construct() {}
+enum Part : int {
+  YEAR = 0;
+  MONTH = 1;
+  DAY = 2;
+  HOUR = 3;
+  MINUTE = 4;
+  SECOND = 5;
+  MICROSECOND = 6;
 }
 
 type datetimeparts = shape(
@@ -235,9 +233,9 @@ function get_parts(datetime $dt): datetimeparts {
   );
 }
 
-function get_part(datetime $dt, int $part): int {
+function get_part(datetime $dt, Part $part): int {
   $f = 'YmdHis';
-  return (int) format($dt, $f[$part]);
+  return (int) format($dt, $f[(int) $part]);
 }
 
 function now(timezone $tz, bool $withMicroseconds = false): datetime {

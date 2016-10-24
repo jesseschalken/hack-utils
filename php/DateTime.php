@@ -119,6 +119,17 @@ namespace HackUtils\DateTime {
     return $dt->setTimezone($tz);
   }
   final class Part {
+    private function __construct() {}
+    private static
+      $hacklib_values = array(
+        "YEAR" => 0,
+        "MONTH" => 1,
+        "DAY" => 2,
+        "HOUR" => 3,
+        "MINUTE" => 4,
+        "SECOND" => 5,
+        "MICROSECOND" => 6
+      );
     const YEAR = 0;
     const MONTH = 1;
     const DAY = 2;
@@ -126,7 +137,6 @@ namespace HackUtils\DateTime {
     const MINUTE = 4;
     const SECOND = 5;
     const MICROSECOND = 6;
-    private function __construct() {}
   }
   function from_parts($parts, $tz) {
     return parse(
