@@ -155,6 +155,12 @@ namespace HackUtils {
     }
     return \pow($base, $exp);
   }
+  function get_bit($int, $offset) {
+    return (bool) ((1 << $offset) & $int);
+  }
+  function set_bit($int, $offset, $value) {
+    return $value ? ($int | (1 << $offset)) : ($int & (~(1 << $offset)));
+  }
   function sum($array) {
     return \array_sum($array);
   }

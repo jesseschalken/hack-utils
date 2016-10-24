@@ -507,6 +507,12 @@ namespace HackUtils {
   function trim_right($string, $chars = TRIM_CHARS) {
     return \rtrim($string, $chars);
   }
+  function decode_utf8($s) {
+    return \utf8_decode($s);
+  }
+  function encode_utf8($s) {
+    return \utf8_encode($s);
+  }
   function split($string, $delimiter = "", $limit = null) {
     $limit = $limit ?? 0x7FFFFFFF;
     if ($limit < 1) {

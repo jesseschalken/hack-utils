@@ -174,7 +174,7 @@ namespace HackUtils\DateTime {
   }
   function get_part($dt, $part) {
     $f = "YmdHis";
-    return (int) format($dt, $f[$part]);
+    return (int) format($dt, $f[(int) $part]);
   }
   function now($tz, $withMicroseconds = false) {
     if ($withMicroseconds) {
