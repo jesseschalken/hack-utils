@@ -740,6 +740,22 @@ function trim_right(string $string, string $chars = TRIM_CHARS): string {
   return \rtrim($string, $chars);
 }
 
+/**
+ * Decode the given utf8 string and convert code points 0-255 to raw bytes
+ * and discard code points >255.
+ */
+function decode_utf8(string $s): string {
+  return \utf8_decode($s);
+}
+
+/**
+ * Treat each byte as a unicode code point between 0 and 255 and encode these
+ * characters as utf8.
+ */
+function encode_utf8(string $s): string {
+  return \utf8_encode($s);
+}
+
 function split(
   string $string,
   string $delimiter = '',

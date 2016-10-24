@@ -210,6 +210,14 @@ function intpow(int $base, int $exp): int {
   return \pow($base, $exp);
 }
 
+function get_bit(int $int, int $offset): bool {
+  return (bool) ((1 << $offset) & $int);
+}
+
+function set_bit(int $int, int $offset, bool $value): int {
+  return $value ? $int | (1 << $offset) : $int & ~(1 << $offset);
+}
+
 function sum<T as num>(array<T> $array): T {
   return \array_sum($array);
 }
