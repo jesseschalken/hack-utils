@@ -17,8 +17,32 @@ namespace HackUtils {
       if (\is_nan($a) && \is_nan($b)) {
         return true;
       }
-      if (($a."") !== ($b."")) {
+      if (($a === 0.0) && ($b === 0.0) && (((string) $a) !== ((string) $b))) {
         return false;
+      }
+    }
+    if (\is_array($a) && \is_array($b)) {
+      if (\count($a) !== \count($b)) {
+        return false;
+      }
+      \reset($a);
+      \reset($b);
+      while (1) {
+        $k1 = \key($a);
+        $k2 = \key($b);
+        if ($k1 !== $k2) {
+          return false;
+        }
+        if ($k1 === null) {
+          return true;
+        }
+        $v1 = \current($a);
+        $v2 = \current($b);
+        if (!_is_equal($v1, $v2)) {
+          return false;
+        }
+        \next($a);
+        \next($b);
       }
     }
     return $a === $b;
