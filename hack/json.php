@@ -27,7 +27,7 @@ function json_encode(
   }
 
   if ($binary) {
-    $value = _json_map_strings(
+    $value = _map_strings(
       $value,
       function($x) {
         return \utf8_encode($x);
@@ -48,7 +48,7 @@ function json_decode(string $json, bool $binary = false): mixed {
   _json_check_value($value);
 
   if ($binary) {
-    $value = _json_map_strings(
+    $value = _map_strings(
       $value,
       function($x) {
         return \utf8_decode($x);
@@ -62,7 +62,7 @@ function json_decode(string $json, bool $binary = false): mixed {
 function _json_check_value(mixed $x): void {
   if (\is_object($x) || \is_resource($x)) {
     throw new JSONException(
-      'Type is not supported',
+      'Objects are not supported. Use an associative array.',
       \JSON_ERROR_UNSUPPORTED_TYPE,
     );
   }
@@ -73,14 +73,16 @@ function _json_check_value(mixed $x): void {
   }
 }
 
-function _json_map_strings(mixed $x, (function(string): string) $f): mixed {
+function _map_strings(mixed $x, (function(string): string) $f): mixed {
   if (\is_string($x)) {
     return $f($x);
   }
   if (\is_array($x)) {
     $r = [];
     foreach ($x as $k => $v) {
-      $r[$f($k.'')] = $f($v);
+      $k = _map_strings($k, $f);
+      $v = _map_strings($v, $f);
+      $r[$k] = $v;
     }
     return $r;
   }
