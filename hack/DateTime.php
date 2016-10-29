@@ -11,7 +11,7 @@ class Exception extends \Exception {}
 class ParseException extends Exception {}
 class FormatException extends Exception {}
 
-function create_timezone(string $tz): timezone {
+function new_timezone(string $tz): timezone {
   return new \DateTimeZone($tz);
 }
 
@@ -20,10 +20,8 @@ class _UTCTimeZone {
 }
 
 function utc_timezone(): timezone {
-  // Clone it so "===" on returned objects returns false as though someone used
-  // "new DateTimeZone('UTC')".
-  return clone (_UTCTimeZone::$singleton ?: (_UTCTimeZone::$singleton =
-                                               create_timezone('UTC')));
+  return _UTCTimeZone::$singleton ?: (_UTCTimeZone::$singleton =
+                                        new_timezone('UTC'));
 }
 
 /**
