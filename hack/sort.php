@@ -69,11 +69,11 @@ function sort_nums_keys<Tk as num, Tv>(
 
 function sort_strings<T as arraykey>(
   array<T> $strings,
-  bool $ci = false,
+  bool $caseInsensitive = false,
   bool $natural = false,
   bool $reverse = false,
 ): array<T> {
-  $flags = _string_sort_flags($ci, $natural);
+  $flags = _string_sort_flags($caseInsensitive, $natural);
   if ($reverse) {
     _check_sort(\rsort($strings, $flags), 'rsort');
   } else {
@@ -84,11 +84,11 @@ function sort_strings<T as arraykey>(
 
 function sort_strings_assoc<Tk, Tv as arraykey>(
   array<Tk, Tv> $strings,
-  bool $ci = false,
+  bool $caseInsensitive = false,
   bool $natural = false,
   bool $reverse = false,
 ): array<Tk, Tv> {
-  $flags = _string_sort_flags($ci, $natural);
+  $flags = _string_sort_flags($caseInsensitive, $natural);
   if ($reverse) {
     _check_sort(\arsort($strings, $flags), 'arsort');
   } else {
@@ -99,11 +99,11 @@ function sort_strings_assoc<Tk, Tv as arraykey>(
 
 function sort_strings_keys<Tk as arraykey, Tv>(
   array<Tk, Tv> $array,
-  bool $ci = false,
+  bool $caseInsensitive = false,
   bool $natural = false,
   bool $reverse = false,
 ): array<Tk, Tv> {
-  $flags = _string_sort_flags($ci, $natural);
+  $flags = _string_sort_flags($caseInsensitive, $natural);
   if ($reverse) {
     _check_sort(\krsort($array, $flags), 'krsort');
   } else {
@@ -118,15 +118,17 @@ function unique_nums<Tk, Tv as num>(array<Tk, Tv> $array): array<Tk, Tv> {
 
 function unique_strings<Tk, Tv as arraykey>(
   array<Tk, Tv> $array,
-  bool $ci = false,
+  bool $caseInsensitive = false,
   bool $natural = false,
 ): array<Tk, Tv> {
-  return \array_unique($array, _string_sort_flags($ci, $natural));
+  return
+    \array_unique($array, _string_sort_flags($caseInsensitive, $natural));
 }
 
-function _string_sort_flags(bool $ci, bool $natural): int {
+function _string_sort_flags(bool $caseInsensitive, bool $natural): int {
   return
-    ($natural ? \SORT_NATURAL : \SORT_STRING) | ($ci ? \SORT_FLAG_CASE : 0);
+    ($natural ? \SORT_NATURAL : \SORT_STRING) |
+    ($caseInsensitive ? \SORT_FLAG_CASE : 0);
 }
 
 function _check_sort(bool $ret, string $func): void {

@@ -641,13 +641,12 @@ function find(
   string $haystack,
   string $needle,
   int $offset = 0,
-  bool $ci = false,
 ): ?int {
   if (\PHP_VERSION_ID < 70100 && $offset < 0) {
     $offset += length($haystack);
   }
   $ret =
-    $ci
+    $caseInsensitive
       ? \stripos($haystack, $needle, $offset)
       : \strpos($haystack, $needle, $offset);
   return $ret === false ? null : $ret;
@@ -657,13 +656,13 @@ function find_last(
   string $haystack,
   string $needle,
   int $offset = 0,
-  bool $ci = false,
+  bool $caseInsensitive = false,
 ): ?int {
   if (\PHP_VERSION_ID < 70100 && $offset < 0) {
     $offset += length($haystack);
   }
   $ret =
-    $ci
+    $caseInsensitive
       ? \strripos($haystack, $needle, $offset)
       : \strrpos($haystack, $needle, $offset);
   return $ret === false ? null : $ret;
@@ -831,11 +830,11 @@ function replace(
   string $subject,
   string $search,
   string $replace,
-  bool $ci = false,
+  bool $caseInsensitive = false,
 ): string {
   $count = 0;
   $result =
-    $ci
+    $caseInsensitive
       ? \str_ireplace($search, $replace, $subject)
       : \str_replace($search, $replace, $subject);
   if (!\is_string($result)) {
@@ -848,11 +847,11 @@ function replace_count(
   string $subject,
   string $search,
   string $replace,
-  bool $ci = false,
+  bool $caseInsensitive = false,
 ): (string, int) {
   $count = 0;
   $result =
-    $ci
+    $caseInsensitive
       ? \str_ireplace($search, $replace, $subject, $count)
       : \str_replace($search, $replace, $subject, $count);
   if (!\is_string($result)) {
@@ -909,11 +908,11 @@ function char_code_at(string $string, int $offset = 0): int {
 function str_cmp(
   string $a,
   string $b,
-  bool $ci = false,
+  bool $caseInsensitive = false,
   bool $natural = false,
 ): int {
   $ret =
-    $ci
+    $caseInsensitive
       ? ($natural ? \strnatcasecmp($a, $b) : \strcasecmp($a, $b))
       : ($natural ? \strnatcmp($a, $b) : \strcmp($a, $b));
   return sign($ret);
@@ -922,10 +921,10 @@ function str_cmp(
 function str_eq(
   string $a,
   string $b,
-  bool $ci = false,
+  bool $caseInsensitive = false,
   bool $natural = false,
 ): bool {
-  return str_cmp($a, $b, $ci, $natural) == 0;
+  return str_cmp($a, $b, $caseInsensitive, $natural) == 0;
 }
 
 function starts_with(string $string, string $prefix): bool {
