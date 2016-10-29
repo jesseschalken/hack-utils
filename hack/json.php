@@ -61,7 +61,6 @@ function json_encode(
 function json_decode(string $json, bool $binary = false): mixed {
   $value = \json_decode($json, true);
   _json_check_error();
-  _json_check_value($value);
 
   if ($binary) {
     $value = _map_strings(
