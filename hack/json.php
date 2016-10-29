@@ -2,6 +2,15 @@
 
 namespace HackUtils;
 
+/**
+ * Convert a value to JSON. Only accepts values that can be converted to their
+ * exact original by json_decode(). So no resources, objects or INF, -INF or
+ * NAN.
+ *
+ * Set $binary to TRUE to have strings interpereted as binary instead of UTF8.
+ *
+ * Throws a JSONException if the value cannot be converted to JSON.
+ */
 function json_encode(
   mixed $value,
   bool $binary = false,
@@ -42,6 +51,13 @@ function json_encode(
   return $json;
 }
 
+/**
+ * Parse JSON string. JSON objects are converted to associative arrays.
+ * Set $binary to TRUE to produce binary strings instead of UTF8 (code points
+ * >255 will be discarded).
+ *
+ * Throws a JSONException if the value string cannot be parsed.
+ */
 function json_decode(string $json, bool $binary = false): mixed {
   $value = \json_decode($json, true);
   _json_check_error();
