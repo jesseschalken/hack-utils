@@ -4,8 +4,9 @@ Type safe wrappers for PHP functions for usage with [Hack](http://hacklang.org/)
 
 - Be completely and accurately statically typed
 - Interoperate smoothly with PHP >= 5.3 via `h2tp <src> <dst> --no-collections`
-- Use PHP arrays in place of Hack collections so the library is natural to use from PHP
+- Prefer PHP arrays over Hack collections so the library is natural to use from PHP
 - Where possible, provide simpler or more useful semantics than stock PHP APIs
+- Throw exceptions in the case of error instead of returning `false` or requiring the caller to check a `_last_error()` function.
 - Cover the core set of functionality that common Hack/PHP programs require
 
 The library functions like any other Composer package and does not require `hhvm` or `h2tp` to be installed to be used. When modifying this library, rebuild the PHP code with [`./build.bash`](./build.bash).
