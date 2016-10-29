@@ -76,7 +76,7 @@ function json_decode(string $json, bool $binary = false): mixed {
 }
 
 function _json_check_value(mixed $x): void {
-  if (\is_object($x) || \is_resource($x)) {
+  if (\is_object($x)) {
     throw new JSONException(
       'Objects are not supported. Use an associative array.',
       \JSON_ERROR_UNSUPPORTED_TYPE,
