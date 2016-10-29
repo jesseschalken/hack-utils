@@ -13,24 +13,6 @@ const string PCRE_EXTRA = 'X';
 const string PCRE_UTF8 = 'u';
 const string PCRE_STUDY = 'S';
 
-type pcre_match = array<arraykey, (string, int)>;
-
-/**
- * Convenience function to get the text for a subpattern.
- */
-function pcre_match_get(pcre_match $match, arraykey $subPattern = 0): ?string {
-  $subPattern = get_or_null($match, $subPattern);
-  return $subPattern !== null ? $subPattern[0] : new_null();
-}
-
-/**
- * Convenience function to get the offset for a subpattern.
- */
-function pcre_match_offset(pcre_match $match, arraykey $subPattern = 0): ?int {
-  $subPattern = get_or_null($match, $subPattern);
-  return $subPattern !== null ? $subPattern[1] : new_null();
-}
-
 function pcre_quote(string $text): string {
   return \preg_quote($text);
 }
@@ -40,7 +22,7 @@ function pcre_match(
   string $subject,
   string $options = '',
   int $offset = 0,
-): ?pcre_match {
+): ?PCREMatch {
   $match = [];
   $count = \preg_match(
     _pcre_compose($regex, $options),
@@ -50,7 +32,7 @@ function pcre_match(
     $offset,
   );
   _pcre_check_last_error();
-  return $count ? _pcre_fix_match($match) : new_null();
+  return $count ? new PCREMatch($match) : new_null();
 }
 
 function pcre_match_all(
@@ -58,7 +40,7 @@ function pcre_match_all(
   string $subject,
   string $options,
   int $offset = 0,
-): array<pcre_match> {
+): array<PCREMatch> {
   $matches = [];
   \preg_match_all(
     _pcre_compose($regex, $options),
@@ -70,7 +52,7 @@ function pcre_match_all(
   return map(
     $matches,
     function($match) {
-      return _pcre_fix_match($match);
+      return new PCREMatch($match);
     },
   );
 }
@@ -111,6 +93,65 @@ function pcre_split(
     throw new PCREException('preg_split() failed');
   }
   return $pieces;
+}
+
+final class PCREMatch {
+  public function __construct(private array<arraykey, (string, int)> $match) {
+    // A sub pattern will exist in $subPatterns if it didn't match
+    // only if a later sub pattern matched.
+    //
+    // Example:
+    //   match (a)(lol)?b against "ab"
+    //   - ["ab", 0]
+    //   - ["a", 0]
+    //   match (a)(lol)?(b) against "ab"
+    //   - ["ab", 0]
+    //   - ["a", 0]
+    //   - ["", -1]
+    //   - ["b", 1]
+    //
+    // Remove those ones.
+    foreach ($this->match as $k => $v) {
+      if ($v[1] == -1) {
+        unset($this->match[$k]);
+      }
+    }
+  }
+
+  public function get(arraykey $pat = 0): string {
+    return $this->match[$pat][0];
+  }
+
+  public function getOrNull(arraykey $pat = 0): ?string {
+    $match = get_or_null($this->match, $pat);
+    return $match === null ? new_null() : $match[0];
+  }
+
+  public function getOrEmpty(arraykey $pat = 0): string {
+    $match = get_or_null($this->match, $pat);
+    return $match === null ? '' : $match[0];
+  }
+
+  public function getOffset(arraykey $pat = 0): int {
+    return $this->match[$pat][1];
+  }
+
+  public function getRange(arraykey $pat = 0): (int, int) {
+    list($text, $offset) = $this->match[$pat];
+    return tuple($offset, $offset + \strlen($text));
+  }
+
+  public function has(arraykey $pat): bool {
+    return key_exists($this->match, $pat);
+  }
+
+  public function __toString(): string {
+    return $this->get();
+  }
+
+  public function toArray(): array<arraykey, string> {
+    return map_assoc($this->match, $x ==> $x[0]);
+  }
 }
 
 final class PCREException extends \Exception {}
@@ -156,36 +197,19 @@ function _pcre_escape(string $regex): string {
   return $result;
 }
 
-function _pcre_fix_match(pcre_match $match): pcre_match {
-  // A sub pattern will exist in $subPatterns if it didn't match
-  // only if a later sub pattern matched.
-  //
-  // Example:
-  //   match (a)(lol)?b   against "ab" => ["ab", 0], ["a", 0]
-  //   match (a)(lol)?(b) against "ab" => ["ab", 0], ["a", 0], ["", -1], ["b", 1]
-  //
-  // Remove those ones.
-  foreach ($match as $k => $v) {
-    if ($v[1] == -1) {
-      unset($match[$k]);
-    }
-  }
-  return $match;
-}
-
 function _pcre_get_error_message(int $error): string {
   switch ($error) {
-    case PREG_NO_ERROR:
+    case \PREG_NO_ERROR:
       return 'No errors';
-    case PREG_INTERNAL_ERROR:
+    case \PREG_INTERNAL_ERROR:
       return 'Internal PCRE error';
-    case PREG_BACKTRACK_LIMIT_ERROR:
+    case \PREG_BACKTRACK_LIMIT_ERROR:
       return 'Backtrack limit (pcre.backtrack_limit) was exhausted';
-    case PREG_RECURSION_LIMIT_ERROR:
+    case \PREG_RECURSION_LIMIT_ERROR:
       return 'Recursion limit (pcre.recursion_limit) was exhausted';
-    case PREG_BAD_UTF8_ERROR:
+    case \PREG_BAD_UTF8_ERROR:
       return 'Malformed UTF-8 data';
-    case PREG_BAD_UTF8_OFFSET_ERROR:
+    case \PREG_BAD_UTF8_OFFSET_ERROR:
       return
         'The offset didn\'t correspond to the beginning of a valid UTF-8 code point';
     case 6 /* PREG_JIT_STACKLIMIT_ERROR */:
