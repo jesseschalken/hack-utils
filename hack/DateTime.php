@@ -178,25 +178,15 @@ function set_timezone(datetime $dt, timezone $tz): datetime {
   return $dt->setTimezone($tz);
 }
 
-enum Part : int {
-  YEAR = 0;
-  MONTH = 1;
-  DAY = 2;
-  HOUR = 3;
-  MINUTE = 4;
-  SECOND = 5;
-  MICROSECOND = 6;
-}
+const int PART_YEAR = 0;
+const int PART_MONTH = 1;
+const int PART_DAY = 2;
+const int PART_HOUR = 3;
+const int PART_MINUTE = 4;
+const int PART_SECOND = 5;
+const int PART_MICROSECOND = 6;
 
-type datetimeparts = shape(
-  Part::YEAR => int,
-  Part::MONTH => int,
-  Part::DAY => int,
-  Part::HOUR => int,
-  Part::MINUTE => int,
-  Part::SECOND => int,
-  Part::MICROSECOND => int,
-);
+type datetimeparts = (int, int, int, int, int, int, int);
 
 /**
  * Parts must be valid. Values do not overflow.
@@ -206,36 +196,29 @@ function from_parts(datetimeparts $parts, timezone $tz): datetime {
     'Y-m-d H:i:s.u',
     \sprintf(
       '%04d-%02d-%02d %02d:%02d:%02d.%06d',
-      $parts[Part::YEAR],
-      $parts[Part::MONTH],
-      $parts[Part::DAY],
-      $parts[Part::HOUR],
-      $parts[Part::MINUTE],
-      $parts[Part::SECOND],
-      $parts[Part::MICROSECOND],
+      $parts[0],
+      $parts[1],
+      $parts[2],
+      $parts[3],
+      $parts[4],
+      $parts[5],
+      $parts[6],
     ),
     $tz,
   );
 }
 
 function get_parts(datetime $dt): datetimeparts {
-  list($year, $month, $day, $hour, $minute, $second, $microsecond) =
-    HU\map(HU\split(format($dt, 'Y m d H i s u'), ' '), $x ==> (int) $x);
-
-  return shape(
-    Part::YEAR => $year,
-    Part::MONTH => $month,
-    Part::DAY => $day,
-    Part::HOUR => $hour,
-    Part::MINUTE => $minute,
-    Part::SECOND => $second,
-    Part::MICROSECOND => $microsecond,
-  );
+  $p = HU\map(HU\split(format($dt, 'Y m d H i s u'), ' '), $x ==> (int) $x);
+  return tuple($p[0], $p[1], $p[2], $p[3], $p[4], $p[5], $p[6]);
 }
 
-function get_part(datetime $dt, Part $part): int {
+function get_part(datetime $dt, int $part): int {
+  if ($part < 0 || $part > PART_MICROSECOND) {
+    throw new \Exception('Invalid date/time part: '.$part);
+  }
   $f = 'YmdHis';
-  return (int) format($dt, $f[(int) $part]);
+  return (int) format($dt, $f[$part]);
 }
 
 function now(timezone $tz, bool $withMicroseconds = false): datetime {

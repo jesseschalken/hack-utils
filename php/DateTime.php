@@ -118,63 +118,44 @@ namespace HackUtils\DateTime {
   function set_timezone($dt, $tz) {
     return $dt->setTimezone($tz);
   }
-  final class Part {
-    private function __construct() {}
-    private static
-      $hacklib_values = array(
-        "YEAR" => 0,
-        "MONTH" => 1,
-        "DAY" => 2,
-        "HOUR" => 3,
-        "MINUTE" => 4,
-        "SECOND" => 5,
-        "MICROSECOND" => 6
-      );
-    const YEAR = 0;
-    const MONTH = 1;
-    const DAY = 2;
-    const HOUR = 3;
-    const MINUTE = 4;
-    const SECOND = 5;
-    const MICROSECOND = 6;
-  }
+  const PART_YEAR = 0;
+  const PART_MONTH = 1;
+  const PART_DAY = 2;
+  const PART_HOUR = 3;
+  const PART_MINUTE = 4;
+  const PART_SECOND = 5;
+  const PART_MICROSECOND = 6;
   function from_parts($parts, $tz) {
     return parse(
       "Y-m-d H:i:s.u",
       \sprintf(
         "%04d-%02d-%02d %02d:%02d:%02d.%06d",
-        $parts[Part::YEAR],
-        $parts[Part::MONTH],
-        $parts[Part::DAY],
-        $parts[Part::HOUR],
-        $parts[Part::MINUTE],
-        $parts[Part::SECOND],
-        $parts[Part::MICROSECOND]
+        $parts[0],
+        $parts[1],
+        $parts[2],
+        $parts[3],
+        $parts[4],
+        $parts[5],
+        $parts[6]
       ),
       $tz
     );
   }
   function get_parts($dt) {
-    list($year, $month, $day, $hour, $minute, $second, $microsecond) =
-      HU\map(
-        HU\split(format($dt, "Y m d H i s u"), " "),
-        function($x) {
-          return (int) $x;
-        }
-      );
-    return array(
-      Part::YEAR => $year,
-      Part::MONTH => $month,
-      Part::DAY => $day,
-      Part::HOUR => $hour,
-      Part::MINUTE => $minute,
-      Part::SECOND => $second,
-      Part::MICROSECOND => $microsecond
+    $p = HU\map(
+      HU\split(format($dt, "Y m d H i s u"), " "),
+      function($x) {
+        return (int) $x;
+      }
     );
+    return array($p[0], $p[1], $p[2], $p[3], $p[4], $p[5], $p[6]);
   }
   function get_part($dt, $part) {
+    if (($part < 0) || ($part > PART_MICROSECOND)) {
+      throw new \Exception("Invalid date/time part: ".$part);
+    }
     $f = "YmdHis";
-    return (int) format($dt, $f[(int) $part]);
+    return (int) format($dt, $f[$part]);
   }
   function now($tz, $withMicroseconds = false) {
     if ($withMicroseconds) {
