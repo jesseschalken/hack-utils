@@ -31,7 +31,6 @@ namespace HackUtils {
   function json_decode($json, $binary = false) {
     $value = \json_decode($json, true);
     _json_check_error();
-    _json_check_value($value);
     if ($binary) {
       $value = _map_strings(
         $value,
@@ -43,7 +42,7 @@ namespace HackUtils {
     return $value;
   }
   function _json_check_value($x) {
-    if (\is_object($x) || \is_resource($x)) {
+    if (\is_object($x)) {
       throw new JSONException(
         "Objects are not supported. Use an associative array.",
         \JSON_ERROR_UNSUPPORTED_TYPE

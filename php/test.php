@@ -148,7 +148,7 @@ namespace HackUtils {
     _assert_equal(find_last("aba", "a"), 2);
     _assert_equal(find_last("aba", "b"), 1);
     _assert_equal(find_last("aba", "c"), null);
-    _assert_equal(find_last("aba", "a", -2), 2);
+    _assert_equal(find_last("aba", "a", -2), 0);
     _assert_equal(find_last("aba", "b", -2), 1);
     _assert_equal(find_last("aba", "c", -2), null);
     _assert_equal(find_last("abbb", "bb"), 2);
