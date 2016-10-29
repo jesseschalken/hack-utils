@@ -160,7 +160,7 @@ function reduce_right<Tin, Tout>(
   // Messy, but the easiest way of iterating through an array in reverse
   // without creating a copy.
   \end($array);
-  while (!\is_null($key = \key($array))) {
+  while (\key($array) !== null) {
     $value = $f($value, \current($array));
     \prev($array);
   }
@@ -292,6 +292,10 @@ function set_offset<T>(array<T> $v, int $i, T $x): array<T> {
   return $v;
 }
 
+// TODO Add functions for
+// - array_column($a, $valcol, $keycol)
+// - array_column($a, null, $keycol)
+
 function column<Tk as arraykey, Tv>(
   array<array<Tk, Tv>> $arrays,
   Tk $key,
@@ -345,7 +349,7 @@ function keys<Tk>(array<Tk, mixed> $array): array<Tk> {
 }
 
 function keys_strings(array<arraykey, mixed> $array): array<string> {
-  return map(keys($array), $k ==> ''.$k);
+  return map(keys($array), $k ==> (string) $k);
 }
 
 function values<Tv>(array<mixed, Tv> $array): array<Tv> {
@@ -355,27 +359,31 @@ function values<Tv>(array<mixed, Tv> $array): array<Tv> {
 /**
  * If a key exists in both arrays, the value from the second array is used.
  */
-function union_keys<Tk, Tv>(
-  array<Tk, Tv> $a,
-  array<Tk, Tv> $b,
-): array<Tk, Tv> {
+function union<Tk, Tv>(array<Tk, Tv> $a, array<Tk, Tv> $b): array<Tk, Tv> {
   return \array_replace($a, $b);
 }
 
 /**
  * If a key exists in multiple arrays, the value from the later array is used.
  */
-function union_keys_all<Tk, Tv>(array<array<Tk, Tv>> $arrays): array<Tk, Tv> {
+function union_all<Tk, Tv>(array<array<Tk, Tv>> $arrays): array<Tk, Tv> {
   return $arrays ? \call_user_func_array('array_replace', $arrays) : [];
 }
 
+/**
+ * Returns an array with only values that exist in both arrays, using keys from
+ * the first array.
+ */
 function intersect<Tk, Tv as arraykey>(
   array<Tk, Tv> $a,
-  array<Tk, Tv> $b,
+  array<mixed, Tv> $b,
 ): array<Tk, Tv> {
   return \array_intersect($a, $b);
 }
 
+/**
+ * Returns an array with only (key, value) pairs that exist in both arrays.
+ */
 function intersect_assoc<Tk as arraykey, Tv as arraykey>(
   array<Tk, Tv> $a,
   array<Tk, Tv> $b,
@@ -389,18 +397,26 @@ function intersect_assoc<Tk as arraykey, Tv as arraykey>(
  */
 function intersect_keys<Tk as arraykey, Tv>(
   array<Tk, Tv> $a,
-  array<Tk, Tv> $b,
+  array<Tk, mixed> $b,
 ): array<Tk, Tv> {
   return \array_intersect_key($a, $b);
 }
 
+/**
+ * Returns an array with values that exist in the first array but not the
+ * second, using keys from the first array.
+ */
 function diff<Tk, Tv as arraykey>(
   array<Tk, Tv> $a,
-  array<Tk, Tv> $b,
+  array<mixed, Tv> $b,
 ): array<Tk, Tv> {
   return \array_diff($a, $b);
 }
 
+/**
+ * Returns an array with (key, value) pairs that exist in the first array
+ * but not the second.
+ */
 function diff_assoc<Tk, Tv as arraykey>(
   array<Tk, Tv> $a,
   array<Tk, Tv> $b,
@@ -414,7 +430,7 @@ function diff_assoc<Tk, Tv as arraykey>(
  */
 function diff_keys<Tk as arraykey, Tv>(
   array<Tk, Tv> $a,
-  array<Tk, Tv> $b,
+  array<Tk, mixed> $b,
 ): array<Tk, Tv> {
   return \array_intersect_key($a, $b);
 }
@@ -426,6 +442,10 @@ function select<Tk, Tv>(array<Tk, Tv> $array, array<Tk> $keys): array<Tv> {
   return map($keys, $key ==> $array[$key]);
 }
 
+/**
+ * Extract multiple keys from a map at once, returning NULL for a key that
+ * doesn't exist.
+ */
 function select_or_null<Tk, Tv>(
   array<Tk, Tv> $array,
   array<Tk> $keys,
@@ -482,12 +502,24 @@ function unzip_assoc<Tk, Ta, Tb>(
   return tuple($a, $b);
 }
 
+/**
+ * Useful to force an empty array to be considered
+ * as a vector and not a hash table.
+ */
+function new_array<T>(): array<T> {
+  return [];
+}
+
+/**
+ * Useful to force an empty array to be considered
+ * as a hash table and not a vector.
+ */
+function new_assoc<Tk, Tv>(): array<Tk, Tv> {
+  return [];
+}
+
 function transpose<T>(array<array<T>> $arrays): array<array<T>> {
-  $num = 0;
-  foreach ($arrays as $array) {
-    $num = max($num, count($array));
-  }
-  $ret = repeat([], $num);
+  $ret = new_array();
   foreach ($arrays as $array) {
     $i = 0;
     foreach ($array as $v) {
@@ -524,11 +556,7 @@ function transpose_num_assoc<Tk, Tv>(
 function transpose_assoc_num<Tk, Tv>(
   array<Tk, array<Tv>> $arrays,
 ): array<array<Tk, Tv>> {
-  $num = 0;
-  foreach ($arrays as $array) {
-    $num = max($num, count($array));
-  }
-  $ret = repeat([], $num);
+  $ret = new_array();
   foreach ($arrays as $k => $array) {
     $i = 0;
     foreach ($array as $v) {
@@ -596,7 +624,7 @@ function repeat_string(string $string, int $count): string {
 }
 
 function slice(string $string, int $offset, ?int $length = null): string {
-  $ret = \substr($string, $offset, $length ?? 0x7FFFFFFF);
+  $ret = \substr($string, $offset, if_null($length, 0x7FFFFFFF));
   // \substr() returns false "on failure".
   return $ret === false ? '' : $ret;
 }
@@ -623,8 +651,12 @@ function splice(
   ?int $length = null,
   string $replacement = '',
 ): string {
-  return
-    \substr_replace($string, $replacement, $offset, $length ?? 0x7FFFFFFF);
+  return \substr_replace(
+    $string,
+    $replacement,
+    $offset,
+    if_null($length, 0x7FFFFFFF),
+  );
 }
 
 /**
@@ -636,15 +668,17 @@ function splice_array<T>(
   ?int $length = null,
   array<T> $replacement = [],
 ): (array<T>, array<T>) {
-  $ret = \array_splice($array, $offset, $length, $replacement);
-  return tuple($array, $ret);
+  $removed = \array_splice($array, $offset, $length, $replacement);
+  return tuple($array, $removed);
 }
 
 function find(
   string $haystack,
   string $needle,
   int $offset = 0,
+  bool $caseInsensitive = false,
 ): ?int {
+  // strpos()/stripos() support negative lengths as of PHP 7.1.0
   if (\PHP_VERSION_ID < 70100 && $offset < 0) {
     $offset += length($haystack);
   }
@@ -661,9 +695,8 @@ function find_last(
   int $offset = 0,
   bool $caseInsensitive = false,
 ): ?int {
-  if (\PHP_VERSION_ID < 70100 && $offset < 0) {
-    $offset += length($haystack);
-  }
+  // Unlike strpos() and stripos(), strrpos() and strripos() both support
+  // negative offsets in all PHP versions.
   $ret =
     $caseInsensitive
       ? \strripos($haystack, $needle, $offset)
@@ -672,6 +705,10 @@ function find_last(
 }
 
 function find_count(string $haystack, string $needle, int $offset = 0): int {
+  // substr_count() supports negative lengths as of PHP 7.1.0
+  if (\PHP_VERSION_ID < 70100 && $offset < 0) {
+    $offset += length($haystack);
+  }
   return \substr_count($haystack, $needle, $offset);
 }
 
@@ -710,7 +747,7 @@ function find_last_key<Tk, Tv>(array<Tk, Tv> $array, Tv $value): ?Tk {
     }
     \prev($array);
   }
-  return new_null();
+  return null;
 }
 
 function in<T>(T $value, array<mixed, T> $array): bool {
@@ -737,7 +774,14 @@ function to_upper(string $string): string {
   return \strtoupper($string);
 }
 
+/**
+ * ASCII space characters.
+ */
 const string SPACE_CHARS = " \t\r\n\v\f";
+
+/**
+ * The default characters trimmed by PHP's trim(), ltrim() and rtrim().
+ */
 const string TRIM_CHARS = " \t\r\n\v\x00";
 
 function trim(string $string, string $chars = TRIM_CHARS): string {
@@ -753,7 +797,7 @@ function trim_right(string $string, string $chars = TRIM_CHARS): string {
 }
 
 /**
- * Decode the given utf8 string and convert code points 0-255 to raw bytes
+ * Decode the given utf8 string, convert code points 0-255 to raw bytes
  * and discard code points >255.
  */
 function decode_utf8(string $s): string {
@@ -768,18 +812,26 @@ function encode_utf8(string $s): string {
   return \utf8_encode($s);
 }
 
+/**
+ * Split a string on a delimiter. If the delimiter is the empty string, splits
+ * the string into individual characters. $limit will limit the number of
+ * returned elements, with the remainder of the string included in the last
+ * element.
+ */
 function split(
   string $string,
   string $delimiter = '',
   ?int $limit = null,
 ): array<string> {
-  $limit = $limit ?? 0x7FFFFFFF;
+  $limit = if_null($limit, 0x7FFFFFFF);
+  // TODO Add support for negative limits with the same semantics as explode().
   if ($limit < 1) {
     throw new \Exception("Limit must be >= 1");
   }
   // \explode() doesn't accept an empty delimiter
   if ($delimiter === '') {
-    if ($string === '') {
+    $length = length($string);
+    if ($length == 0) {
       // The only case where we return an empty array is if both the delimiter
       // and string are empty, i.e. if they are tring to split the string
       // into characters and the string is empty.
@@ -788,10 +840,11 @@ function split(
     if ($limit == 1) {
       return [$string];
     }
-    if (length($string) > $limit) {
-      $ret = \str_split(slice($string, 0, $limit - 1));
-      $ret[] = slice($string, $limit - 1);
-      return $ret;
+    if ($length > $limit) {
+      return push(
+        \str_split(slice($string, 0, $limit - 1)),
+        slice($string, $limit - 1),
+      );
     }
     return \str_split($string);
   }
@@ -811,7 +864,7 @@ function split_lines(string $string): array<string> {
     }
   }
   // Remove a final empty line
-  if ($lines && $lines[count($lines) - 1] === '') {
+  if ($lines && get_offset($lines, -1) === '') {
     $lines = slice_array($lines, 0, -1);
   }
   return $lines;
