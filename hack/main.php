@@ -327,6 +327,16 @@ function flip_count<T as arraykey>(array<arraykey, T> $values): array<T, int> {
   return \array_count_values($values);
 }
 
+function flip_all<Tk as arraykey, Tv as arraykey>(
+  array<Tk, Tv> $array,
+): array<Tv, array<Tk>> {
+  $ret = [];
+  foreach ($array as $k => $v) {
+    $ret[$v][] = $k;
+  }
+  return $ret;
+}
+
 function keys<Tk>(array<Tk, mixed> $array): array<Tk> {
   return \array_keys($array);
 }
