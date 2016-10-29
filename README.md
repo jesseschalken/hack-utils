@@ -11,7 +11,7 @@ Type safe wrappers for PHP functions for usage with [Hack](http://hacklang.org/)
 The library functions like any other Composer package and does not require `hhvm` or `h2tp` to be installed to be used. When modifying this library, rebuild the PHP code with [`./build.bash`](./build.bash).
 
 Functions are provided for
-- [strings](./hack/main.php) _(find, repeat, replace, slice, splice, chunk, trim, pad, reverse, split, join, [is_alnum](./hack/ctype.php), to/from hex, encode/decode utf8, ...)_
+- [strings](./hack/main.php) _(find, repeat, replace, slice, splice, chunk, trim, pad, reverse, split, join, [is_alnum](./hack/ctype.php), ..., to/from hex, encode/decode utf8, ...)_
 - [arrays](./hack/main.php), both associative and sequentially indexed _(concat, push, pop, shift, unshift, range, filter, map, reduce, group-by, combine, flip, transpose, union, intersect, diff, select, zip, unzip, reverse, shuffle, chunk, repeat, slice, splice, find, [sort](./hack/sort.php), ...)_
 - [ints/floats](./hack/math.php) _(max, min, abs, ceil, floor, trunc, round, signbit, exp, pow, log, sum, product, sin, cos, tan, sinh, ...)_
 - [Date/Time](./hack/DateTime.php) _(parse, format, get parts, from parts, ...)_
