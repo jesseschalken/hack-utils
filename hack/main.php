@@ -65,14 +65,17 @@ final class Ref<T> implements Gettable<T>, Settable<T> {
   }
 }
 
-function is_vector(array<mixed, mixed> $x): bool {
+/**
+ * Returns true if the array is associative. False if not.
+ */
+function is_assoc(array<mixed, mixed> $x): bool {
   $i = 0;
   foreach ($x as $k => $v) {
     if ($k !== $i++) {
-      return false;
+      return true;
     }
   }
-  return true;
+  return false;
 }
 
 function concat<T>(array<T> $a, array<T> $b): array<T> {
@@ -222,7 +225,7 @@ function from_pairs<Tk as arraykey, Tv>(
 function get<Tk as arraykey, Tv>(array<Tk, Tv> $array, Tk $key): Tv {
   $res = $array[$key];
   if ($res === null && !key_exists($array, $key)) {
-    throw new \Exception("Key '$key' does not exist in map");
+    throw new \Exception("Key '$key' does not exist in array");
   }
   return $res;
 }

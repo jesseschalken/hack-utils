@@ -62,7 +62,7 @@ function assert_nullable<T>(type_assert<T> $t): type_assert<?T> {
 function assert_array<T>(type_assert<T> $t): type_assert<array<T>> {
   return function($x) use ($t) {
     $x =
-      \is_array($x) && is_vector($x)
+      \is_array($x) && !is_assoc($x)
         ? $x
         : _type_error($x, 'array (vector-like)');
     return map($x, $t);
@@ -136,7 +136,7 @@ function assert_pair<Ta, Tb>(
 ): type_assert<(Ta, Tb)> {
   return function($x) use ($a, $b) {
     return
-      \is_array($x) && \count($x) == 2 && is_vector($x)
+      \is_array($x) && \count($x) == 2 && !is_assoc($x)
         ? tuple($a($x[0]), $b($x[1]))
         : _type_error($x, 'pair (vector array of length 2)');
   };
@@ -157,18 +157,8 @@ function _typeof(mixed $x): string {
     return 'bool';
   if (\is_resource($x))
     return 'resource';
-
-  if (\is_array($x)) {
-    $l = \count($x);
-    $i = 0;
-    foreach ($x as $k => $v) {
-      if ($k !== $i++) {
-        return "array (map-like, size = $l)";
-      }
-    }
-    return "array (vector-like, length = $l)";
-  }
-
+  if (\is_array($x))
+    return is_assoc($x) ? 'array (associative)' : 'array (vector)';
   throw new \Exception('unreachable');
 }
 
