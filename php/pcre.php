@@ -11,14 +11,6 @@ namespace HackUtils {
   const PCRE_EXTRA = "X";
   const PCRE_UTF8 = "u";
   const PCRE_STUDY = "S";
-  function pcre_match_get($match, $subPattern = 0) {
-    $subPattern = get_or_null($match, $subPattern);
-    return ($subPattern !== null) ? $subPattern[0] : new_null();
-  }
-  function pcre_match_offset($match, $subPattern = 0) {
-    $subPattern = get_or_null($match, $subPattern);
-    return ($subPattern !== null) ? $subPattern[1] : new_null();
-  }
   function pcre_quote($text) {
     return \preg_quote($text);
   }
@@ -32,7 +24,7 @@ namespace HackUtils {
       $offset
     );
     _pcre_check_last_error();
-    return $count ? _pcre_fix_match($match) : new_null();
+    return $count ? (new PCREMatch($match)) : new_null();
   }
   function pcre_match_all($regex, $subject, $options, $offset = 0) {
     $matches = array();
@@ -46,7 +38,7 @@ namespace HackUtils {
     return map(
       $matches,
       function($match) {
-        return _pcre_fix_match($match);
+        return new PCREMatch($match);
       }
     );
   }
@@ -80,6 +72,49 @@ namespace HackUtils {
       throw new PCREException("preg_split() failed");
     }
     return $pieces;
+  }
+  final class PCREMatch {
+    private $match;
+    public function __construct($match) {
+      $this->match = $match;
+      foreach ($this->match as $k => $v) {
+        if ($v[1] == (-1)) {
+          unset($this->match[$k]);
+        }
+      }
+    }
+    public function get($pat = 0) {
+      return $this->match[$pat][0];
+    }
+    public function getOrNull($pat = 0) {
+      $match = get_or_null($this->match, $pat);
+      return ($match === null) ? new_null() : $match[0];
+    }
+    public function getOrEmpty($pat = 0) {
+      $match = get_or_null($this->match, $pat);
+      return ($match === null) ? "" : $match[0];
+    }
+    public function getOffset($pat = 0) {
+      return $this->match[$pat][1];
+    }
+    public function getRange($pat = 0) {
+      list($text, $offset) = $this->match[$pat];
+      return array($offset, $offset + \strlen($text));
+    }
+    public function has($pat) {
+      return key_exists($this->match, $pat);
+    }
+    public function __toString() {
+      return $this->get();
+    }
+    public function toArray() {
+      return map_assoc(
+        $this->match,
+        function($x) {
+          return $x[0];
+        }
+      );
+    }
   }
   final class PCREException extends \Exception {}
   function _pcre_compose($regex, $options = "") {
@@ -119,27 +154,19 @@ namespace HackUtils {
     }
     return $result;
   }
-  function _pcre_fix_match($match) {
-    foreach ($match as $k => $v) {
-      if ($v[1] == (-1)) {
-        unset($match[$k]);
-      }
-    }
-    return $match;
-  }
   function _pcre_get_error_message($error) {
     switch ($error) {
-      case PREG_NO_ERROR:
+      case \PREG_NO_ERROR:
         return "No errors";
-      case PREG_INTERNAL_ERROR:
+      case \PREG_INTERNAL_ERROR:
         return "Internal PCRE error";
-      case PREG_BACKTRACK_LIMIT_ERROR:
+      case \PREG_BACKTRACK_LIMIT_ERROR:
         return "Backtrack limit (pcre.backtrack_limit) was exhausted";
-      case PREG_RECURSION_LIMIT_ERROR:
+      case \PREG_RECURSION_LIMIT_ERROR:
         return "Recursion limit (pcre.recursion_limit) was exhausted";
-      case PREG_BAD_UTF8_ERROR:
+      case \PREG_BAD_UTF8_ERROR:
         return "Malformed UTF-8 data";
-      case PREG_BAD_UTF8_OFFSET_ERROR:
+      case \PREG_BAD_UTF8_OFFSET_ERROR:
         return
           "The offset didn't correspond to the beginning of a valid UTF-8 code point";
       case 6:

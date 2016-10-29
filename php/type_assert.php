@@ -61,7 +61,7 @@ namespace HackUtils {
   function assert_array($t) {
     return function($x) use ($t) {
       $x =
-        (\is_array($x) && is_vector($x))
+        (\is_array($x) && (!is_assoc($x)))
           ? $x
           : _type_error($x, "array (vector-like)");
       return map($x, $t);
@@ -131,7 +131,7 @@ namespace HackUtils {
   function assert_pair($a, $b) {
     return function($x) use ($a, $b) {
       return
-        (\is_array($x) && (\count($x) == 2) && is_vector($x))
+        (\is_array($x) && (\count($x) == 2) && (!is_assoc($x)))
           ? array($a($x[0]), $b($x[1]))
           : _type_error($x, "pair (vector array of length 2)");
     };
@@ -159,14 +159,7 @@ namespace HackUtils {
       return "resource";
     }
     if (\is_array($x)) {
-      $l = \count($x);
-      $i = 0;
-      foreach ($x as $k => $v) {
-        if ($k !== ($i++)) {
-          return "array (map-like, size = ".$l.")";
-        }
-      }
-      return "array (vector-like, length = ".$l.")";
+      return is_assoc($x) ? "array (associative)" : "array (vector)";
     }
     throw new \Exception("unreachable");
   }

@@ -5,15 +5,15 @@ namespace HackUtils\DateTime {
   class Exception extends \Exception {}
   class ParseException extends Exception {}
   class FormatException extends Exception {}
-  function create_timezone($tz) {
+  function new_timezone($tz) {
     return new \DateTimeZone($tz);
   }
   class _UTCTimeZone {
     public static $singleton = null;
   }
   function utc_timezone() {
-    return clone (_UTCTimeZone::$singleton ?: (_UTCTimeZone::$singleton =
-                                                 create_timezone("UTC")));
+    return _UTCTimeZone::$singleton ?: (_UTCTimeZone::$singleton =
+                                          new_timezone("UTC"));
   }
   function parse($format, $string, $tz) {
     $result = \DateTimeImmutable::createFromFormat("!".$format, $string, $tz);

@@ -46,11 +46,11 @@ namespace HackUtils {
   }
   function sort_strings(
     $strings,
-    $ci = false,
+    $caseInsensitive = false,
     $natural = false,
     $reverse = false
   ) {
-    $flags = _string_sort_flags($ci, $natural);
+    $flags = _string_sort_flags($caseInsensitive, $natural);
     if ($reverse) {
       _check_sort(\rsort($strings, $flags), "rsort");
     } else {
@@ -60,11 +60,11 @@ namespace HackUtils {
   }
   function sort_strings_assoc(
     $strings,
-    $ci = false,
+    $caseInsensitive = false,
     $natural = false,
     $reverse = false
   ) {
-    $flags = _string_sort_flags($ci, $natural);
+    $flags = _string_sort_flags($caseInsensitive, $natural);
     if ($reverse) {
       _check_sort(\arsort($strings, $flags), "arsort");
     } else {
@@ -74,11 +74,11 @@ namespace HackUtils {
   }
   function sort_strings_keys(
     $array,
-    $ci = false,
+    $caseInsensitive = false,
     $natural = false,
     $reverse = false
   ) {
-    $flags = _string_sort_flags($ci, $natural);
+    $flags = _string_sort_flags($caseInsensitive, $natural);
     if ($reverse) {
       _check_sort(\krsort($array, $flags), "krsort");
     } else {
@@ -89,12 +89,14 @@ namespace HackUtils {
   function unique_nums($array) {
     return \array_unique($array, \SORT_NUMERIC);
   }
-  function unique_strings($array, $ci = false, $natural = false) {
-    return \array_unique($array, _string_sort_flags($ci, $natural));
-  }
-  function _string_sort_flags($ci, $natural) {
+  function unique_strings($array, $caseInsensitive = false, $natural = false) {
     return
-      ($natural ? \SORT_NATURAL : \SORT_STRING) | ($ci ? \SORT_FLAG_CASE : 0);
+      \array_unique($array, _string_sort_flags($caseInsensitive, $natural));
+  }
+  function _string_sort_flags($caseInsensitive, $natural) {
+    return
+      ($natural ? \SORT_NATURAL : \SORT_STRING) |
+      ($caseInsensitive ? \SORT_FLAG_CASE : 0);
   }
   function _check_sort($ret, $func) {
     if ($ret === false) {

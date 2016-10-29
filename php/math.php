@@ -34,7 +34,7 @@ namespace HackUtils {
     return \is_float($x) && \is_nan($x);
   }
   function signbit($x) {
-    return ($x < 0) || ((!$x) && \is_float($x) && ("-0" === ((string) $x)));
+    return ($x < 0.0) || (($x == 0.0) && ("-0" === ((string) $x)));
   }
   function ceil($x) {
     return \ceil($x);

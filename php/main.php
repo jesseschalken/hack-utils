@@ -37,14 +37,14 @@ namespace HackUtils {
       $this->value = $value;
     }
   }
-  function is_vector($x) {
+  function is_assoc($x) {
     $i = 0;
     foreach ($x as $k => $v) {
       if ($k !== ($i++)) {
-        return false;
+        return true;
       }
     }
-    return true;
+    return false;
   }
   function concat($a, $b) {
     return \array_merge($a, $b);
@@ -96,7 +96,7 @@ namespace HackUtils {
   }
   function reduce_right($array, $f, $value) {
     \end($array);
-    while (!\is_null($key = \key($array))) {
+    while (\key($array) !== null) {
       $value = $f($value, \current($array));
       \prev($array);
     }
@@ -148,7 +148,7 @@ namespace HackUtils {
   function get($array, $key) {
     $res = $array[$key];
     if (($res === null) && (!key_exists($array, $key))) {
-      throw new \Exception("Key '".$key."' does not exist in map");
+      throw new \Exception("Key '".$key."' does not exist in array");
     }
     return $res;
   }
@@ -222,6 +222,13 @@ namespace HackUtils {
   function flip_count($values) {
     return \array_count_values($values);
   }
+  function flip_all($array) {
+    $ret = array();
+    foreach ($array as $k => $v) {
+      $ret[$v][] = $k;
+    }
+    return $ret;
+  }
   function keys($array) {
     return \array_keys($array);
   }
@@ -229,17 +236,17 @@ namespace HackUtils {
     return map(
       keys($array),
       function($k) {
-        return "".$k;
+        return (string) $k;
       }
     );
   }
   function values($array) {
     return \array_values($array);
   }
-  function union_keys($a, $b) {
+  function union($a, $b) {
     return \array_replace($a, $b);
   }
-  function union_keys_all($arrays) {
+  function union_all($arrays) {
     return
       $arrays ? \call_user_func_array("array_replace", $arrays) : array();
   }
@@ -312,12 +319,14 @@ namespace HackUtils {
     }
     return array($a, $b);
   }
+  function new_array() {
+    return array();
+  }
+  function new_assoc() {
+    return array();
+  }
   function transpose($arrays) {
-    $num = 0;
-    foreach ($arrays as $array) {
-      $num = max($num, count($array));
-    }
-    $ret = repeat(array(), $num);
+    $ret = new_array();
     foreach ($arrays as $array) {
       $i = 0;
       foreach ($array as $v) {
@@ -345,11 +354,7 @@ namespace HackUtils {
     return $ret;
   }
   function transpose_assoc_num($arrays) {
-    $num = 0;
-    foreach ($arrays as $array) {
-      $num = max($num, count($array));
-    }
-    $ret = repeat(array(), $num);
+    $ret = new_array();
     foreach ($arrays as $k => $array) {
       $i = 0;
       foreach ($array as $v) {
@@ -403,7 +408,7 @@ namespace HackUtils {
     return \str_repeat($string, $count);
   }
   function slice($string, $offset, $length = null) {
-    $ret = \substr($string, $offset, $length ?? 0x7FFFFFFF);
+    $ret = \substr($string, $offset, if_null($length, 0x7FFFFFFF));
     return ($ret === false) ? "" : $ret;
   }
   function slice_array($array, $offset, $length = null) {
@@ -413,8 +418,12 @@ namespace HackUtils {
     return \array_slice($array, $offset, $length, true);
   }
   function splice($string, $offset, $length = null, $replacement = "") {
-    return
-      \substr_replace($string, $replacement, $offset, $length ?? 0x7FFFFFFF);
+    return \substr_replace(
+      $string,
+      $replacement,
+      $offset,
+      if_null($length, 0x7FFFFFFF)
+    );
   }
   function splice_array(
     $array,
@@ -422,30 +431,35 @@ namespace HackUtils {
     $length = null,
     $replacement = array()
   ) {
-    $ret = \array_splice($array, $offset, $length, $replacement);
-    return array($array, $ret);
+    $removed = \array_splice($array, $offset, $length, $replacement);
+    return array($array, $removed);
   }
-  function find($haystack, $needle, $offset = 0, $ci = false) {
+  function find($haystack, $needle, $offset = 0, $caseInsensitive = false) {
     if ((\PHP_VERSION_ID < 70100) && ($offset < 0)) {
       $offset += length($haystack);
     }
     $ret =
-      $ci
+      $caseInsensitive
         ? \stripos($haystack, $needle, $offset)
         : \strpos($haystack, $needle, $offset);
     return ($ret === false) ? null : $ret;
   }
-  function find_last($haystack, $needle, $offset = 0, $ci = false) {
-    if ((\PHP_VERSION_ID < 70100) && ($offset < 0)) {
-      $offset += length($haystack);
-    }
+  function find_last(
+    $haystack,
+    $needle,
+    $offset = 0,
+    $caseInsensitive = false
+  ) {
     $ret =
-      $ci
+      $caseInsensitive
         ? \strripos($haystack, $needle, $offset)
         : \strrpos($haystack, $needle, $offset);
     return ($ret === false) ? null : $ret;
   }
   function find_count($haystack, $needle, $offset = 0) {
+    if ((\PHP_VERSION_ID < 70100) && ($offset < 0)) {
+      $offset += length($haystack);
+    }
     return \substr_count($haystack, $needle, $offset);
   }
   function contains($haystack, $needle, $offset = 0) {
@@ -475,7 +489,7 @@ namespace HackUtils {
       }
       \prev($array);
     }
-    return new_null();
+    return null;
   }
   function in($value, $array) {
     return \in_array($value, $array, true);
@@ -514,21 +528,23 @@ namespace HackUtils {
     return \utf8_encode($s);
   }
   function split($string, $delimiter = "", $limit = null) {
-    $limit = $limit ?? 0x7FFFFFFF;
+    $limit = if_null($limit, 0x7FFFFFFF);
     if ($limit < 1) {
       throw new \Exception("Limit must be >= 1");
     }
     if ($delimiter === "") {
-      if ($string === "") {
+      $length = length($string);
+      if ($length == 0) {
         return array();
       }
       if ($limit == 1) {
         return array($string);
       }
-      if (length($string) > $limit) {
-        $ret = \str_split(slice($string, 0, $limit - 1));
-        $ret[] = slice($string, $limit - 1);
-        return $ret;
+      if ($length > $limit) {
+        return push(
+          \str_split(slice($string, 0, $limit - 1)),
+          slice($string, $limit - 1)
+        );
       }
       return \str_split($string);
     }
@@ -541,7 +557,7 @@ namespace HackUtils {
         $lines[$i] = slice($line, 0, -1);
       }
     }
-    if ($lines && ($lines[count($lines) - 1] === "")) {
+    if ($lines && (get_offset($lines, -1) === "")) {
       $lines = slice_array($lines, 0, -1);
     }
     return $lines;
@@ -552,10 +568,10 @@ namespace HackUtils {
   function join_lines($lines, $nl = "\n") {
     return $lines ? (join($lines, $nl).$nl) : "";
   }
-  function replace($subject, $search, $replace, $ci = false) {
+  function replace($subject, $search, $replace, $caseInsensitive = false) {
     $count = 0;
     $result =
-      $ci
+      $caseInsensitive
         ? \str_ireplace($search, $replace, $subject)
         : \str_replace($search, $replace, $subject);
     if (!\is_string($result)) {
@@ -563,10 +579,15 @@ namespace HackUtils {
     }
     return $result;
   }
-  function replace_count($subject, $search, $replace, $ci = false) {
+  function replace_count(
+    $subject,
+    $search,
+    $replace,
+    $caseInsensitive = false
+  ) {
     $count = 0;
     $result =
-      $ci
+      $caseInsensitive
         ? \str_ireplace($search, $replace, $subject, $count)
         : \str_replace($search, $replace, $subject, $count);
     if (!\is_string($result)) {
@@ -609,15 +630,15 @@ namespace HackUtils {
   function char_code_at($string, $offset = 0) {
     return \ord(char_at($string, $offset));
   }
-  function str_cmp($a, $b, $ci = false, $natural = false) {
+  function str_cmp($a, $b, $caseInsensitive = false, $natural = false) {
     $ret =
-      $ci
+      $caseInsensitive
         ? ($natural ? \strnatcasecmp($a, $b) : \strcasecmp($a, $b))
         : ($natural ? \strnatcmp($a, $b) : \strcmp($a, $b));
     return sign($ret);
   }
-  function str_eq($a, $b, $ci = false, $natural = false) {
-    return str_cmp($a, $b, $ci, $natural) == 0;
+  function str_eq($a, $b, $caseInsensitive = false, $natural = false) {
+    return str_cmp($a, $b, $caseInsensitive, $natural) == 0;
   }
   function starts_with($string, $prefix) {
     return slice($string, 0, length($prefix)) === $prefix;

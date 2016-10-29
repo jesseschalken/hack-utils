@@ -16,7 +16,7 @@ namespace HackUtils {
       $flags |= \JSON_PRESERVE_ZERO_FRACTION;
     }
     if ($binary) {
-      $value = _json_map_strings(
+      $value = _map_strings(
         $value,
         function($x) {
           return \utf8_encode($x);
@@ -33,7 +33,7 @@ namespace HackUtils {
     _json_check_error();
     _json_check_value($value);
     if ($binary) {
-      $value = _json_map_strings(
+      $value = _map_strings(
         $value,
         function($x) {
           return \utf8_decode($x);
@@ -45,7 +45,7 @@ namespace HackUtils {
   function _json_check_value($x) {
     if (\is_object($x) || \is_resource($x)) {
       throw new JSONException(
-        "Type is not supported",
+        "Objects are not supported. Use an associative array.",
         \JSON_ERROR_UNSUPPORTED_TYPE
       );
     }
@@ -55,14 +55,16 @@ namespace HackUtils {
       }
     }
   }
-  function _json_map_strings($x, $f) {
+  function _map_strings($x, $f) {
     if (\is_string($x)) {
       return $f($x);
     }
     if (\is_array($x)) {
       $r = array();
       foreach ($x as $k => $v) {
-        $r[$f($k."")] = $f($v);
+        $k = _map_strings($k, $f);
+        $v = _map_strings($v, $f);
+        $r[$k] = $v;
       }
       return $r;
     }
