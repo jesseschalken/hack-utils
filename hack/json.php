@@ -4,8 +4,13 @@ namespace HackUtils;
 
 /**
  * Convert a value to JSON. Only accepts values that can be converted to their
- * exact original by json_decode(). So no resources, objects or INF, -INF or
- * NAN.
+ * exact original by json_decode(). Those are:
+ * - int
+ * - float (but not INF, -INF or NAN)
+ * - bool
+ * - string (must be valid UTF8 unless $binary = true)
+ * - null
+ * - array (both sequential and associative) whose values are also valid
  *
  * Set $binary to TRUE to have strings interpereted as binary instead of UTF8.
  *
