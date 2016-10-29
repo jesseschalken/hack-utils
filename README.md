@@ -8,7 +8,7 @@ Type safe wrappers for PHP functions for usage with [Hack](http://hacklang.org/)
 - Where possible, provide simpler or more useful semantics than stock PHP APIs
 - Cover the core set of functionality that common Hack/PHP programs require
 
-The library functions like any other Composer package and does not require `hhvm` or `h2tp` to be installed to be used. Use `./build.bash` to rebuild the PHP code using `h2tp`.
+The library functions like any other Composer package and does not require `hhvm` or `h2tp` to be installed to be used. When modifying this library, rebuild the PHP code with [`./build.bash`](./build.bash).
 
 Functions are provided for
 - [strings](./hack/main.php) _(find, repeat, replace, slice, splice, chunk, trim, pad, reverse, split, join, [is_alnum](./hack/ctype.php), to/from hex, encode/decode utf8, ...)_
@@ -22,7 +22,7 @@ Browse the source code in the [`hack/`](./hack/) directory.
 
 Functions have simple verbal names. Where a different use of the same verb is needed for different types (sequential array, associative array, string), the less common versions are suffixed with `_string`, `_array` or `_assoc` as appropriate. For example, `chunk` (for arrays), `chunk_string`, `chunk_assoc`.
 
-Symbols prefixed with `_` should not be referenced from outside the library.
+Symbols prefixed with `_` are private and should not be referenced from outside the library.
 
 TODO:
 - Filesystem (fopen, scandir, unlink, ...)
