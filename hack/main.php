@@ -29,6 +29,9 @@ function throw_<T>(\Exception $e): T {
   throw $e;
 }
 
+/**
+ * On PHP7 and HHVM you can use "??". Use this function to support PHP5.
+ */
 function if_null<T>(?T $x, T $y): T {
   return $x === null ? $y : $x;
 }
@@ -254,7 +257,7 @@ function set<Tk, Tv>(array<Tk, Tv> $array, Tk $key, Tv $val): array<Tk, Tv> {
 }
 
 function get_or_null<Tk, Tv>(array<Tk, Tv> $array, Tk $key): ?Tv {
-  return $array[$key] ?? null;
+  return _idx_isset($array, $key, null);
 }
 
 function get_or_default<Tk, Tv>(
@@ -262,7 +265,18 @@ function get_or_default<Tk, Tv>(
   Tk $key,
   Tv $default,
 ): Tv {
-  return key_exists($array, $key) ? $array[$key] : $default;
+  return _idx($array, $key, $default);
+}
+
+/**
+ * Same as get_or_default() but fills a value of NULL with the default.
+ */
+function get_isset_default<Tk, Tv>(
+  array<Tk, Tv> $array,
+  Tk $key,
+  Tv $default,
+): Tv {
+  return _idx_isset($array, $key, $default);
 }
 
 function key_exists<Tk>(array<Tk, mixed> $array, Tk $key): bool {

@@ -165,10 +165,13 @@ namespace HackUtils {
     return $array;
   }
   function get_or_null($array, $key) {
-    return $array[$key] ?? null;
+    return _idx_isset($array, $key, null);
   }
   function get_or_default($array, $key, $default) {
-    return key_exists($array, $key) ? $array[$key] : $default;
+    return _idx($array, $key, $default);
+  }
+  function get_isset_default($array, $key, $default) {
+    return _idx_isset($array, $key, $default);
   }
   function key_exists($array, $key) {
     return \array_key_exists($key, $array);
