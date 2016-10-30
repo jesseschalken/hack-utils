@@ -154,7 +154,7 @@ namespace HackUtils\DateTime {
     if (($part < 0) || ($part > PART_MICROSECOND)) {
       throw new \Exception("Invalid date/time part: ".$part);
     }
-    $f = "YmdHis";
+    $f = "YmdHisu";
     return (int) format($dt, $f[$part]);
   }
   function now($tz, $withMicroseconds = false) {
