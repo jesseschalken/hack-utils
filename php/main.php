@@ -478,7 +478,7 @@ namespace HackUtils {
     return \count($array);
   }
   function find_key($array, $value) {
-    $ret = \array_search($array, $value, true);
+    $ret = \array_search($value, $array, true);
     return ($ret === false) ? new_null() : $ret;
   }
   function find_keys($array, $value) {

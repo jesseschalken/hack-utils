@@ -743,7 +743,7 @@ function size(array<mixed, mixed> $array): int {
 }
 
 function find_key<Tk, Tv>(array<Tk, Tv> $array, Tv $value): ?Tk {
-  $ret = \array_search($array, $value, true);
+  $ret = \array_search($value, $array, true);
   return $ret === false ? new_null() : $ret;
 }
 
