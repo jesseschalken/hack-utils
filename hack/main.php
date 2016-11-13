@@ -2,9 +2,6 @@
 
 namespace HackUtils;
 
-type datetime = DateTime\datetime;
-type timezone = DateTime\timezone;
-
 /**
  * The Hack typechecker reports "null" as "Partially type checked code.
  * Consider adding type annotations". To avoid that, you can replace it with
