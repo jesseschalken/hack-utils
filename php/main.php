@@ -530,6 +530,15 @@ namespace HackUtils {
   function encode_utf8($s) {
     return \utf8_encode($s);
   }
+  function is_utf8($s) {
+    return (bool) \preg_match("//u", $s);
+  }
+  function add_slashes($s) {
+    return \addslashes($s);
+  }
+  function strip_slashes($s) {
+    return \stripslashes($s);
+  }
   function split($string, $delimiter = "", $limit = null) {
     $limit = if_null($limit, 0x7FFFFFFF);
     if ($limit < 1) {

@@ -826,6 +826,25 @@ function encode_utf8(string $s): string {
   return \utf8_encode($s);
 }
 
+function is_utf8(string $s): bool {
+  return (bool) \preg_match('//u', $s);
+}
+
+/**
+ * Replaces the null byte with "\0" and prepends a backslash before single
+ * quotes, double quotes and backslashes.
+ */
+function add_slashes(string $s): string {
+  return \addslashes($s);
+}
+
+/**
+ * Removes unescaped backslashes. "\a" => "a", "\\" => "\", "\0" => "<NUL>", ..
+ */
+function strip_slashes(string $s): string {
+  return \stripslashes($s);
+}
+
 /**
  * Split a string on a delimiter. If the delimiter is the empty string, splits
  * the string into individual characters. $limit will limit the number of
