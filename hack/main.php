@@ -370,14 +370,17 @@ function values<Tv>(array<mixed, Tv> $array): array<Tv> {
 /**
  * If a key exists in both arrays, the value from the second array is used.
  */
-function union<Tk, Tv>(array<Tk, Tv> $a, array<Tk, Tv> $b): array<Tk, Tv> {
+function union_keys<Tk, Tv>(
+  array<Tk, Tv> $a,
+  array<Tk, Tv> $b,
+): array<Tk, Tv> {
   return \array_replace($a, $b);
 }
 
 /**
  * If a key exists in multiple arrays, the value from the later array is used.
  */
-function union_all<Tk, Tv>(array<array<Tk, Tv>> $arrays): array<Tk, Tv> {
+function union_keys_all<Tk, Tv>(array<array<Tk, Tv>> $arrays): array<Tk, Tv> {
   return $arrays ? \call_user_func_array('array_replace', $arrays) : [];
 }
 

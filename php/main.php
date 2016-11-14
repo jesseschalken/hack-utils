@@ -246,10 +246,10 @@ namespace HackUtils {
   function values($array) {
     return \array_values($array);
   }
-  function union($a, $b) {
+  function union_keys($a, $b) {
     return \array_replace($a, $b);
   }
-  function union_all($arrays) {
+  function union_keys_all($arrays) {
     return
       $arrays ? \call_user_func_array("array_replace", $arrays) : array();
   }
