@@ -142,8 +142,35 @@ namespace HackUtils {
     public function getTimestamp() {
       return $this->dt->getTimestamp();
     }
+    public function getYear() {
+      return (int) $this->format("Y");
+    }
+    public function getMonth() {
+      return (int) $this->format("m");
+    }
+    public function getDay() {
+      return (int) $this->format("d");
+    }
+    public function getHour() {
+      return (int) $this->format("H");
+    }
+    public function getMinute() {
+      return (int) $this->format("i");
+    }
+    public function getSecond() {
+      return (int) $this->format("s");
+    }
     public function getMicrosecond() {
       return (int) $this->format("u");
+    }
+    public function getISOYear() {
+      return (int) $this->format("o");
+    }
+    public function getISOWeek() {
+      return (int) $this->format("W");
+    }
+    public function getISOWeekday() {
+      return (int) $this->format("N");
     }
     public function getMicrotimestamp() {
       return ($this->getTimestamp() * 1000000) + $this->getMicrosecond();

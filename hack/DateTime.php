@@ -194,8 +194,54 @@ final class DateTime {
     return $this->dt->getTimestamp();
   }
 
+  public function getYear(): int {
+    return (int) $this->format('Y');
+  }
+
+  public function getMonth(): int {
+    return (int) $this->format('m');
+  }
+
+  public function getDay(): int {
+    return (int) $this->format('d');
+  }
+
+  public function getHour(): int {
+    return (int) $this->format('H');
+  }
+
+  public function getMinute(): int {
+    return (int) $this->format('i');
+  }
+
+  public function getSecond(): int {
+    return (int) $this->format('s');
+  }
+
   public function getMicrosecond(): int {
     return (int) $this->format('u');
+  }
+
+  /**
+   * Same as getYear() but if the Monday of the current week belongs to the
+   * previous year, that year is returned instead.
+   */
+  public function getISOYear(): int {
+    return (int) $this->format('o');
+  }
+
+  /**
+   * The week of the year returned by getISOYear().
+   */
+  public function getISOWeek(): int {
+    return (int) $this->format('W');
+  }
+
+  /**
+   * 1 for Monday, 7 for Sunday
+   */
+  public function getISOWeekday(): int {
+    return (int) $this->format('N');
   }
 
   public function getMicrotimestamp(): int {
