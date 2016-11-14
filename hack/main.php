@@ -943,6 +943,17 @@ function pad_right(string $string, int $length, string $pad = ' '): string {
   return \str_pad($string, $length, $pad, \STR_PAD_RIGHT);
 }
 
+/**
+ * Set a string's length, padding with the specified pad string and discarding
+ * bytes in excess. If length is negative, that many characters will be removed
+ * from the end.
+ */
+function set_length(string $string, int $length, string $pad = ' '): string {
+  $string = slice($string, 0, $length);
+  $string = pad_right($string, $length, $pad);
+  return $string;
+}
+
 function from_char_code(int $ascii): string {
   if ($ascii < 0 || $ascii >= 256) {
     throw new \Exception(

@@ -163,7 +163,6 @@ namespace HackUtils {
     _assert_equal(starts_with("abbb", ""), true);
     _assert_equal(starts_with("", ""), true);
     _assert_equal(starts_with("", "a"), false);
-    echo ("round_half_down\n");
     _assert_equal(round_half_down(0.5), 0.0);
     _assert_equal(round_half_down(1.5), 1.0);
     _assert_equal(round_half_down(-0.5), -1.0);
@@ -171,7 +170,6 @@ namespace HackUtils {
     _assert_equal(round_half_down(INF), INF);
     _assert_equal(round_half_down(-INF), -INF);
     _assert_equal(round_half_down(NAN), NAN);
-    echo ("round_half_up\n");
     _assert_equal(round_half_up(0.5), 1.0);
     _assert_equal(round_half_up(1.5), 2.0);
     _assert_equal(round_half_up(-0.5), 0.0);
@@ -179,7 +177,6 @@ namespace HackUtils {
     _assert_equal(round_half_up(INF), INF);
     _assert_equal(round_half_up(-INF), -INF);
     _assert_equal(round_half_up(NAN), NAN);
-    echo ("round_half_to_inf\n");
     _assert_equal(round_half_to_inf(0.5), 1.0);
     _assert_equal(round_half_to_inf(1.5), 2.0);
     _assert_equal(round_half_to_inf(-0.5), -1.0);
@@ -187,7 +184,6 @@ namespace HackUtils {
     _assert_equal(round_half_to_inf(INF), INF);
     _assert_equal(round_half_to_inf(-INF), -INF);
     _assert_equal(round_half_to_inf(NAN), NAN);
-    echo ("round_half_to_zero\n");
     _assert_equal(round_half_to_zero(0.5), 0.0);
     _assert_equal(round_half_to_zero(1.5), 1.0);
     _assert_equal(round_half_to_zero(-0.5), 0.0);
@@ -195,7 +191,6 @@ namespace HackUtils {
     _assert_equal(round_half_to_zero(INF), INF);
     _assert_equal(round_half_to_zero(-INF), -INF);
     _assert_equal(round_half_to_zero(NAN), NAN);
-    echo ("round_half_to_even\n");
     _assert_equal(round_half_to_even(0.5), 0.0);
     _assert_equal(round_half_to_even(1.5), 2.0);
     _assert_equal(round_half_to_even(-0.5), 0.0);
@@ -203,7 +198,6 @@ namespace HackUtils {
     _assert_equal(round_half_to_even(INF), INF);
     _assert_equal(round_half_to_even(-INF), -INF);
     _assert_equal(round_half_to_even(NAN), NAN);
-    echo ("round_half_to_odd\n");
     _assert_equal(round_half_to_odd(0.5), 1.0);
     _assert_equal(round_half_to_odd(1.5), 1.0);
     _assert_equal(round_half_to_odd(-0.5), -1.0);
@@ -211,6 +205,18 @@ namespace HackUtils {
     _assert_equal(round_half_to_odd(INF), INF);
     _assert_equal(round_half_to_odd(-INF), -INF);
     _assert_equal(round_half_to_odd(NAN), NAN);
+    _assert_equal(set_length("ab", -3), "");
+    _assert_equal(set_length("ab", -2), "");
+    _assert_equal(set_length("ab", -1), "a");
+    _assert_equal(set_length("ab", 0), "");
+    _assert_equal(set_length("ab", 1), "a");
+    _assert_equal(set_length("ab", 2), "ab");
+    _assert_equal(set_length("ab", 3), "ab ");
+    _assert_equal(set_length("ab", 4), "ab  ");
+    _assert_equal(set_length("ab", 3, "12"), "ab1");
+    _assert_equal(set_length("ab", 4, "12"), "ab12");
+    _assert_equal(set_length("ab", 5, "12"), "ab121");
+    _assert_equal(set_length("ab", 6, "12"), "ab1212");
     echo ("okay\n");
   }
 }

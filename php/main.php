@@ -610,6 +610,11 @@ namespace HackUtils {
   function pad_right($string, $length, $pad = " ") {
     return \str_pad($string, $length, $pad, \STR_PAD_RIGHT);
   }
+  function set_length($string, $length, $pad = " ") {
+    $string = slice($string, 0, $length);
+    $string = pad_right($string, $length, $pad);
+    return $string;
+  }
   function from_char_code($ascii) {
     if (($ascii < 0) || ($ascii >= 256)) {
       throw new \Exception(
