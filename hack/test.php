@@ -256,5 +256,15 @@ function _run_tests(): void {
   _assert_equal(set_length('ab', 5, '12'), 'ab121');
   _assert_equal(set_length('ab', 6, '12'), 'ab1212');
 
+  _assert_equal(split_at('abc', -4), tuple('', 'abc'));
+  _assert_equal(split_at('abc', -3), tuple('', 'abc'));
+  _assert_equal(split_at('abc', -2), tuple('a', 'bc'));
+  _assert_equal(split_at('abc', -1), tuple('ab', 'c'));
+  _assert_equal(split_at('abc', 0), tuple('', 'abc'));
+  _assert_equal(split_at('abc', 1), tuple('a', 'bc'));
+  _assert_equal(split_at('abc', 2), tuple('ab', 'c'));
+  _assert_equal(split_at('abc', 3), tuple('abc', ''));
+  _assert_equal(split_at('abc', 4), tuple('abc', ''));
+
   print "okay\n";
 }

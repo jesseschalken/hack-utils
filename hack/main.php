@@ -897,6 +897,14 @@ function split_lines(string $string): array<string> {
   return $lines;
 }
 
+/**
+ * Split the string in two at the specified offset.
+ * Negative offsets are supported.
+ */
+function split_at(string $string, int $offset): (string, string) {
+  return tuple(slice($string, 0, $offset), slice($string, $offset));
+}
+
 function join(array<string> $strings, string $delimiter = ''): string {
   return \implode($delimiter, $strings);
 }

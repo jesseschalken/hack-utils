@@ -214,6 +214,15 @@ namespace HackUtils {
     _assert_equal(set_length("ab", 4, "12"), "ab12");
     _assert_equal(set_length("ab", 5, "12"), "ab121");
     _assert_equal(set_length("ab", 6, "12"), "ab1212");
+    _assert_equal(split_at("abc", -4), array("", "abc"));
+    _assert_equal(split_at("abc", -3), array("", "abc"));
+    _assert_equal(split_at("abc", -2), array("a", "bc"));
+    _assert_equal(split_at("abc", -1), array("ab", "c"));
+    _assert_equal(split_at("abc", 0), array("", "abc"));
+    _assert_equal(split_at("abc", 1), array("a", "bc"));
+    _assert_equal(split_at("abc", 2), array("ab", "c"));
+    _assert_equal(split_at("abc", 3), array("abc", ""));
+    _assert_equal(split_at("abc", 4), array("abc", ""));
     echo ("okay\n");
   }
 }

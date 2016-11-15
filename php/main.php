@@ -572,6 +572,9 @@ namespace HackUtils {
     }
     return $lines;
   }
+  function split_at($string, $offset) {
+    return array(slice($string, 0, $offset), slice($string, $offset));
+  }
   function join($strings, $delimiter = "") {
     return \implode($delimiter, $strings);
   }
