@@ -95,10 +95,9 @@ namespace HackUtils {
     return \array_reduce($array, $f, $initial);
   }
   function reduce_right($array, $f, $value) {
-    \end($array);
-    while (\key($array) !== null) {
-      $value = $f($value, \current($array));
-      \prev($array);
+    $iter = new ArrayIterator($array);
+    for ($iter->end(); $iter->valid(); $iter->prev()) {
+      $value = $f($value, $iter->current());
     }
     return $value;
   }
@@ -485,12 +484,11 @@ namespace HackUtils {
     return \array_keys($array, $value, true);
   }
   function find_last_key($array, $value) {
-    \end($array);
-    while (!\is_null($key = \key($array))) {
-      if (\current($array) === $value) {
-        return $key;
+    $iter = new ArrayIterator($array);
+    for ($iter->end(); $iter->valid(); $iter->prev()) {
+      if ($iter->current() === $value) {
+        return $iter->key();
       }
-      \prev($array);
     }
     return null;
   }

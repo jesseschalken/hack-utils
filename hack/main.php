@@ -157,12 +157,9 @@ function reduce_right<Tin, Tout>(
   (function(Tout, Tin): Tout) $f,
   Tout $value,
 ): Tout {
-  // Messy, but the easiest way of iterating through an array in reverse
-  // without creating a copy.
-  \end($array);
-  while (\key($array) !== null) {
-    $value = $f($value, \current($array));
-    \prev($array);
+  $iter = new ArrayIterator($array);
+  for ($iter->end(); $iter->valid(); $iter->prev()) {
+    $value = $f($value, $iter->current());
   }
   return $value;
 }
@@ -752,14 +749,11 @@ function find_keys<Tk, Tv>(array<Tk, Tv> $array, Tv $value): array<Tk> {
 }
 
 function find_last_key<Tk, Tv>(array<Tk, Tv> $array, Tv $value): ?Tk {
-  // Messy, but the easiest way to iterate in reverse that works
-  // with both vector and associative arrays and doesn't create a copy.
-  \end($array);
-  while (!\is_null($key = \key($array))) {
-    if (\current($array) === $value) {
-      return $key;
+  $iter = new ArrayIterator($array);
+  for ($iter->end(); $iter->valid(); $iter->prev()) {
+    if ($iter->current() === $value) {
+      return $iter->key();
     }
-    \prev($array);
   }
   return null;
 }

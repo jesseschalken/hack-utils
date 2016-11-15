@@ -25,25 +25,22 @@ namespace HackUtils {
       if (\count($a) !== \count($b)) {
         return false;
       }
-      \reset($a);
-      \reset($b);
-      while (1) {
-        $k1 = \key($a);
-        $k2 = \key($b);
-        if ($k1 !== $k2) {
+      $iterA = new ArrayIterator($a);
+      $iterB = new ArrayIterator($b);
+      for (
+        $iterA->rewind(), $iterB->rewind();
+        $iterA->valid() && $iterB->valid();
+        $iterA->next(), $iterB->next()
+      ) {
+        if ((!_is_equal($iterA->key(), $iterB->key())) ||
+            (!_is_equal($iterA->current(), $iterB->current()))) {
           return false;
         }
-        if ($k1 === null) {
-          return true;
-        }
-        $v1 = \current($a);
-        $v2 = \current($b);
-        if (!_is_equal($v1, $v2)) {
-          return false;
-        }
-        \next($a);
-        \next($b);
       }
+      if ($iterA->valid() != $iterB->valid()) {
+        return false;
+      }
+      return true;
     }
     return $a === $b;
   }
