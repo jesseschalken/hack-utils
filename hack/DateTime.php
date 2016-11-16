@@ -31,6 +31,10 @@ final class TimeZone {
 
   private function __construct(private \DateTimeZone $tz) {}
 
+  public function getName(): string {
+    return $this->tz->getName();
+  }
+
   /**
    * Not to be used from outside this library.
    */
@@ -73,10 +77,19 @@ final class DateTime {
       $string,
       $tz->_unwrap(),
     );
+    self::checkErrors($string, $format);
+    return new self($result);
+  }
+
+  public static function fuzzyParse(string $string, TimeZone $tz): DateTime {
+    $result = new \DateTimeImmutable($string, $tz->_unwrap());
+    self::checkErrors($string, new_null());
+    return new self($result);
+  }
+
+  private static function checkErrors(string $string, ?string $format): void {
     $errors = \DateTimeImmutable::getLastErrors();
-    if ($errors['warning_count'] ||
-        $errors['error_count'] ||
-        !($result instanceof \DateTimeImmutable)) {
+    if ($errors['warning_count'] || $errors['error_count']) {
       $message = [];
       foreach ($errors['errors'] as $offset => $m) {
         $message[] = "$m at offset $offset";
@@ -84,16 +97,15 @@ final class DateTime {
       foreach ($errors['warnings'] as $offset => $m) {
         $message[] = "$m at offset $offset";
       }
-      throw new DateTimeParseException(
-        sprintf(
-          'Could not parse date "%s" in format "%s": %s.',
-          $string,
-          $format,
-          implode(', ', $message),
-        ),
-      );
+      $message = join($message, ', ');
+      if ($format !== null) {
+        $message =
+          "Could not parse date \"$string\" in format \"$format\": $message";
+      } else {
+        $message = "Could not parse date \"$string\": $message";
+      }
+      throw new DateTimeParseException($message);
     }
-    return new self($result);
   }
 
   public static function fromTimestamp(

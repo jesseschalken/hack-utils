@@ -19,6 +19,9 @@ namespace HackUtils {
     private function __construct($tz) {
       $this->tz = $tz;
     }
+    public function getName() {
+      return $this->tz->getName();
+    }
     public function _unwrap() {
       return $this->tz;
     }
@@ -45,10 +48,17 @@ namespace HackUtils {
         $string,
         $tz->_unwrap()
       );
+      self::checkErrors($string, $format);
+      return new self($result);
+    }
+    public static function fuzzyParse($string, $tz) {
+      $result = new \DateTimeImmutable($string, $tz->_unwrap());
+      self::checkErrors($string, new_null());
+      return new self($result);
+    }
+    private static function checkErrors($string, $format) {
       $errors = \DateTimeImmutable::getLastErrors();
-      if ($errors["warning_count"] ||
-          $errors["error_count"] ||
-          (!($result instanceof \DateTimeImmutable))) {
+      if ($errors["warning_count"] || $errors["error_count"]) {
         $message = array();
         foreach ($errors["errors"] as $offset => $m) {
           $message[] = $m." at offset ".$offset;
@@ -56,16 +66,20 @@ namespace HackUtils {
         foreach ($errors["warnings"] as $offset => $m) {
           $message[] = $m." at offset ".$offset;
         }
-        throw new DateTimeParseException(
-          sprintf(
-            "Could not parse date \"%s\" in format \"%s\": %s.",
-            $string,
-            $format,
-            implode(", ", $message)
-          )
-        );
+        $message = join($message, ", ");
+        if ($format !== null) {
+          $message =
+            "Could not parse date \"".
+            $string.
+            "\" in format \"".
+            $format.
+            "\": ".
+            $message;
+        } else {
+          $message = "Could not parse date \"".$string."\": ".$message;
+        }
+        throw new DateTimeParseException($message);
       }
-      return new self($result);
     }
     public static function fromTimestamp($sec, $tz, $usec = 0) {
       if ($usec) {
