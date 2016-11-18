@@ -821,6 +821,9 @@ function encode_utf8(string $s): string {
 }
 
 function is_utf8(string $s): bool {
+  // My testing reveals this is about 4.5 times faster than mb_check_encoding()
+  // on 1,000,000 random 4 byte strings, and produces the exact same result.
+  // On 10,000 10KB strings, it was about 250 times faster. :O
   return (bool) \preg_match('//u', $s);
 }
 
