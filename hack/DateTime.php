@@ -132,7 +132,7 @@ final class DateTime {
         $string = $sec.'';
       } else {
         $format = 'Y-m-d H:i:s';
-        $string = new self(new \DateTimeImmutable('@'.$sec, $utc->_unwrap()))
+        $string = (new self(new \DateTimeImmutable('@'.$sec, $utc->_unwrap())))
           ->format($format);
       }
 
@@ -307,7 +307,7 @@ final class DateTime {
     if ($usec) {
       list($sec, $usec) = self::overflowUsec($sec, $usec);
     }
-    return new self($this->dt->setTimestamp($sec))->withMicrosecond($usec);
+    return (new self($this->dt->setTimestamp($sec)))->withMicrosecond($usec);
   }
 
   public function withISODate(int $year, int $week, int $day): DateTime {
