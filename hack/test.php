@@ -266,5 +266,61 @@ function _run_tests(): void {
   _assert_equal(split_at('abc', 3), tuple('abc', ''));
   _assert_equal(split_at('abc', 4), tuple('abc', ''));
 
+  _assert_equal(is_leap_year(2016), true);
+  _assert_equal(is_leap_year(2015), false);
+  _assert_equal(is_leap_year(2000), true);
+  _assert_equal(is_leap_year(2400), true);
+  _assert_equal(is_leap_year(2401), false);
+  _assert_equal(is_leap_year(2404), true);
+  _assert_equal(is_leap_year(2500), false);
+  _assert_equal(is_leap_year(2504), true);
+  _assert_equal(is_leap_year(1900), false);
+  _assert_equal(is_leap_year(2100), false);
+  _assert_equal(is_leap_year(2104), true);
+
+  _assert_equal(days_in_month(2016, 1), 31);
+  _assert_equal(days_in_month(2016, 2), 29);
+  _assert_equal(days_in_month(2016, 3), 31);
+  _assert_equal(days_in_month(2016, 4), 30);
+  _assert_equal(days_in_month(2016, 5), 31);
+  _assert_equal(days_in_month(2016, 6), 30);
+  _assert_equal(days_in_month(2016, 7), 31);
+  _assert_equal(days_in_month(2016, 8), 31);
+  _assert_equal(days_in_month(2016, 9), 30);
+  _assert_equal(days_in_month(2016, 10), 31);
+  _assert_equal(days_in_month(2016, 11), 30);
+  _assert_equal(days_in_month(2016, 12), 31);
+  _assert_equal(days_in_month(2015, 2), 28);
+  _assert_equal(days_in_month(2012, 2), 29);
+
+  _assert_equal(overflow_date(2015, 2, 29), tuple(2015, 3, 1));
+  _assert_equal(overflow_date(2015, 1, 0), tuple(2014, 12, 31));
+  _assert_equal(overflow_date(2015, 1, 365), tuple(2015, 12, 31));
+  _assert_equal(overflow_date(2016, 1, 366), tuple(2016, 12, 31));
+  _assert_equal(overflow_date(2015, 13, 366), tuple(2016, 12, 31));
+  _assert_equal(overflow_date(2016, 16, -31 - 28 - 31), tuple(2016, 12, 31));
+  _assert_equal(
+    overflow_date(2016, -3, 30 + 31 + 30 + 31 + 17),
+    tuple(2016, 1, 17),
+  );
+  _assert_equal(overflow_date(2016, -3, -8), tuple(2015, 8, 23));
+
+  _assert_equal(is_valid_date(2016, 2, 29), true);
+  _assert_equal(is_valid_date(2015, 2, 29), false);
+  _assert_equal(is_valid_date(2016, 11, 23), true);
+  _assert_equal(is_valid_date(2016, 11, 30), true);
+  _assert_equal(is_valid_date(2016, 11, 31), false);
+  _assert_equal(is_valid_date(2016, 12, 31), true);
+  _assert_equal(is_valid_date(2016, 12, 32), false);
+  _assert_equal(is_valid_date(2016, 13, 31), false);
+  _assert_equal(is_valid_date(2016, 0, 31), false);
+  _assert_equal(is_valid_date(2016, -1, 31), false);
+  _assert_equal(is_valid_date(2016, 1, 30), true);
+  _assert_equal(is_valid_date(2016, 1, 0), false);
+  _assert_equal(is_valid_date(2016, 1, -1), false);
+  _assert_equal(is_valid_date(0, 1, 1), true);
+  _assert_equal(is_valid_date(INT_MAX, 1, 1), true);
+  _assert_equal(is_valid_date(INT_MIN, 1, 1), true);
+
   print "okay\n";
 }
