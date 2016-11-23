@@ -278,6 +278,30 @@ namespace HackUtils {
     _assert_equal(is_valid_date(0, 1, 1), true);
     _assert_equal(is_valid_date(INT_MAX, 1, 1), true);
     _assert_equal(is_valid_date(INT_MIN, 1, 1), true);
+    _assert_equal(quot(-20, 3), -6);
+    _assert_equal(rem(-20, 3), -2);
+    _assert_equal(div(-20, 3), -7);
+    _assert_equal(mod(-20, 3), 1);
+    _assert_equal(mod(2, 3), 2);
+    _assert_equal(rem(2, 3), 2);
+    _assert_equal(mod(10, 5), 0);
+    _assert_equal(rem(10, 5), 0);
+    _assert_equal(mod(1, -1), 0);
+    _assert_equal(rem(1, -1), 0);
+    _assert_equal(mod(2, -3), -1);
+    _assert_equal(rem(2, -3), 2);
+    _assert_equal(mod(5, 3), 2);
+    _assert_equal(rem(5, 3), 2);
+    _assert_equal(mod(5, -3), -1);
+    _assert_equal(rem(5, -3), 2);
+    _assert_equal(mod(-5, 3), 1);
+    _assert_equal(rem(-5, 3), -2);
+    _assert_equal(mod(-5, -3), -2);
+    _assert_equal(rem(-5, -3), -2);
+    _assert_equal(div_mod(-20, 3), array(-7, 1));
+    _assert_equal(div_mod(-20, -3), array(6, -2));
+    _assert_equal(quot_rem(-20, 3), array(-6, -2));
+    _assert_equal(quot_rem(-20, -3), array(6, -2));
     echo ("okay\n");
   }
 }

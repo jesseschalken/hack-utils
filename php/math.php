@@ -146,14 +146,46 @@ namespace HackUtils {
   function cmp($x, $y) {
     return sign($x - $y);
   }
-  function intdiv($numerator, $divisor) {
-    return \intdiv($numerator, $divisor);
-  }
-  function intpow($base, $exp) {
-    if ($exp < 0) {
-      throw new \Exception("Exponent must not be < 0");
+  final class ToIntException extends \Exception {}
+  function to_int($x) {
+    if (\is_int($x)) {
+      return $x;
     }
-    return \pow($base, $exp);
+    if (\is_float($x)) {
+      $int = (int) $x;
+      if ($int == $x) {
+        return $int;
+      }
+      if ($x == \PHP_INT_MAX) {
+        return \PHP_INT_MAX;
+      }
+      throw new ToIntException("Cannot convert float ".$x." to int");
+    }
+    unreachable();
+  }
+  function quot($x, $y) {
+    return \intdiv($x, $y);
+  }
+  function rem($x, $y) {
+    return $x % $y;
+  }
+  function div($x, $y) {
+    return to_int(($x - mod($x, $y)) / $y);
+  }
+  function mod($x, $y) {
+    $r = $x % $y;
+    if ($r && (($r < 0) != ($y < 0))) {
+      $r += $y;
+    }
+    return $r;
+  }
+  function div_mod($x, $y) {
+    $r = mod($x, $y);
+    return array(to_int(($x - $r) / $y), $r);
+  }
+  function quot_rem($x, $y) {
+    $r = rem($x, $y);
+    return array(to_int(($x - $r) / $y), $r);
   }
   function get_bit($int, $offset) {
     return (bool) ((1 << $offset) & $int);
@@ -164,7 +196,7 @@ namespace HackUtils {
   function sum($array) {
     return \array_sum($array);
   }
-  function product($array) {
+  function prod($array) {
     return \array_product($array);
   }
 }

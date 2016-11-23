@@ -10,6 +10,9 @@ namespace HackUtils {
   function throw_($e) {
     throw $e;
   }
+  function unreachable($message = "This code should be unreachable") {
+    throw new \Exception($message);
+  }
   function if_null($x, $y) {
     return ($x === null) ? $y : $x;
   }

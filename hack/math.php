@@ -200,15 +200,57 @@ function cmp(num $x, num $y): int {
   return sign($x - $y);
 }
 
-function intdiv(int $numerator, int $divisor): int {
-  return \intdiv($numerator, $divisor);
+final class ToIntException extends \Exception {}
+
+/**
+ * Converts intish floats to ints. Useful for numeric operations that may
+ * cause ints to overflow into floats.
+ */
+function to_int(num $x): int {
+  if (\is_int($x))
+    return $x;
+
+  if (\is_float($x)) {
+    $int = (int) $x;
+    if ($int == $x)
+      return $int;
+    // For some reason (int)(float)PHP_INT_MAX == PHP_INT_MIN, so we have to
+    // check that case explicitly.
+    if ($x == \PHP_INT_MAX)
+      return \PHP_INT_MAX;
+    throw new ToIntException("Cannot convert float $x to int");
+  }
+
+  unreachable();
 }
 
-function intpow(int $base, int $exp): int {
-  if ($exp < 0) {
-    throw new \Exception('Exponent must not be < 0');
-  }
-  return \pow($base, $exp);
+function quot(int $x, int $y): int {
+  return \intdiv($x, $y);
+}
+
+function rem(int $x, int $y): int {
+  return $x % $y;
+}
+
+function div(int $x, int $y): int {
+  return to_int(($x - mod($x, $y)) / $y);
+}
+
+function mod(int $x, int $y): int {
+  $r = $x % $y;
+  if ($r && ($r < 0) != ($y < 0))
+    $r += $y;
+  return $r;
+}
+
+function div_mod(int $x, int $y): (int, int) {
+  $r = mod($x, $y);
+  return tuple(to_int(($x - $r) / $y), $r);
+}
+
+function quot_rem(int $x, int $y): (int, int) {
+  $r = rem($x, $y);
+  return tuple(to_int(($x - $r) / $y), $r);
 }
 
 function get_bit(int $int, int $offset): bool {
@@ -223,6 +265,6 @@ function sum<T as num>(array<T> $array): T {
   return \array_sum($array);
 }
 
-function product<T as num>(array<T> $array): T {
+function prod<T as num>(array<T> $array): T {
   return \array_product($array);
 }

@@ -26,6 +26,12 @@ function throw_<T>(\Exception $e): T {
   throw $e;
 }
 
+function unreachable(
+  string $message = 'This code should be unreachable',
+): noreturn {
+  throw new \Exception($message);
+}
+
 /**
  * On PHP7 and HHVM you can use "??". Use this function to support PHP5.
  */
