@@ -293,9 +293,9 @@ function _run_tests(): void {
   _assert_equal(days_in_month(2015, 2), 28);
   _assert_equal(days_in_month(2012, 2), 29);
 
-  _assert_equal(overflow_date(2015, 2, 29), tuple(2015, 3, 1));
   _assert_equal(overflow_date(2015, 1, 0), tuple(2014, 12, 31));
   _assert_equal(overflow_date(2015, 1, 365), tuple(2015, 12, 31));
+  _assert_equal(overflow_date(2015, 2, 29), tuple(2015, 3, 1));
   _assert_equal(overflow_date(2016, 1, 366), tuple(2016, 12, 31));
   _assert_equal(overflow_date(2015, 13, 366), tuple(2016, 12, 31));
   _assert_equal(overflow_date(2016, 16, -31 - 28 - 31), tuple(2016, 12, 31));

@@ -163,29 +163,34 @@ namespace HackUtils {
     }
     unreachable();
   }
-  function quot($x, $y) {
-    return \intdiv($x, $y);
+  function quot($n, $d) {
+    return \intdiv($n, $d);
   }
-  function rem($x, $y) {
-    return $x % $y;
+  function rem($n, $d) {
+    return $n % $d;
   }
-  function div($x, $y) {
-    return to_int(($x - mod($x, $y)) / $y);
+  function div($n, $d) {
+    return to_int(($n - mod($n, $d)) / $d);
   }
-  function mod($x, $y) {
-    $r = $x % $y;
-    if ($r && (($r < 0) != ($y < 0))) {
-      $r += $y;
+  function mod($n, $d) {
+    $r = $n % $d;
+    if ($r && (($r < 0) != ($d < 0))) {
+      $r += $d;
     }
     return $r;
   }
-  function div_mod($x, $y) {
-    $r = mod($x, $y);
-    return array(to_int(($x - $r) / $y), $r);
+  function div_mod($n, $d) {
+    $r = mod($n, $d);
+    return array(to_int(($n - $r) / $d), $r);
   }
-  function quot_rem($x, $y) {
-    $r = rem($x, $y);
-    return array(to_int(($x - $r) / $y), $r);
+  function quot_rem($n, $d) {
+    $r = rem($n, $d);
+    return array(to_int(($n - $r) / $d), $r);
+  }
+  function div_mod2($x, $n, $d) {
+    $ret = div_mod($n, $d);
+    $ret[0] += $x;
+    return $ret;
   }
   function get_bit($int, $offset) {
     return (bool) ((1 << $offset) & $int);

@@ -224,33 +224,52 @@ function to_int(num $x): int {
   unreachable();
 }
 
-function quot(int $x, int $y): int {
-  return \intdiv($x, $y);
+/** Integer division, rounding to zero */
+function quot(int $n, int $d): int {
+  return \intdiv($n, $d);
 }
 
-function rem(int $x, int $y): int {
-  return $x % $y;
+/** Remainder of quot() */
+function rem(int $n, int $d): int {
+  return $n % $d;
 }
 
-function div(int $x, int $y): int {
-  return to_int(($x - mod($x, $y)) / $y);
+/** Remainder of div() */
+function div(int $n, int $d): int {
+  return to_int(($n - mod($n, $d)) / $d);
 }
 
-function mod(int $x, int $y): int {
-  $r = $x % $y;
-  if ($r && ($r < 0) != ($y < 0))
-    $r += $y;
+/** Integer divsion, rounding down */
+function mod(int $n, int $d): int {
+  $r = $n % $d;
+  if ($r && ($r < 0) != ($d < 0))
+    $r += $d;
   return $r;
 }
 
-function div_mod(int $x, int $y): (int, int) {
-  $r = mod($x, $y);
-  return tuple(to_int(($x - $r) / $y), $r);
+/** Integer division and remainder, rounding down */
+function div_mod(int $n, int $d): (int, int) {
+  $r = mod($n, $d);
+  return tuple(to_int(($n - $r) / $d), $r);
 }
 
-function quot_rem(int $x, int $y): (int, int) {
-  $r = rem($x, $y);
-  return tuple(to_int(($x - $r) / $y), $r);
+/** Integer division and remainder, rounding to zero */
+function quot_rem(int $n, int $d): (int, int) {
+  $r = rem($n, $d);
+  return tuple(to_int(($n - $r) / $d), $r);
+}
+
+/**
+ * Same as div_mod() except the extra first parameter is added to the result of
+ * division. Useful to overflow/underflow time parts to higher time parts, eg:
+ *
+ * list($hour, $minute) = div_mod2($hour, $minute, 60);
+ * list($day, $hour) = div_mod2($day, $hour, 24);
+ */
+function div_mod2(int $x, int $n, int $d): (int, int) {
+  $ret = div_mod($n, $d);
+  $ret[0] += $x;
+  return $ret;
 }
 
 function get_bit(int $int, int $offset): bool {

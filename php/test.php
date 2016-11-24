@@ -248,9 +248,9 @@ namespace HackUtils {
     _assert_equal(days_in_month(2016, 12), 31);
     _assert_equal(days_in_month(2015, 2), 28);
     _assert_equal(days_in_month(2012, 2), 29);
-    _assert_equal(overflow_date(2015, 2, 29), array(2015, 3, 1));
     _assert_equal(overflow_date(2015, 1, 0), array(2014, 12, 31));
     _assert_equal(overflow_date(2015, 1, 365), array(2015, 12, 31));
+    _assert_equal(overflow_date(2015, 2, 29), array(2015, 3, 1));
     _assert_equal(overflow_date(2016, 1, 366), array(2016, 12, 31));
     _assert_equal(overflow_date(2015, 13, 366), array(2016, 12, 31));
     _assert_equal(

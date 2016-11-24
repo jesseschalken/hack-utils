@@ -83,7 +83,7 @@ namespace HackUtils {
     }
     public static function fromTimestamp($sec, $tz, $usec = 0) {
       if ($usec) {
-        list($sec, $usec) = self::overflowUsec($sec, $usec);
+        list($sec, $usec) = div_mod2($sec, $usec, 1000000);
       }
       if (!$usec) {
         $ret = new self(new \DateTimeImmutable("@".$sec, $tz->_unwrap()));
@@ -126,16 +126,6 @@ namespace HackUtils {
         ),
         $tz
       );
-    }
-    private static function overflowUsec($sec, $usec) {
-      $diff = \intdiv($usec, 1000000);
-      $sec += $diff;
-      $usec -= $diff * 1000000;
-      if ($usec < 0) {
-        $usec += 1000000;
-        $sec -= 1;
-      }
-      return array($sec, $usec);
     }
     private $dt;
     private function __construct($dt) {
@@ -229,7 +219,7 @@ namespace HackUtils {
     }
     public function withTimestamp($sec, $usec = 0) {
       if ($usec) {
-        list($sec, $usec) = self::overflowUsec($sec, $usec);
+        list($sec, $usec) = div_mod2($sec, $usec, 1000000);
       }
       return
         \hacklib_id(new self($this->dt->setTimestamp($sec)))

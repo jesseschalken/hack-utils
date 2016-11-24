@@ -8,6 +8,9 @@ namespace HackUtils {
     private static
       $months = array(31, -1, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31);
     public static function get($y, $m) {
+      if (($m < 1) || ($m > 12)) {
+        throw new \Exception("Invalid month: ".$m);
+      }
       return ($m == 2) ? (is_leap_year($y) ? 29 : 28) : self::$months[$m - 1];
     }
   }
@@ -15,20 +18,19 @@ namespace HackUtils {
     return _DaysInMonth::get($y, $m);
   }
   function overflow_date($y, $m, $d) {
-    for (; $m < 1; $y--, $m += 12) {
+    $m--;
+    $d--;
+    list($y, $m) = div_mod2($y, $m, 12);
+    while ($d < 0) {
+      list($y, $m) = div_mod2($y, $m - 1, 12);
+      $d += days_in_month($y, $m + 1);
     }
-    for (; $m > 12; $y++, $m -= 12) {
-    }
-    while ($d < 1) {
-      for ($m--; $m < 1; $y--, $m += 12) {
-      }
-      $d += days_in_month($y, $m);
-    }
-    while ($d > ($t = days_in_month($y, $m))) {
+    while ($d >= ($t = days_in_month($y, $m + 1))) {
       $d -= $t;
-      for ($m++; $m > 12; $y++, $m -= 12) {
-      }
+      list($y, $m) = div_mod2($y, $m + 1, 12);
     }
+    $m++;
+    $d++;
     return array($y, $m, $d);
   }
   function is_valid_date($y, $m, $d) {

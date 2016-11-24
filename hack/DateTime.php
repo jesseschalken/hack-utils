@@ -29,7 +29,7 @@ final class TimeZone {
     return new self($tz);
   }
 
-  private function __construct(private \DateTimeZone $tz) {}
+  private function __construct(private _DateTimeZone $tz) {}
 
   public function getName(): string {
     return $this->tz->getName();
@@ -114,7 +114,7 @@ final class DateTime {
     int $usec = 0,
   ): DateTime {
     if ($usec) {
-      list($sec, $usec) = self::overflowUsec($sec, $usec);
+      list($sec, $usec) = div_mod2($sec, $usec, 1000000);
     }
 
     // 'new \DateTimeImmutable()' doesn't accept microseconds.
@@ -132,8 +132,9 @@ final class DateTime {
         $string = $sec.'';
       } else {
         $format = 'Y-m-d H:i:s';
-        $string = (new self(new \DateTimeImmutable('@'.$sec, $utc->_unwrap())))
-          ->format($format);
+        $string =
+          (new self(new \DateTimeImmutable('@'.$sec, $utc->_unwrap())))
+            ->format($format);
       }
 
       $ret =
@@ -175,17 +176,6 @@ final class DateTime {
       ),
       $tz,
     );
-  }
-
-  private static function overflowUsec(int $sec, int $usec): (int, int) {
-    $diff = \intdiv($usec, 1000000);
-    $sec += $diff;
-    $usec -= $diff * 1000000;
-    if ($usec < 0) {
-      $usec += 1000000;
-      $sec -= 1;
-    }
-    return tuple($sec, $usec);
   }
 
   private function __construct(private \DateTimeImmutable $dt) {}
@@ -305,8 +295,9 @@ final class DateTime {
 
   public function withTimestamp(int $sec, int $usec = 0): DateTime {
     if ($usec) {
-      list($sec, $usec) = self::overflowUsec($sec, $usec);
+      list($sec, $usec) = div_mod2($sec, $usec, 1000000);
     }
+
     return (new self($this->dt->setTimestamp($sec)))->withMicrosecond($usec);
   }
 
