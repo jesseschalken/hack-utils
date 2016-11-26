@@ -133,8 +133,16 @@ namespace HackUtils\PCRE {
         }
       }
     }
-    public function group($group = 0) {
+    public function get($group = 0) {
       return $this->match[$group][0];
+    }
+    public function getOrNull($group = 0) {
+      $match = HU\get_or_null($this->match, $group);
+      return $match ? $match[0] : HU\new_null();
+    }
+    public function getOrEmpty($group = 0) {
+      $match = HU\get_or_null($this->match, $group);
+      return $match ? $match[0] : "";
     }
     public function start($group = 0) {
       return $this->match[$group][1];
@@ -148,13 +156,16 @@ namespace HackUtils\PCRE {
       return array($offset, $offset + \strlen($text));
     }
     public function length($group = 0) {
-      return \strlen($this->group($group));
+      return \strlen($this->get($group));
     }
     public function has($group) {
       return HU\key_exists($this->match, $group);
     }
     public function __toString() {
-      return $this->group();
+      return $this->get();
+    }
+    public function toString() {
+      return $this->get();
     }
     public function toArray() {
       return HU\map_assoc(

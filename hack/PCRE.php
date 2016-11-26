@@ -157,8 +157,18 @@ final class Match {
     }
   }
 
-  public function group(arraykey $group = 0): string {
+  public function get(arraykey $group = 0): string {
     return $this->match[$group][0];
+  }
+
+  public function getOrNull(arraykey $group = 0): ?string {
+    $match = HU\get_or_null($this->match, $group);
+    return $match ? $match[0] : HU\new_null();
+  }
+
+  public function getOrEmpty(arraykey $group = 0): string {
+    $match = HU\get_or_null($this->match, $group);
+    return $match ? $match[0] : '';
   }
 
   public function start(arraykey $group = 0): int {
@@ -176,7 +186,7 @@ final class Match {
   }
 
   public function length(arraykey $group = 0): int {
-    return \strlen($this->group($group));
+    return \strlen($this->get($group));
   }
 
   public function has(arraykey $group): bool {
@@ -184,7 +194,11 @@ final class Match {
   }
 
   public function __toString(): string {
-    return $this->group();
+    return $this->get();
+  }
+
+  public function toString(): string {
+    return $this->get();
   }
 
   public function toArray(): array<arraykey, string> {
