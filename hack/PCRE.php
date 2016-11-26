@@ -22,7 +22,7 @@ final class Pattern {
     // Dumb cache policy, but it works.
     if (\count(self::$escapeCache) >= 10000)
       self::$escapeCache = [];
-    return (self::$escapeCache[$regex] = self::escape($regex));
+    return (self::$escapeCache[$regex] = self::escapeImpl($regex));
   }
 
   private static function escapeImpl(string $regex): string {
