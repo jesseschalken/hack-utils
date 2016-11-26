@@ -94,6 +94,13 @@ namespace HackUtils {
   function map_assoc($array, $f) {
     return \array_map($f, $array);
   }
+  function map_keys($array, $f) {
+    $ret = array();
+    foreach ($array as $k => $v) {
+      $ret[$f($k)] = $v;
+    }
+    return $ret;
+  }
   function reduce($array, $f, $initial) {
     return \array_reduce($array, $f, $initial);
   }

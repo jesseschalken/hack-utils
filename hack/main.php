@@ -150,6 +150,16 @@ function map_assoc<Tk, Tv1, Tv2>(
   return \array_map($f, $array);
 }
 
+function map_keys<Tk1, Tk2, Tv>(
+  array<Tk1, Tv> $array,
+  (function(Tk1): Tk2) $f,
+): array<Tk2, Tv> {
+  $ret = [];
+  foreach ($array as $k => $v)
+    $ret[$f($k)] = $v;
+  return $ret;
+}
+
 function reduce<Tin, Tout>(
   array<arraykey, Tin> $array,
   (function(Tout, Tin): Tout) $f,

@@ -26,6 +26,15 @@ namespace HackUtils {
     _pcre_check_last_error();
     return $count ? (new PCREMatch($match)) : new_null();
   }
+  function pcre_match_or_throw($regex, $subject, $options = "", $offset = 0) {
+    $match = pcre_match($regex, $subject, $options, $offset);
+    if (!$match) {
+      throw new PCRENoMatchException(
+        "Failed to match '".$regex."' against string '".$subject."'"
+      );
+    }
+    return $match;
+  }
   function pcre_match_all($regex, $subject, $options, $offset = 0) {
     $matches = array();
     \preg_match_all(
@@ -101,6 +110,9 @@ namespace HackUtils {
       list($text, $offset) = $this->match[$pat];
       return array($offset, $offset + \strlen($text));
     }
+    public function getLength($pat = 0) {
+      return length($this->get($pat));
+    }
     public function has($pat) {
       return key_exists($this->match, $pat);
     }
@@ -116,7 +128,8 @@ namespace HackUtils {
       );
     }
   }
-  final class PCREException extends \Exception {}
+  class PCREException extends \Exception {}
+  class PCRENoMatchException extends PCREException {}
   function _pcre_compose($regex, $options = "") {
     return "/"._EscapeCache::escape($regex)."/".$options;
   }

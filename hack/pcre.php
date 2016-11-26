@@ -35,6 +35,21 @@ function pcre_match(
   return $count ? new PCREMatch($match) : new_null();
 }
 
+function pcre_match_or_throw(
+  string $regex,
+  string $subject,
+  string $options = '',
+  int $offset = 0,
+): PCREMatch {
+  $match = pcre_match($regex, $subject, $options, $offset);
+  if (!$match) {
+    throw new PCRENoMatchException(
+      "Failed to match '$regex' against string '$subject'",
+    );
+  }
+  return $match;
+}
+
 function pcre_match_all(
   string $regex,
   string $subject,
@@ -141,6 +156,10 @@ final class PCREMatch {
     return tuple($offset, $offset + \strlen($text));
   }
 
+  public function getLength(arraykey $pat = 0): int {
+    return length($this->get($pat));
+  }
+
   public function has(arraykey $pat): bool {
     return key_exists($this->match, $pat);
   }
@@ -154,7 +173,8 @@ final class PCREMatch {
   }
 }
 
-final class PCREException extends \Exception {}
+class PCREException extends \Exception {}
+class PCRENoMatchException extends PCREException {}
 
 function _pcre_compose(string $regex, string $options = ''): string {
   return '/'._EscapeCache::escape($regex).'/'.$options;
