@@ -18,7 +18,7 @@ namespace HackUtils\PCRE {
       if (\count(self::$escapeCache) >= 10000) {
         self::$escapeCache = array();
       }
-      return self::$escapeCache[$regex] = self::escape($regex);
+      return self::$escapeCache[$regex] = self::escapeImpl($regex);
     }
     private static function escapeImpl($regex) {
       $result = "";
