@@ -1,7 +1,7 @@
 <?hh // strict
 
 require_once __DIR__.'/main.php';
-require_once __DIR__.'/pcre.php';
+require_once __DIR__.'/PCRE.php';
 require_once __DIR__.'/math.php';
 require_once __DIR__.'/ctype.php';
 require_once __DIR__.'/DateTime.php';
