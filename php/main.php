@@ -101,6 +101,15 @@ namespace HackUtils {
     }
     return $ret;
   }
+  function concat_map($array, $f) {
+    $ret = array();
+    foreach ($array as $x) {
+      foreach ($f($x) as $x2) {
+        $ret[] = $x2;
+      }
+    }
+    return $ret;
+  }
   function reduce($array, $f, $initial) {
     return \array_reduce($array, $f, $initial);
   }
@@ -550,7 +559,7 @@ namespace HackUtils {
   function split($string, $delimiter = "", $limit = null) {
     $limit = if_null($limit, 0x7FFFFFFF);
     if ($limit < 1) {
-      throw new \Exception("Limit must be >= 1");
+      throw new \Exception("Limit must be >= 1, ".$limit." given");
     }
     if ($delimiter === "") {
       $length = length($string);

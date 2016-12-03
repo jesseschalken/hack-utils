@@ -349,5 +349,7 @@ function _run_tests(): void {
   _assert_equal(quot_rem(-20, 3), tuple(-6, -2));
   _assert_equal(quot_rem(-20, -3), tuple(6, -2));
 
+  _assert_equal(concat_map([1, 5], $x ==> [$x + 1, $x + 2]), [2, 3, 6, 7]);
+
   print "okay\n";
 }

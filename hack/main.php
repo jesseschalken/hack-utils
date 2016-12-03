@@ -160,6 +160,23 @@ function map_keys<Tk1, Tk2, Tv>(
   return $ret;
 }
 
+function concat_map<Tin, Tout>(
+  array<Tin> $array,
+  (function(Tin): array<Tout>) $f,
+): array<Tout> {
+  $ret = [];
+  foreach ($array as $x) {
+    // I'm not sure, but I think the looping append will be faster than a
+    // concat because it wont have to allocate a new array whereas a concat
+    // will.
+    // $ret = concat($ret, $f($x));
+    foreach ($f($x) as $x2) {
+      $ret[] = $x2;
+    }
+  }
+  return $ret;
+}
+
 function reduce<Tin, Tout>(
   array<arraykey, Tin> $array,
   (function(Tout, Tin): Tout) $f,
@@ -872,7 +889,7 @@ function split(
   $limit = if_null($limit, 0x7FFFFFFF);
   // TODO Add support for negative limits with the same semantics as explode().
   if ($limit < 1) {
-    throw new \Exception("Limit must be >= 1");
+    throw new \Exception("Limit must be >= 1, $limit given");
   }
   // \explode() doesn't accept an empty delimiter
   if ($delimiter === '') {

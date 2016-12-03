@@ -302,6 +302,15 @@ namespace HackUtils {
     _assert_equal(div_mod(-20, -3), array(6, -2));
     _assert_equal(quot_rem(-20, 3), array(-6, -2));
     _assert_equal(quot_rem(-20, -3), array(6, -2));
+    _assert_equal(
+      concat_map(
+        array(1, 5),
+        function($x) {
+          return array($x + 1, $x + 2);
+        }
+      ),
+      array(2, 3, 6, 7)
+    );
     echo ("okay\n");
   }
 }
