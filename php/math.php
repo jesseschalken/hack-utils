@@ -45,6 +45,9 @@ namespace HackUtils {
   function trunc($x) {
     return ($x < 0.0) ? ceil($x) : floor($x);
   }
+  function frac($x) {
+    return $x - trunc($x);
+  }
   function round_half_up($x) {
     return floor($x + 0.5);
   }

@@ -64,6 +64,10 @@ function trunc(float $x): float {
   return $x < 0.0 ? ceil($x) : floor($x);
 }
 
+function frac(float $x): float {
+  return $x - trunc($x);
+}
+
 function round_half_up(float $x): float {
   return floor($x + 0.5);
 }

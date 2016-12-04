@@ -351,5 +351,22 @@ function _run_tests(): void {
 
   _assert_equal(concat_map([1, 5], $x ==> [$x + 1, $x + 2]), [2, 3, 6, 7]);
 
+  _assert_equal(frac(0.1), 0.1);
+  _assert_equal(frac(0.9), 0.9);
+  _assert_equal(frac(0.5), 0.5);
+  _assert_equal(frac(0.0), 0.0);
+  _assert_equal(frac(5.0), 5.0 - 5.0);
+  _assert_equal(frac(5.1), 5.1 - 5.0);
+  _assert_equal(frac(5.9), 5.9 - 5.0);
+  _assert_equal(frac(5.5), 5.5 - 5.0);
+  _assert_equal(frac(-0.1), -0.1);
+  _assert_equal(frac(-0.9), -0.9);
+  _assert_equal(frac(-0.5), -0.5);
+  _assert_equal(frac(-0.0), 0.0);
+  _assert_equal(frac(-5.0), -5.0 + 5.0);
+  _assert_equal(frac(-5.1), -5.1 + 5.0);
+  _assert_equal(frac(-5.9), -5.9 + 5.0);
+  _assert_equal(frac(-5.5), -5.5 + 5.0);
+
   print "okay\n";
 }
