@@ -351,22 +351,59 @@ function _run_tests(): void {
 
   _assert_equal(concat_map([1, 5], $x ==> [$x + 1, $x + 2]), [2, 3, 6, 7]);
 
-  _assert_equal(frac(0.1), 0.1);
-  _assert_equal(frac(0.9), 0.9);
-  _assert_equal(frac(0.5), 0.5);
-  _assert_equal(frac(0.0), 0.0);
-  _assert_equal(frac(5.0), 5.0 - 5.0);
-  _assert_equal(frac(5.1), 5.1 - 5.0);
-  _assert_equal(frac(5.9), 5.9 - 5.0);
-  _assert_equal(frac(5.5), 5.5 - 5.0);
-  _assert_equal(frac(-0.1), -0.1);
-  _assert_equal(frac(-0.9), -0.9);
-  _assert_equal(frac(-0.5), -0.5);
-  _assert_equal(frac(-0.0), 0.0);
-  _assert_equal(frac(-5.0), -5.0 + 5.0);
-  _assert_equal(frac(-5.1), -5.1 + 5.0);
-  _assert_equal(frac(-5.9), -5.9 + 5.0);
-  _assert_equal(frac(-5.5), -5.5 + 5.0);
+  _test_multiple(
+    function($x) {
+      return frac($x);
+    },
+    [
+      tuple(0.1, 0.1),
+      tuple(0.9, 0.9),
+      tuple(0.5, 0.5),
+      tuple(0.0, 0.0),
+      tuple(5.0, 5.0 - 5.0),
+      tuple(5.1, 5.1 - 5.0),
+      tuple(5.9, 5.9 - 5.0),
+      tuple(5.5, 5.5 - 5.0),
+      tuple(-0.1, -0.1),
+      tuple(-0.9, -0.9),
+      tuple(-0.5, -0.5),
+      tuple(-0.0, 0.0),
+      tuple(-5.0, -5.0 + 5.0),
+      tuple(-5.1, -5.1 + 5.0),
+      tuple(-5.9, -5.9 + 5.0),
+      tuple(-5.5, -5.5 + 5.0),
+    ],
+  );
+
+  _test_multiple(
+    function($x) {
+      return typeof($x);
+    },
+    [
+      tuple(null, 'null'),
+      tuple(true, 'bool'),
+      tuple(false, 'bool'),
+      tuple(0.0, 'float'),
+      tuple(PI, 'float'),
+      tuple(0, 'int'),
+      tuple(129837, 'int'),
+      tuple([], 'array'),
+      tuple([[]], 'array'),
+      tuple([1], 'array'),
+      tuple(new \stdClass(), 'stdClass'),
+      tuple(function() {}, 'Closure'),
+      tuple(\fopen('php://memory', 'rb'), 'resource'),
+    ],
+  );
 
   print "okay\n";
+}
+
+function _test_multiple<Tin, Tout>(
+  (function(Tin): Tout) $function,
+  array<(Tin, Tout)> $samples,
+): void {
+  foreach ($samples as $pair) {
+    _assert_equal($function($pair[0]), $pair[1]);
+  }
 }

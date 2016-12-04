@@ -311,22 +311,54 @@ namespace HackUtils {
       ),
       array(2, 3, 6, 7)
     );
-    _assert_equal(frac(0.1), 0.1);
-    _assert_equal(frac(0.9), 0.9);
-    _assert_equal(frac(0.5), 0.5);
-    _assert_equal(frac(0.0), 0.0);
-    _assert_equal(frac(5.0), 5.0 - 5.0);
-    _assert_equal(frac(5.1), 5.1 - 5.0);
-    _assert_equal(frac(5.9), 5.9 - 5.0);
-    _assert_equal(frac(5.5), 5.5 - 5.0);
-    _assert_equal(frac(-0.1), -0.1);
-    _assert_equal(frac(-0.9), -0.9);
-    _assert_equal(frac(-0.5), -0.5);
-    _assert_equal(frac(-0.0), 0.0);
-    _assert_equal(frac(-5.0), (-5.0) + 5.0);
-    _assert_equal(frac(-5.1), (-5.1) + 5.0);
-    _assert_equal(frac(-5.9), (-5.9) + 5.0);
-    _assert_equal(frac(-5.5), (-5.5) + 5.0);
+    _test_multiple(
+      function($x) {
+        return frac($x);
+      },
+      array(
+        array(0.1, 0.1),
+        array(0.9, 0.9),
+        array(0.5, 0.5),
+        array(0.0, 0.0),
+        array(5.0, 5.0 - 5.0),
+        array(5.1, 5.1 - 5.0),
+        array(5.9, 5.9 - 5.0),
+        array(5.5, 5.5 - 5.0),
+        array(-0.1, -0.1),
+        array(-0.9, -0.9),
+        array(-0.5, -0.5),
+        array(-0.0, 0.0),
+        array(-5.0, (-5.0) + 5.0),
+        array(-5.1, (-5.1) + 5.0),
+        array(-5.9, (-5.9) + 5.0),
+        array(-5.5, (-5.5) + 5.0)
+      )
+    );
+    _test_multiple(
+      function($x) {
+        return typeof($x);
+      },
+      array(
+        array(null, "null"),
+        array(true, "bool"),
+        array(false, "bool"),
+        array(0.0, "float"),
+        array(PI, "float"),
+        array(0, "int"),
+        array(129837, "int"),
+        array(array(), "array"),
+        array(array(array()), "array"),
+        array(array(1), "array"),
+        array(new \stdClass(), "stdClass"),
+        array(function() {}, "Closure"),
+        array(\fopen("php://memory", "rb"), "resource")
+      )
+    );
     echo ("okay\n");
+  }
+  function _test_multiple($function, $samples) {
+    foreach ($samples as $pair) {
+      _assert_equal($function($pair[0]), $pair[1]);
+    }
   }
 }

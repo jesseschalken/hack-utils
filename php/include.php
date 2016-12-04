@@ -10,3 +10,4 @@ require_once (__DIR__."/sort.php");
 require_once (__DIR__."/test.php");
 require_once (__DIR__."/ArrayIterator.php");
 require_once (__DIR__."/date_utils.php");
+require_once (__DIR__."/typeof.php");
