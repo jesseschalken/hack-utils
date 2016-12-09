@@ -194,6 +194,9 @@ namespace HackUtils {
   function key_exists($array, $key) {
     return \array_key_exists($key, $array);
   }
+  function key_isset($array, $key) {
+    return get_or_null($array, $key) !== null;
+  }
   function get_offset($v, $i) {
     $l = \count($v);
     if ($i < 0) {

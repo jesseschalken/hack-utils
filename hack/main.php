@@ -310,6 +310,13 @@ function key_exists<Tk>(array<Tk, mixed> $array, Tk $key): bool {
   return \array_key_exists($key, $array);
 }
 
+/**
+ * Same as key_exists() except considers a key assigned to NULL not to exist.
+ */
+function key_isset<Tk>(array<Tk, mixed> $array, Tk $key): bool {
+  return get_or_null($array, $key) !== null;
+}
+
 function get_offset<T>(array<T> $v, int $i): T {
   $l = \count($v);
   if ($i < 0) {
