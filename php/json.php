@@ -1,78 +1,87 @@
 <?php
 namespace HackUtils {
   require_once ($GLOBALS["HACKLIB_ROOT"]);
-  function json_encode($value, $binary = false, $pretty = false) {
-    $flags = 0;
-    if (defined("JSON_PRETTY_PRINT") && $pretty) {
-      $flags |= \JSON_PRETTY_PRINT;
+  final class JSON {
+    public static function encode($value, $binary = false, $pretty = false) {
+      $flags = 0;
+      if (\defined("JSON_PRETTY_PRINT") && $pretty) {
+        $flags |= \JSON_PRETTY_PRINT;
+      }
+      if (\defined("JSON_UNESCAPED_SLASHES")) {
+        $flags |= \JSON_UNESCAPED_SLASHES;
+      }
+      if (\defined("JSON_UNESCAPED_UNICODE")) {
+        $flags |= \JSON_UNESCAPED_UNICODE;
+      }
+      if (\defined("JSON_PRESERVE_ZERO_FRACTION")) {
+        $flags |= \JSON_PRESERVE_ZERO_FRACTION;
+      }
+      if ($binary) {
+        $value = self::mapStrings(
+          $value,
+          function($x) {
+            return \utf8_encode($x);
+          }
+        );
+      }
+      self::checkValue($value);
+      $json = \json_encode($value, $flags);
+      self::checkError();
+      return $json;
     }
-    if (defined("JSON_UNESCAPED_SLASHES")) {
-      $flags |= \JSON_UNESCAPED_SLASHES;
+    public static function decode($json, $binary = false) {
+      $value = \json_decode($json, true);
+      self::checkError();
+      if ($binary) {
+        $value = self::mapStrings(
+          $value,
+          function($x) {
+            return \utf8_decode($x);
+          }
+        );
+      }
+      return $value;
     }
-    if (defined("JSON_UNESCAPED_UNICODE")) {
-      $flags |= \JSON_UNESCAPED_UNICODE;
-    }
-    if (defined("JSON_PRESERVE_ZERO_FRACTION")) {
-      $flags |= \JSON_PRESERVE_ZERO_FRACTION;
-    }
-    if ($binary) {
-      $value = _map_strings(
-        $value,
-        function($x) {
-          return \utf8_encode($x);
+    private static function checkValue($x) {
+      if (\is_object($x)) {
+        throw new JSONException(
+          "Objects are not supported. Use an associative array.",
+          \JSON_ERROR_UNSUPPORTED_TYPE
+        );
+      }
+      if (\is_array($x)) {
+        foreach ($x as $v) {
+          self::checkValue($v);
         }
-      );
+      }
     }
-    _json_check_value($value);
-    $json = \json_encode($value, $flags);
-    _json_check_error();
-    return $json;
+    private static function mapStrings($x, $f) {
+      if (\is_string($x)) {
+        return $f($x);
+      }
+      if (\is_array($x)) {
+        $r = array();
+        foreach ($x as $k => $v) {
+          $k = self::mapStrings($k, $f);
+          $v = self::mapStrings($v, $f);
+          $r[$k] = $v;
+        }
+        return $r;
+      }
+      return $x;
+    }
+    private static function checkError() {
+      if (\json_last_error() !== \JSON_ERROR_NONE) {
+        throw new JSONException(\json_last_error_msg(), \json_last_error());
+      }
+    }
+    private function __construct() {}
+  }
+  final class JSONException extends \Exception {}
+  function json_encode($value, $binary = false, $pretty = false) {
+    return JSON::encode($value, $binary, $pretty);
   }
   function json_decode($json, $binary = false) {
-    $value = \json_decode($json, true);
-    _json_check_error();
-    if ($binary) {
-      $value = _map_strings(
-        $value,
-        function($x) {
-          return \utf8_decode($x);
-        }
-      );
-    }
-    return $value;
+    return JSON::decode($json, $binary);
   }
-  function _json_check_value($x) {
-    if (\is_object($x)) {
-      throw new JSONException(
-        "Objects are not supported. Use an associative array.",
-        \JSON_ERROR_UNSUPPORTED_TYPE
-      );
-    }
-    if (\is_array($x)) {
-      foreach ($x as $v) {
-        _json_check_value($v);
-      }
-    }
-  }
-  function _map_strings($x, $f) {
-    if (\is_string($x)) {
-      return $f($x);
-    }
-    if (\is_array($x)) {
-      $r = array();
-      foreach ($x as $k => $v) {
-        $k = _map_strings($k, $f);
-        $v = _map_strings($v, $f);
-        $r[$k] = $v;
-      }
-      return $r;
-    }
-    return $x;
-  }
-  function _json_check_error() {
-    if (\json_last_error() !== \JSON_ERROR_NONE) {
-      throw new JSONException(\json_last_error_msg(), \json_last_error());
-    }
-  }
-  class JSONException extends \Exception {}
 }
