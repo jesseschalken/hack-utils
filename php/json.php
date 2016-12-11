@@ -78,10 +78,4 @@ namespace HackUtils {
     private function __construct() {}
   }
   final class JSONException extends \Exception {}
-  function json_encode($value, $binary = false, $pretty = false) {
-    return JSON::encode($value, $binary, $pretty);
-  }
-  function json_decode($json, $binary = false) {
-    return JSON::decode($json, $binary);
-  }
 }
