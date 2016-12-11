@@ -19,11 +19,9 @@ function sort_keys<Tk, Tv>(
   array<Tk, Tv> $array,
   ?(function(Tk, Tk): int) $cmp = null,
 ): array<Tk, Tv> {
-  if ($cmp !== null) {
-    _check_sort(\uksort($array, $cmp), 'uksort');
-  } else {
+  if ($cmp !== null)
+    _check_sort(\uksort($array, $cmp), 'uksort'); else
     _check_sort(\ksort($array, \SORT_STRING), 'ksort');
-  }
   return $array;
 }
 
@@ -35,11 +33,9 @@ function sort_pairs<Tk as arraykey, Tv>(
 }
 
 function sort_nums<T as num>(array<T> $nums, bool $reverse = false): array<T> {
-  if ($reverse) {
-    _check_sort(\rsort($nums, \SORT_NUMERIC), 'rsort');
-  } else {
+  if ($reverse)
+    _check_sort(\rsort($nums, \SORT_NUMERIC), 'rsort'); else
     _check_sort(\sort($nums, \SORT_NUMERIC), 'sort');
-  }
   return $nums;
 }
 
@@ -47,11 +43,9 @@ function sort_nums_assoc<Tk, Tv as num>(
   array<Tk, Tv> $nums,
   bool $reverse = false,
 ): array<Tk, Tv> {
-  if ($reverse) {
-    _check_sort(\arsort($nums, \SORT_NUMERIC), 'arsort');
-  } else {
+  if ($reverse)
+    _check_sort(\arsort($nums, \SORT_NUMERIC), 'arsort'); else
     _check_sort(\asort($nums, \SORT_NUMERIC), 'asort');
-  }
   return $nums;
 }
 
@@ -59,11 +53,9 @@ function sort_nums_keys<Tk as num, Tv>(
   array<Tk, Tv> $array,
   bool $reverse = false,
 ): array<Tk, Tv> {
-  if ($reverse) {
-    _check_sort(\krsort($array, \SORT_NUMERIC), 'krsort');
-  } else {
+  if ($reverse)
+    _check_sort(\krsort($array, \SORT_NUMERIC), 'krsort'); else
     _check_sort(\ksort($array, \SORT_NUMERIC), 'ksort');
-  }
   return $array;
 }
 
@@ -74,11 +66,9 @@ function sort_strings<T as arraykey>(
   bool $reverse = false,
 ): array<T> {
   $flags = _string_sort_flags($caseInsensitive, $natural);
-  if ($reverse) {
-    _check_sort(\rsort($strings, $flags), 'rsort');
-  } else {
+  if ($reverse)
+    _check_sort(\rsort($strings, $flags), 'rsort'); else
     _check_sort(\sort($strings, $flags), 'sort');
-  }
   return $strings;
 }
 
@@ -89,11 +79,9 @@ function sort_strings_assoc<Tk, Tv as arraykey>(
   bool $reverse = false,
 ): array<Tk, Tv> {
   $flags = _string_sort_flags($caseInsensitive, $natural);
-  if ($reverse) {
-    _check_sort(\arsort($strings, $flags), 'arsort');
-  } else {
+  if ($reverse)
+    _check_sort(\arsort($strings, $flags), 'arsort'); else
     _check_sort(\asort($strings, $flags), 'asort');
-  }
   return $strings;
 }
 
@@ -104,11 +92,9 @@ function sort_strings_keys<Tk as arraykey, Tv>(
   bool $reverse = false,
 ): array<Tk, Tv> {
   $flags = _string_sort_flags($caseInsensitive, $natural);
-  if ($reverse) {
-    _check_sort(\krsort($array, $flags), 'krsort');
-  } else {
+  if ($reverse)
+    _check_sort(\krsort($array, $flags), 'krsort'); else
     _check_sort(\ksort($array, $flags), 'ksort');
-  }
   return $array;
 }
 
@@ -132,7 +118,6 @@ function _string_sort_flags(bool $caseInsensitive, bool $natural): int {
 }
 
 function _check_sort(bool $ret, string $func): void {
-  if ($ret === false) {
+  if ($ret === false)
     throw new \Exception("$func() failed");
-  }
 }
