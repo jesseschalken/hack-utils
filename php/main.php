@@ -171,7 +171,7 @@ namespace HackUtils {
     return $res;
   }
   function get_pair($array, $offset) {
-    foreach (slice_assoc($array, $offset) as $k => $v) {
+    foreach (slice_assoc($array, $offset, 1) as $k => $v) {
       return array($k, $v);
     }
     throw new \Exception(

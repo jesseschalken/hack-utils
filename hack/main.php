@@ -270,7 +270,7 @@ function get<Tk as arraykey, Tv>(array<Tk, Tv> $array, Tk $key): Tv {
  * get_pair($map, -1)[1] // last value
  */
 function get_pair<Tk, Tv>(array<Tk, Tv> $array, int $offset): (Tk, Tv) {
-  foreach (slice_assoc($array, $offset) as $k => $v) {
+  foreach (slice_assoc($array, $offset, 1) as $k => $v) {
     return tuple($k, $v);
   }
   throw new \Exception(
