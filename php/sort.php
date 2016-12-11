@@ -1,104 +1,101 @@
 <?php
 namespace HackUtils {
   require_once ($GLOBALS["HACKLIB_ROOT"]);
-  function sort($array, $cmp) {
-    _check_sort(\usort($array, $cmp), "usort");
-    return $array;
+  abstract class Sorter {
+    public abstract function sort($array);
+    public abstract function sortValues($array);
+    public abstract function sortKeys($array);
   }
-  function sort_assoc($array, $cmp) {
-    _check_sort(\uasort($array, $cmp), "uasort");
-    return $array;
-  }
-  function sort_keys($array, $cmp = null) {
-    if ($cmp !== null) {
-      _check_sort(\uksort($array, $cmp), "uksort");
-    } else {
-      _check_sort(\ksort($array, \SORT_STRING), "ksort");
+  abstract class _BuiltinSorter extends Sorter {
+    private $reverse = false;
+    private $flags;
+    protected function __construct($flags) {
+      $this->flags = $flags;
     }
-    return $array;
-  }
-  function sort_pairs($array, $cmp) {
-    return from_pairs(sort(to_pairs($array), $cmp));
-  }
-  function sort_nums($nums, $reverse = false) {
-    if ($reverse) {
-      _check_sort(\rsort($nums, \SORT_NUMERIC), "rsort");
-    } else {
-      _check_sort(\sort($nums, \SORT_NUMERIC), "sort");
+    protected function _set($flag, $val) {
+      if ($val) {
+        $this->flags |= $flag;
+      } else {
+        $this->flags &= ~$flag;
+      }
+      return $this;
     }
-    return $nums;
-  }
-  function sort_nums_assoc($nums, $reverse = false) {
-    if ($reverse) {
-      _check_sort(\arsort($nums, \SORT_NUMERIC), "arsort");
-    } else {
-      _check_sort(\asort($nums, \SORT_NUMERIC), "asort");
+    public function setReverse($reverse = true) {
+      $this->reverse = $reverse;
+      return $this;
     }
-    return $nums;
-  }
-  function sort_nums_keys($array, $reverse = false) {
-    if ($reverse) {
-      _check_sort(\krsort($array, \SORT_NUMERIC), "krsort");
-    } else {
-      _check_sort(\ksort($array, \SORT_NUMERIC), "ksort");
+    public function sort($array) {
+      if ($this->reverse) {
+        _check_return(\rsort($array, $this->flags), "rsort");
+      } else {
+        _check_return(\sort($array, $this->flags), "sort");
+      }
+      return $array;
     }
-    return $array;
-  }
-  function sort_strings(
-    $strings,
-    $caseInsensitive = false,
-    $natural = false,
-    $reverse = false
-  ) {
-    $flags = _string_sort_flags($caseInsensitive, $natural);
-    if ($reverse) {
-      _check_sort(\rsort($strings, $flags), "rsort");
-    } else {
-      _check_sort(\sort($strings, $flags), "sort");
+    public function sortValues($array) {
+      if ($this->reverse) {
+        _check_return(\arsort($array, $this->flags), "arsort");
+      } else {
+        _check_return(\asort($array, $this->flags), "asort");
+      }
+      return $array;
     }
-    return $strings;
-  }
-  function sort_strings_assoc(
-    $strings,
-    $caseInsensitive = false,
-    $natural = false,
-    $reverse = false
-  ) {
-    $flags = _string_sort_flags($caseInsensitive, $natural);
-    if ($reverse) {
-      _check_sort(\arsort($strings, $flags), "arsort");
-    } else {
-      _check_sort(\asort($strings, $flags), "asort");
+    public function sortKeys($array) {
+      if ($this->reverse) {
+        _check_return(\krsort($array, $this->flags), "krsort");
+      } else {
+        _check_return(\ksort($array, $this->flags), "ksort");
+      }
+      return $array;
     }
-    return $strings;
   }
-  function sort_strings_keys(
-    $array,
-    $caseInsensitive = false,
-    $natural = false,
-    $reverse = false
-  ) {
-    $flags = _string_sort_flags($caseInsensitive, $natural);
-    if ($reverse) {
-      _check_sort(\krsort($array, $flags), "krsort");
-    } else {
-      _check_sort(\ksort($array, $flags), "ksort");
+  final class CallbackSorter extends Sorter {
+    private $cmp;
+    public function __construct($cmp) {
+      $this->cmp = $cmp;
     }
-    return $array;
+    public function sort($array) {
+      _check_return(\usort($array, $this->cmp), "usort");
+      return $array;
+    }
+    public function sortValues($array) {
+      _check_return(\uasort($array, $this->cmp), "uasort");
+      return $array;
+    }
+    public function sortKeys($array) {
+      _check_return(\uksort($array, $this->cmp), "uksort");
+      return $array;
+    }
   }
-  function unique_nums($array) {
-    return \array_unique($array, \SORT_NUMERIC);
+  final class NumSorter extends _BuiltinSorter {
+    public function __construct() {
+      parent::__construct(\SORT_NUMERIC);
+    }
   }
-  function unique_strings($array, $caseInsensitive = false, $natural = false) {
-    return
-      \array_unique($array, _string_sort_flags($caseInsensitive, $natural));
+  final class StringSorter extends _BuiltinSorter {
+    public function __construct() {
+      parent::__construct(\SORT_STRING);
+    }
+    public function setNatural($nat = true) {
+      $this->_set(\SORT_NATURAL & (~\SORT_STRING), $nat);
+      return $this;
+    }
+    public function setCaseInsensitive($ci = true) {
+      $this->_set(\SORT_FLAG_CASE, $ci);
+      return $this;
+    }
   }
-  function _string_sort_flags($caseInsensitive, $natural) {
-    return
-      ($natural ? \SORT_NATURAL : \SORT_STRING) |
-      ($caseInsensitive ? \SORT_FLAG_CASE : 0);
+  final class LocaleStringSorter extends _BuiltinSorter {
+    public function __construct() {
+      parent::__construct(\SORT_LOCALE_STRING);
+    }
   }
-  function _check_sort($ret, $func) {
+  final class MixedSorter extends _BuiltinSorter {
+    public function __construct() {
+      parent::__construct(\SORT_REGULAR);
+    }
+  }
+  function _check_return($ret, $func) {
     if ($ret === false) {
       throw new \Exception($func."() failed");
     }

@@ -199,7 +199,12 @@ namespace HackUtils {
     return (bool) ((1 << $offset) & $int);
   }
   function set_bit($int, $offset, $value) {
-    return $value ? ($int | (1 << $offset)) : ($int & (~(1 << $offset)));
+    if ($value) {
+      $int |= 1 << $offset;
+    } else {
+      $int &= ~(1 << $offset);
+    }
+    return $int;
   }
   function sum($array) {
     return \array_sum($array);

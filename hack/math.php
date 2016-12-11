@@ -238,12 +238,12 @@ function rem(int $n, int $d): int {
   return $n % $d;
 }
 
-/** Remainder of div() */
+/** Integer divsion, rounding down */
 function div(int $n, int $d): int {
   return to_int(($n - mod($n, $d)) / $d);
 }
 
-/** Integer divsion, rounding down */
+/** Remainder of div() */
 function mod(int $n, int $d): int {
   $r = $n % $d;
   if ($r && ($r < 0) != ($d < 0))
@@ -281,7 +281,10 @@ function get_bit(int $int, int $offset): bool {
 }
 
 function set_bit(int $int, int $offset, bool $value): int {
-  return $value ? $int | (1 << $offset) : $int & ~(1 << $offset);
+  if ($value)
+    $int |= 1 << $offset; else
+    $int &= ~(1 << $offset);
+  return $int;
 }
 
 function sum<T as num>(array<T> $array): T {

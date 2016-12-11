@@ -2,122 +2,121 @@
 
 namespace HackUtils;
 
-function sort<T>(array<T> $array, (function(T, T): int) $cmp): array<T> {
-  _check_sort(\usort($array, $cmp), 'usort');
-  return $array;
+abstract class Sorter<T> {
+  public abstract function sort<Tv as T>(array<Tv> $array): array<Tv>;
+
+  public abstract function sortValues<Tk, Tv as T>(
+    array<Tk, Tv> $array,
+  ): array<Tk, Tv>;
+
+  public abstract function sortKeys<Tk as T, Tv>(
+    array<Tk, Tv> $array,
+  ): array<Tk, Tv>;
 }
 
-function sort_assoc<Tk, Tv>(
-  array<Tk, Tv> $array,
-  (function(Tv, Tv): int) $cmp,
-): array<Tk, Tv> {
-  _check_sort(\uasort($array, $cmp), 'uasort');
-  return $array;
+abstract class _BuiltinSorter<T> extends Sorter<T> {
+  private bool $reverse = false;
+
+  protected function __construct(private int $flags) {}
+
+  protected function _set(int $flag, bool $val): this {
+    if ($val)
+      $this->flags |= $flag; else
+      $this->flags &= ~$flag;
+    return $this;
+  }
+
+  public function setReverse(bool $reverse = true): this {
+    $this->reverse = $reverse;
+    return $this;
+  }
+
+  <<__Override>>
+  public function sort<Tv as T>(array<Tv> $array): array<Tv> {
+    if ($this->reverse)
+      _check_return(\rsort($array, $this->flags), 'rsort'); else
+      _check_return(\sort($array, $this->flags), 'sort');
+    return $array;
+  }
+
+  <<__Override>>
+  public function sortValues<Tk, Tv as T>(
+    array<Tk, Tv> $array,
+  ): array<Tk, Tv> {
+    if ($this->reverse)
+      _check_return(\arsort($array, $this->flags), 'arsort'); else
+      _check_return(\asort($array, $this->flags), 'asort');
+    return $array;
+  }
+
+  <<__Override>>
+  public function sortKeys<Tk as T, Tv>(array<Tk, Tv> $array): array<Tk, Tv> {
+    if ($this->reverse)
+      _check_return(\krsort($array, $this->flags), 'krsort'); else
+      _check_return(\ksort($array, $this->flags), 'ksort');
+    return $array;
+  }
 }
 
-function sort_keys<Tk, Tv>(
-  array<Tk, Tv> $array,
-  ?(function(Tk, Tk): int) $cmp = null,
-): array<Tk, Tv> {
-  if ($cmp !== null)
-    _check_sort(\uksort($array, $cmp), 'uksort'); else
-    _check_sort(\ksort($array, \SORT_STRING), 'ksort');
-  return $array;
+final class CallbackSorter<T> extends Sorter<T> {
+  public function __construct(private (function(T, T): int) $cmp) {}
+
+  <<__Override>>
+  public function sort<Tv as T>(array<Tv> $array): array<Tv> {
+    _check_return(\usort($array, $this->cmp), 'usort');
+    return $array;
+  }
+
+  <<__Override>>
+  public function sortValues<Tk, Tv as T>(
+    array<Tk, Tv> $array,
+  ): array<Tk, Tv> {
+    _check_return(\uasort($array, $this->cmp), 'uasort');
+    return $array;
+  }
+
+  <<__Override>>
+  public function sortKeys<Tk as T, Tv>(array<Tk, Tv> $array): array<Tk, Tv> {
+    _check_return(\uksort($array, $this->cmp), 'uksort');
+    return $array;
+  }
 }
 
-function sort_pairs<Tk as arraykey, Tv>(
-  array<Tk, Tv> $array,
-  (function((Tk, Tv), (Tk, Tv)): int) $cmp,
-): array<Tk, Tv> {
-  return from_pairs(sort(to_pairs($array), $cmp));
+final class NumSorter extends _BuiltinSorter<num> {
+  public function __construct() {
+    parent::__construct(\SORT_NUMERIC);
+  }
 }
 
-function sort_nums<T as num>(array<T> $nums, bool $reverse = false): array<T> {
-  if ($reverse)
-    _check_sort(\rsort($nums, \SORT_NUMERIC), 'rsort'); else
-    _check_sort(\sort($nums, \SORT_NUMERIC), 'sort');
-  return $nums;
+final class StringSorter extends _BuiltinSorter<string> {
+  public function __construct() {
+    parent::__construct(\SORT_STRING);
+  }
+
+  public function setNatural(bool $nat = true): this {
+    $this->_set(\SORT_NATURAL & ~\SORT_STRING, $nat);
+    return $this;
+  }
+
+  public function setCaseInsensitive(bool $ci = true): this {
+    $this->_set(\SORT_FLAG_CASE, $ci);
+    return $this;
+  }
 }
 
-function sort_nums_assoc<Tk, Tv as num>(
-  array<Tk, Tv> $nums,
-  bool $reverse = false,
-): array<Tk, Tv> {
-  if ($reverse)
-    _check_sort(\arsort($nums, \SORT_NUMERIC), 'arsort'); else
-    _check_sort(\asort($nums, \SORT_NUMERIC), 'asort');
-  return $nums;
+final class LocaleStringSorter extends _BuiltinSorter<string> {
+  public function __construct() {
+    parent::__construct(\SORT_LOCALE_STRING);
+  }
 }
 
-function sort_nums_keys<Tk as num, Tv>(
-  array<Tk, Tv> $array,
-  bool $reverse = false,
-): array<Tk, Tv> {
-  if ($reverse)
-    _check_sort(\krsort($array, \SORT_NUMERIC), 'krsort'); else
-    _check_sort(\ksort($array, \SORT_NUMERIC), 'ksort');
-  return $array;
+final class MixedSorter extends _BuiltinSorter<mixed> {
+  public function __construct() {
+    parent::__construct(\SORT_REGULAR);
+  }
 }
 
-function sort_strings<T as arraykey>(
-  array<T> $strings,
-  bool $caseInsensitive = false,
-  bool $natural = false,
-  bool $reverse = false,
-): array<T> {
-  $flags = _string_sort_flags($caseInsensitive, $natural);
-  if ($reverse)
-    _check_sort(\rsort($strings, $flags), 'rsort'); else
-    _check_sort(\sort($strings, $flags), 'sort');
-  return $strings;
-}
-
-function sort_strings_assoc<Tk, Tv as arraykey>(
-  array<Tk, Tv> $strings,
-  bool $caseInsensitive = false,
-  bool $natural = false,
-  bool $reverse = false,
-): array<Tk, Tv> {
-  $flags = _string_sort_flags($caseInsensitive, $natural);
-  if ($reverse)
-    _check_sort(\arsort($strings, $flags), 'arsort'); else
-    _check_sort(\asort($strings, $flags), 'asort');
-  return $strings;
-}
-
-function sort_strings_keys<Tk as arraykey, Tv>(
-  array<Tk, Tv> $array,
-  bool $caseInsensitive = false,
-  bool $natural = false,
-  bool $reverse = false,
-): array<Tk, Tv> {
-  $flags = _string_sort_flags($caseInsensitive, $natural);
-  if ($reverse)
-    _check_sort(\krsort($array, $flags), 'krsort'); else
-    _check_sort(\ksort($array, $flags), 'ksort');
-  return $array;
-}
-
-function unique_nums<Tk, Tv as num>(array<Tk, Tv> $array): array<Tk, Tv> {
-  return \array_unique($array, \SORT_NUMERIC);
-}
-
-function unique_strings<Tk, Tv as arraykey>(
-  array<Tk, Tv> $array,
-  bool $caseInsensitive = false,
-  bool $natural = false,
-): array<Tk, Tv> {
-  return
-    \array_unique($array, _string_sort_flags($caseInsensitive, $natural));
-}
-
-function _string_sort_flags(bool $caseInsensitive, bool $natural): int {
-  return
-    ($natural ? \SORT_NATURAL : \SORT_STRING) |
-    ($caseInsensitive ? \SORT_FLAG_CASE : 0);
-}
-
-function _check_sort(bool $ret, string $func): void {
+function _check_return(bool $ret, string $func): void {
   if ($ret === false)
     throw new \Exception("$func() failed");
 }
