@@ -2,6 +2,8 @@
 
 namespace HackUtils\FS;
 
+use HackUtils as HU;
+
 abstract class FileSystem {
   public abstract function mkdir(string $path, int $mode = 0777): void;
   public abstract function readdir(string $path): array<string>;
@@ -27,13 +29,17 @@ abstract class FileSystem {
 
   public abstract function realpath(string $path): string;
 
-  public abstract function join(string $path, string $child): string;
+  /** Split a path into dirname and basename */
   public abstract function split(string $path): (string, string);
+  /** Join a dirname and basename together */
+  public abstract function join(string $path, string $child): string;
 }
 
 class Exception extends \Exception {}
 
 abstract class Stream implements \Psr\Http\Message\StreamInterface {
+  private ?array<arraykey, (function(stream_metadata): mixed)> $getters;
+  public function __construct() {}
   // public abstract function chmod(int $mode): void;
   // public abstract function chown(int $uid, int $gid): void;
   public abstract function truncate(int $len): void;
@@ -42,13 +48,58 @@ abstract class Stream implements \Psr\Http\Message\StreamInterface {
   public abstract function eof(): bool;
   public abstract function seek(int $offset, int $whence = \SEEK_SET): void;
   public abstract function read(int $length): string;
+  public abstract function getContents(): string;
   public abstract function write(string $data): int;
   public abstract function close(): void;
-  public final function __toString(): string {
-    return $this->read(\PHP_INT_MAX);
+  public abstract function stat(): Stat;
+  public abstract function getMetadata_(): stream_metadata;
+  public final function isReadable(): bool {
+    $metadata = $this->getMetadata_();
+    $mode = $metadata['mode'];
+    return \strstr($mode, 'r') || \strstr($mode, '+');
   }
-  public final function getContents(): string {
-    return $this->read(\PHP_INT_MAX);
+  public final function isSeekable(): bool {
+    $metadata = $this->getMetadata_();
+    return $metadata['seekable'];
+  }
+  public final function isWritable(): bool {
+    $metadata = $this->getMetadata_();
+    $mode = $metadata['mode'];
+    return
+      \strstr($mode, 'x') ||
+      \strstr($mode, 'w') ||
+      \strstr($mode, 'c') ||
+      \strstr($mode, 'a') ||
+      \strstr($mode, '+');
+  }
+  public final function rewind(): void {
+    $this->seek(0);
+  }
+  public final function __toString(): string {
+    $this->rewind();
+    return $this->getContents();
+  }
+  public final function getSize(): int {
+    return $this->stat()->size();
+  }
+  public final function getMetadata(?string $key = null): mixed {
+    $metadata = $this->getMetadata_();
+    if ($key === null)
+      return $metadata;
+    if ($this->getters === null)
+      $this->getters = [
+        'timed_out' => $m ==> $m['timed_out'],
+        'blocked' => $m ==> $m['blocked'],
+        'eof' => $m ==> $m['eof'],
+        'unread_bytes' => $m ==> $m['unread_bytes'],
+        'stream_type' => $m ==> $m['stream_type'],
+        'wrapper_type' => $m ==> $m['wrapper_type'],
+        'wrapper_data' => $m ==> $m['wrapper_data'],
+        'mode' => $m ==> $m['mode'],
+        'seekable' => $m ==> $m['seekable'],
+        'uri' => $m ==> $m['uri'],
+      ];
+    return $this->getters[$key]($metadata);
   }
   public function detach(): ?resource {
     return null;
@@ -59,57 +110,43 @@ final class Stat {
   public static function fromArray(stat_array $stat): Stat {
     return new self($stat);
   }
-
   private function __construct(private stat_array $stat) {}
-
   public function mtime(): int {
     return $this->stat['mtime'];
   }
-
   public function atime(): int {
     return $this->stat['atime'];
   }
-
   public function ctime(): int {
     return $this->stat['ctime'];
   }
-
   public function size(): int {
     return $this->stat['size'];
   }
-
   public function mode(): int {
     return $this->stat['mode'];
   }
-
   public function toArray(): stat_array {
     return $this->stat;
   }
-
   public function isFile(): bool {
     return S_ISREG($this->mode());
   }
-
   public function isDir(): bool {
     return S_ISDIR($this->mode());
   }
-
   public function isLink(): bool {
     return S_ISLNK($this->mode());
   }
-
   public function isSocket(): bool {
     return S_ISSOCK($this->mode());
   }
-
   public function isFIFO(): bool {
     return S_ISSOCK($this->mode());
   }
-
   public function isChar(): bool {
     return S_ISSOCK($this->mode());
   }
-
   public function isBlock(): bool {
     return S_ISSOCK($this->mode());
   }
@@ -169,6 +206,19 @@ type stat_array = shape(
   'blocks' => int,
 );
 
+type stream_metadata = shape(
+  'timed_out' => bool,
+  'blocked' => bool,
+  'eof' => bool,
+  'unread_bytes' => int,
+  'stream_type' => string,
+  'wrapper_type' => string,
+  'wrapper_data' => mixed,
+  'mode' => string,
+  'seekable' => bool,
+  'uri' => string,
+);
+
 class MixedFileSystem extends FileSystem {
   public function open(string $path, string $mode): Stream {
     return new MixedStream($path, $mode);
@@ -177,6 +227,7 @@ class MixedFileSystem extends FileSystem {
     notfalse(\symlink($target, $path), 'symlink');
   }
   public function stat(string $path): Stat {
+    \clearstatcache();
     return Stat::fromArray(notfalse(\stat($path), 'stat'));
   }
   public function readlink(string $path): string {
@@ -195,9 +246,11 @@ class MixedFileSystem extends FileSystem {
     notfalse(\unlink($path), 'unlink');
   }
   public function realpath(string $path): string {
+    \clearstatcache();
     return notfalse(\realpath($path), 'realpath');
   }
   public function lstat(string $path): Stat {
+    \clearstatcache();
     return Stat::fromArray(notfalse(\lstat($path), 'lstat'));
   }
   public function rmdir(string $path): void {
@@ -222,10 +275,17 @@ class MixedFileSystem extends FileSystem {
     notfalse(\touch($path, $mtime, $atime), 'touch');
   }
   public function join(string $path, string $child): string {
-    // TODO
-    return '';
+    if (HU\ends_with($path, '/') || HU\starts_with($child, '/'))
+      return $path.$child;
+    $sep = \DIRECTORY_SEPARATOR;
+    if ($sep === '\\') {
+      if (HU\ends_with($path, '\\') || HU\starts_with($child, '\\'))
+        return $path.$child;
+    }
+    return $path.$sep.$child;
   }
   public function split(string $path): (string, string) {
+    $sep = \DIRECTORY_SEPARATOR;
     // TODO
     return tuple('', '');
   }
@@ -234,6 +294,7 @@ class MixedFileSystem extends FileSystem {
 final class MixedStream extends Stream {
   private resource $handle;
   public function __construct(string $path, string $mode) {
+    parent::__construct();
     $this->handle = notfalse(\fopen($path, $mode), 'fopen');
   }
   public function read(int $length): string {
@@ -265,10 +326,16 @@ final class MixedStream extends Stream {
   public function truncate(int $length): void {
     notfalse(\ftruncate($this->handle, $length), 'ftruncate');
   }
-  public function getMetadata(?string $key = null): mixed {
-    $metadata =
+  public function stat(): Stat {
+    return Stat::fromArray(notfalse(\fstat($this->handle), 'fstat'));
+  }
+  public function getContents(): string {
+    return
+      notfalse(\stream_get_contents($this->handle), 'stream_get_contents');
+  }
+  public function getMetadata_(): stream_metadata {
+    return
       notfalse(\stream_get_meta_data($this->handle), 'stream_get_meta_data');
-    return $key === null ? $metadata[$key] : $metadata;
   }
 }
 
