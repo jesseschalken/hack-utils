@@ -30,7 +30,7 @@ abstract class FileSystem {
   public abstract function realpath(string $path): string;
 
   /** Split a path into dirname and basename */
-  public abstract function split(string $path): (string, string);
+  public abstract function split(string $path): (string, ?string);
   /** Join a dirname and basename together */
   public abstract function join(string $path, string $child): string;
 }
@@ -38,7 +38,6 @@ abstract class FileSystem {
 class Exception extends \Exception {}
 
 abstract class Stream implements \Psr\Http\Message\StreamInterface {
-  private ?array<arraykey, (function(stream_metadata): mixed)> $getters;
   public function __construct() {}
   // public abstract function chmod(int $mode): void;
   // public abstract function chown(int $uid, int $gid): void;
@@ -52,26 +51,6 @@ abstract class Stream implements \Psr\Http\Message\StreamInterface {
   public abstract function write(string $data): int;
   public abstract function close(): void;
   public abstract function stat(): Stat;
-  public abstract function getMetadata_(): stream_metadata;
-  public final function isReadable(): bool {
-    $metadata = $this->getMetadata_();
-    $mode = $metadata['mode'];
-    return \strstr($mode, 'r') || \strstr($mode, '+');
-  }
-  public final function isSeekable(): bool {
-    $metadata = $this->getMetadata_();
-    return $metadata['seekable'];
-  }
-  public final function isWritable(): bool {
-    $metadata = $this->getMetadata_();
-    $mode = $metadata['mode'];
-    return
-      \strstr($mode, 'x') ||
-      \strstr($mode, 'w') ||
-      \strstr($mode, 'c') ||
-      \strstr($mode, 'a') ||
-      \strstr($mode, '+');
-  }
   public final function rewind(): void {
     $this->seek(0);
   }
@@ -82,24 +61,8 @@ abstract class Stream implements \Psr\Http\Message\StreamInterface {
   public final function getSize(): int {
     return $this->stat()->size();
   }
-  public final function getMetadata(?string $key = null): mixed {
-    $metadata = $this->getMetadata_();
-    if ($key === null)
-      return $metadata;
-    if ($this->getters === null)
-      $this->getters = [
-        'timed_out' => $m ==> $m['timed_out'],
-        'blocked' => $m ==> $m['blocked'],
-        'eof' => $m ==> $m['eof'],
-        'unread_bytes' => $m ==> $m['unread_bytes'],
-        'stream_type' => $m ==> $m['stream_type'],
-        'wrapper_type' => $m ==> $m['wrapper_type'],
-        'wrapper_data' => $m ==> $m['wrapper_data'],
-        'mode' => $m ==> $m['mode'],
-        'seekable' => $m ==> $m['seekable'],
-        'uri' => $m ==> $m['uri'],
-      ];
-    return $this->getters[$key]($metadata);
+  public function getMetadata(?string $key = null): mixed {
+    throw new \Exception(__METHOD__.' is not supported');
   }
   public function detach(): ?resource {
     return null;
@@ -206,19 +169,6 @@ type stat_array = shape(
   'blocks' => int,
 );
 
-type stream_metadata = shape(
-  'timed_out' => bool,
-  'blocked' => bool,
-  'eof' => bool,
-  'unread_bytes' => int,
-  'stream_type' => string,
-  'wrapper_type' => string,
-  'wrapper_data' => mixed,
-  'mode' => string,
-  'seekable' => bool,
-  'uri' => string,
-);
-
 class MixedFileSystem extends FileSystem {
   public function open(string $path, string $mode): Stream {
     return new MixedStream($path, $mode);
@@ -284,7 +234,7 @@ class MixedFileSystem extends FileSystem {
     }
     return $path.$sep.$child;
   }
-  public function split(string $path): (string, string) {
+  public function split(string $path): (string, ?string) {
     $sep = \DIRECTORY_SEPARATOR;
     // TODO
     return tuple('', '');
@@ -333,9 +283,32 @@ final class MixedStream extends Stream {
     return
       notfalse(\stream_get_contents($this->handle), 'stream_get_contents');
   }
-  public function getMetadata_(): stream_metadata {
+  public function isReadable(): bool {
+    $metadata = \stream_get_meta_data($this->handle);
+    $metadata = notfalse($metadata, 'stream_get_meta_data');
+    $mode = $metadata['mode'];
+    return \strstr($mode, 'r') || \strstr($mode, '+');
+  }
+  public function isSeekable(): bool {
+    $metadata = \stream_get_meta_data($this->handle);
+    $metadata = notfalse($metadata, 'stream_get_meta_data');
+    return $metadata['seekable'];
+  }
+  public function isWritable(): bool {
+    $metadata = \stream_get_meta_data($this->handle);
+    $metadata = notfalse($metadata, 'stream_get_meta_data');
+    $mode = $metadata['mode'];
     return
-      notfalse(\stream_get_meta_data($this->handle), 'stream_get_meta_data');
+      \strstr($mode, 'x') ||
+      \strstr($mode, 'w') ||
+      \strstr($mode, 'c') ||
+      \strstr($mode, 'a') ||
+      \strstr($mode, '+');
+  }
+  public function getMetadata(?string $key = null): mixed {
+    $metadata = \stream_get_meta_data($this->handle);
+    $metadata = notfalse($metadata, 'stream_get_meta_data');
+    return $key === null ? $metadata : $metadata[$key];
   }
 }
 
