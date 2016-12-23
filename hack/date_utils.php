@@ -39,6 +39,7 @@ function overflow_date(int $y, int $m, int $d): (int, int, int) {
   $m--;
   $d--;
 
+  // months to years
   list($y, $m) = div_mod2($y, $m, 12);
 
   // days to months

@@ -6,6 +6,9 @@ use HackUtils as HU;
 use HackUtils\PCRE\Pattern;
 
 abstract class FileSystem {
+  public function __construct() {}
+  public function __destruct() {}
+
   public abstract function mkdir(string $path, int $mode = 0777): void;
   public abstract function readdir(string $path): array<string>;
   public abstract function rmdir(string $path): void;
@@ -75,6 +78,10 @@ abstract class FileSystem {
 
   public function appendFile(string $path, string $contents): void {
     $this->open($path, 'ab')->write($contents);
+  }
+
+  public function toStreamWrapper(): StreamWrapper {
+    return new FileSystemStreamWrapper($this);
   }
 }
 
@@ -266,21 +273,15 @@ type stat_array = shape(
 // 'blocks' => int,
 );
 
-final class StreamWrapperFileSystem extends FileSystem {
+abstract class StreamWrapper extends FileSystem {
   private static function notFalse<T>(string $name, T $ret): T {
     return Exception::checkFalse($name, $ret);
   }
-  public function __construct(private StreamWrapper $wrapper) {}
-  public function open(string $path, string $mode): Stream {
+  public final function open(string $path, string $mode): Stream {
     $path = $this->fixPath($path);
     return new StreamWrapperStream($path, $mode, $this->ctx());
   }
-  public function symlink(string $path, string $target): void {
-    $path = $this->fixPath($path);
-    // TODO symlink() is not supported by stream wrappers!
-    self::notFalse('symlink', \symlink($path, $target));
-  }
-  public function stat(string $path): ?Stat {
+  public final function stat(string $path): ?Stat {
     $path = $this->fixPath($path);
     \clearstatcache();
     // We have to avoid calling stat() if the file doesn't exist so we
@@ -291,17 +292,12 @@ final class StreamWrapperFileSystem extends FileSystem {
       return null;
     return new ArrayStat(self::notFalse('stat', \stat($path)));
   }
-  public function readlink(string $path): string {
-    $path = $this->fixPath($path);
-    // TODO readlink() is not supported by stream wrappers!
-    return self::notFalse('readlink', \readlink($path));
-  }
-  public function rename(string $from, string $to): void {
+  public final function rename(string $from, string $to): void {
     $from = $this->fixPath($from);
     $to = $this->fixPath($to);
     self::notFalse('rename', \rename($from, $to, $this->ctx()));
   }
-  public function readdir(string $path): array<string> {
+  public final function readdir(string $path): array<string> {
     $path = $this->fixPath($path);
     $ret = [];
     for (
@@ -316,25 +312,19 @@ final class StreamWrapperFileSystem extends FileSystem {
     \closedir($dir);
     return $ret;
   }
-  public function mkdir(string $path, int $mode = 0777): void {
+  public final function mkdir(string $path, int $mode = 0777): void {
     $path = $this->fixPath($path);
     self::notFalse('mkdir', \mkdir($path, $mode, false, $this->ctx()));
   }
-  public function mkdir_recursive(string $path, int $mode = 0777): void {
+  public final function mkdir_recursive(string $path, int $mode = 0777): void {
     $path = $this->fixPath($path);
     self::notFalse('mkdir', \mkdir($path, $mode, true, $this->ctx()));
   }
-  public function unlink(string $path): void {
+  public final function unlink(string $path): void {
     $path = $this->fixPath($path);
     self::notFalse('unlink', \unlink($path, $this->ctx()));
   }
-  public function realpath(string $path): string {
-    $path = $this->fixPath($path);
-    \clearstatcache();
-    // TODO realpath() is not supported by stream wrappers!
-    return self::notFalse('realpath', \realpath($path));
-  }
-  public function lstat(string $path): ?Stat {
+  public final function lstat(string $path): ?Stat {
     $path = $this->fixPath($path);
     \clearstatcache();
     // We have to avoid calling lstat() if the file doesn't exist
@@ -346,75 +336,59 @@ final class StreamWrapperFileSystem extends FileSystem {
       return null;
     return new ArrayStat(self::notFalse('lstat', \lstat($path)));
   }
-  public function rmdir(string $path): void {
+  public final function rmdir(string $path): void {
     $path = $this->fixPath($path);
     self::notFalse('rmdir', \rmdir($path, $this->ctx()));
   }
-  public function chmod(string $path, int $mode): void {
+  public final function chmod(string $path, int $mode): void {
     $path = $this->fixPath($path);
     self::notFalse('chmod', \chmod($path, $mode));
   }
-  public function chown(string $path, int $uid): void {
+  public final function chown(string $path, int $uid): void {
     $path = $this->fixPath($path);
     self::notFalse('chown', \chown($path, (int) $uid));
   }
-  public function chgrp(string $path, int $gid): void {
+  public final function chgrp(string $path, int $gid): void {
     $path = $this->fixPath($path);
     self::notFalse('chgrp', \chgrp($path, (int) $gid));
   }
-  public function lchown(string $path, int $uid): void {
-    $path = $this->fixPath($path);
-    self::notFalse('lchown', \lchown($path, (int) $uid));
-  }
-  public function lchgrp(string $path, int $gid): void {
-    $path = $this->fixPath($path);
-    self::notFalse('lchgrp', \lchgrp($path, (int) $gid));
-  }
-  public function utime(string $path, int $atime, int $mtime): void {
+  public final function utime(string $path, int $atime, int $mtime): void {
     $path = $this->fixPath($path);
     self::notFalse('touch', \touch($path, $mtime, $atime));
   }
-  public function readFile(string $path): string {
+  public final function readFile(string $path): string {
     $path = $this->fixPath($path);
     return self::notFalse(
       'file_get_contents',
       \file_get_contents($path, false, $this->ctx()),
     );
   }
-  public function writeFile(string $path, string $contents): void {
+  public final function writeFile(string $path, string $contents): void {
     $path = $this->fixPath($path);
     self::notFalse(
       'file_put_contents',
       \file_put_contents($path, $contents, 0, $this->ctx()),
     );
   }
-  public function appendFile(string $path, string $contents): void {
+  public final function appendFile(string $path, string $contents): void {
     $path = $this->fixPath($path);
     self::notFalse(
       'file_put_contents',
       \file_put_contents($path, $contents, \FILE_APPEND, $this->ctx()),
     );
   }
-  public function join(string $path, string $child): string {
-    return $this->wrapper->join($path, $child);
+  public final function toStreamWrapper(): StreamWrapper {
+    return $this;
   }
-  public function split(string $path): (string, ?string) {
-    return $this->wrapper->split($path);
-  }
-  private function fixPath(string $path): string {
-    return $this->wrapper->wrapPath($path);
-  }
-  private function ctx(): ?resource {
-    return $this->wrapper->context();
-  }
-}
-
-abstract class StreamWrapper {
-  public abstract function split(string $path): (string, ?string);
-  public abstract function join(string $path, string $child): string;
   public abstract function wrapPath(string $path): string;
   public function context(): ?resource {
     return null;
+  }
+  private function fixPath(string $path): string {
+    return $this->wrapPath($path);
+  }
+  private function ctx(): ?resource {
+    return $this->context();
   }
 }
 
@@ -440,7 +414,10 @@ final class _streamWrapper {
     return true;
   }
   public function dir_readdir(): mixed /* string|false */ {
-    return HU\get_or_default($this->readdir, $this->readdir_i++, false);
+    $i = $this->readdir_i++;
+    if ($i >= \count($this->readdir))
+      return false;
+    return $this->readdir[$i];
   }
   public function dir_rewinddir(): bool {
     $this->readdir_i = 0;
@@ -448,11 +425,9 @@ final class _streamWrapper {
   }
   public function mkdir(string $path, int $mode, int $options): bool {
     list($fs, $path) = $this->unwrap($path);
-    if ($options & \STREAM_MKDIR_RECURSIVE) {
-      $fs->mkdir_recursive($path, $mode);
-    } else {
+    if ($options & \STREAM_MKDIR_RECURSIVE)
+      $fs->mkdir_recursive($path, $mode); else
       $fs->mkdir($path, $mode);
-    }
     return true;
   }
   public function rename(string $path_from, string $path_to): bool {
@@ -594,7 +569,7 @@ final class _streamWrapper {
       $stat = $fs->stat($path);
 
     if (!$stat) {
-      // File file_exists(), is_file() etc
+      // For file_exists(), is_file() etc
       if ($flags & \STREAM_URL_STAT_QUIET)
         return false;
       throw new Exception("Cannot stat '$path', path does not exist");
@@ -626,6 +601,7 @@ final class FileSystemStreamWrapper extends StreamWrapper {
   private int $id;
 
   public function __construct(private FileSystem $fs) {
+    parent::__construct();
     if (!self::$registered) {
       \stream_wrapper_register('hu-fs', _streamWrapper::className());
       self::$registered = true;
@@ -636,19 +612,65 @@ final class FileSystemStreamWrapper extends StreamWrapper {
   public function __destruct() {
     unset(self::$fss[$this->id]);
   }
+
+  public function wrapPath(string $path): string {
+    return 'hu-fs://'.$this->id.':'.$path;
+  }
+  public function unwrap(): FileSystem {
+    return $this->fs;
+  }
+
   public function split(string $path): (string, ?string) {
     return $this->fs->split($path);
   }
   public function join(string $path, string $child): string {
     return $this->fs->join($path, $child);
   }
-  public function wrapPath(string $path): string {
-    return 'hu-fs://'.$this->id.':'.$path;
+  public function symlink(string $path, string $contents): void {
+    $this->fs->symlink($path, $contents);
+  }
+  public function readlink(string $path): string {
+    return $this->fs->readlink($path);
+  }
+  public function lchown(string $path, int $uid): void {
+    $this->fs->lchown($path, $uid);
+  }
+  public function lchgrp(string $path, int $gid): void {
+    $this->fs->lchgrp($path, $gid);
+  }
+  public function realpath(string $path): string {
+    return $this->fs->realpath($path);
   }
 }
 
-final class LocalStreamWrapper extends StreamWrapper {
+final class LocalFileSystem extends StreamWrapper {
   const string DIR_SEP = \DIRECTORY_SEPARATOR;
+
+  public final function symlink(string $path, string $target): void {
+    $path = $this->wrapPath($path);
+    Exception::checkFalse('symlink', \symlink($path, $target));
+  }
+
+  public final function readlink(string $path): string {
+    $path = $this->wrapPath($path);
+    return Exception::checkFalse('readlink', \readlink($path));
+  }
+
+  public final function realpath(string $path): string {
+    $path = $this->wrapPath($path);
+    \clearstatcache();
+    return Exception::checkFalse('realpath', \realpath($path));
+  }
+
+  public final function lchown(string $path, int $uid): void {
+    $path = $this->wrapPath($path);
+    Exception::checkFalse('lchown', \lchown($path, (int) $uid));
+  }
+
+  public final function lchgrp(string $path, int $gid): void {
+    $path = $this->wrapPath($path);
+    Exception::checkFalse('lchgrp', \lchgrp($path, (int) $gid));
+  }
 
   public function join(string $base, string $path): string {
     if ($this->isAbsolute($path))
