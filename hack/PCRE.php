@@ -75,6 +75,12 @@ final class Pattern {
     $this->composed = '/'.self::escape($regex).'/'.$options;
   }
 
+  public function matches(string $subject): bool {
+    $ret = \preg_match($this->composed, $subject);
+    self::checkLastError();
+    return (bool) $ret;
+  }
+
   public function match(string $subject, int $offset = 0): ?Match {
     $match = [];
     $flags = \PREG_OFFSET_CAPTURE;

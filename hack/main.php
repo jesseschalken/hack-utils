@@ -372,6 +372,12 @@ function from_keys<Tk as arraykey, Tv>(
   return \array_fill_keys($keys, $value);
 }
 
+function unique<T as arraykey>(array<T> $values): array<T> {
+  // Faster than array_unique(), and importantly doesn't change strings to ints
+  // like keys(from_keys($values)) would.
+  return values(combine($values, $values));
+}
+
 function flip<Tk as arraykey, Tv as arraykey>(
   array<Tk, Tv> $array,
 ): array<Tv, Tk> {
