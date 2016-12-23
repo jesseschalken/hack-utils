@@ -15,7 +15,8 @@ abstract class FileSystem {
     foreach ($this->readdir($path) as $p) {
       $ret[] = $p;
       $full = $this->join($path, $p);
-      if ($this->stat($full)->isDir()) {
+      $stat = $this->stat($full);
+      if ($stat && $stat->isDir()) {
         foreach ($this->readdir_recursive($full) as $p2) {
           $ret[] = $this->join($p, $p2);
         }
@@ -33,7 +34,8 @@ abstract class FileSystem {
   }
 
   private function ensure_dir(string $path, int $mode): void {
-    if (!$this->stat($path)->isDir()) {
+    $stat = $this->stat($path);
+    if (!$stat || !$stat->isDir()) {
       $this->mkdir_recursive($path, $mode);
     }
   }
@@ -41,7 +43,7 @@ abstract class FileSystem {
   public abstract function rename(string $oldpath, string $newpath): void;
   public abstract function unlink(string $path): void;
 
-  public abstract function stat(string $path): Stat;
+  public abstract function stat(string $path): ?Stat;
   public abstract function chmod(string $path, int $mode): void;
   public abstract function chown(string $path, int $uid): void;
   public abstract function chgrp(string $path, int $gid): void;
@@ -52,7 +54,7 @@ abstract class FileSystem {
   public abstract function symlink(string $path, string $contents): void;
   public abstract function readlink(string $path): string;
 
-  public abstract function lstat(string $path): Stat;
+  public abstract function lstat(string $path): ?Stat;
   public abstract function lchown(string $path, int $uid): void;
   public abstract function lchgrp(string $path, int $gid): void;
 
@@ -76,22 +78,19 @@ abstract class FileSystem {
   }
 }
 
-class Exception extends \Exception {}
-class ErrorException extends Exception {
-  public function __construct(
-    string $message = "",
-    int $code = 0,
-    private int $severity = \E_ERROR,
-    string $file = '',
-    int $line = 0,
-    ?Exception $previous = null,
-  ) {
-    parent::__construct($message, $code, $previous);
-    $this->file = $file;
-    $this->line = $line;
-  }
-  public function getSeverity(): int {
-    return $this->severity;
+class Exception extends \RuntimeException {
+  public static function checkFalse<T>(string $name, T $ret): T {
+    if ($ret === false) {
+      $error = \error_get_last();
+      if ($error) {
+        $e = new self($error['message']);
+        $e->file = $error['file'];
+        $e->line = $error['line'];
+        throw $e;
+      }
+      throw new self($name.'() failed');
+    }
+    return $ret;
   }
 }
 
@@ -267,52 +266,49 @@ type stat_array = shape(
 // 'blocks' => int,
 );
 
-type stream_meta = shape('mode' => string);
-
 final class StreamWrapperFileSystem extends FileSystem {
+  private static function notFalse<T>(string $name, T $ret): T {
+    return Exception::checkFalse($name, $ret);
+  }
   public function __construct(private StreamWrapper $wrapper) {}
   public function open(string $path, string $mode): Stream {
     $path = $this->fixPath($path);
-    return new StreamWrapperStream($path, $mode);
+    return new StreamWrapperStream($path, $mode, $this->ctx());
   }
   public function symlink(string $path, string $target): void {
     $path = $this->fixPath($path);
-    $func = function($_): mixed use ($path, $target) {
-      return \symlink($path, $target);
-    };
-    $this->runErrorsNotFalse($func, 'symlink');
+    // TODO symlink() is not supported by stream wrappers!
+    self::notFalse('symlink', \symlink($path, $target));
   }
-  public function stat(string $path): Stat {
+  public function stat(string $path): ?Stat {
     $path = $this->fixPath($path);
-    $func = function($_): stat_array use ($path) {
-      \clearstatcache();
-      return \stat($path);
-    };
-    return new ArrayStat($this->runErrorsNotFalse($func, 'stat'));
+    \clearstatcache();
+    // We have to avoid calling stat() if the file doesn't exist so we
+    // can return null without throwing an exception or triggering a PHP error.
+    // PHP's stat cache should ensure only one stat call is actually made
+    // to the underlying stream wrapper if the file does exist.
+    if (!\file_exists($path))
+      return null;
+    return new ArrayStat(self::notFalse('stat', \stat($path)));
   }
   public function readlink(string $path): string {
     $path = $this->fixPath($path);
-    $func = function($_): string use ($path) {
-      return \readlink($path);
-    };
-    return $this->runErrorsNotFalse($func, 'readlink');
+    // TODO readlink() is not supported by stream wrappers!
+    return self::notFalse('readlink', \readlink($path));
   }
   public function rename(string $from, string $to): void {
     $from = $this->fixPath($from);
     $to = $this->fixPath($to);
-    $func = function($_): mixed use ($from, $to) {
-      return \rename($from, $to);
-    };
-    $this->runErrorsNotFalse($func, 'rename');
+    self::notFalse('rename', \rename($from, $to, $this->ctx()));
   }
   public function readdir(string $path): array<string> {
     $path = $this->fixPath($path);
-    $func = function($_): resource use ($path) {
-      return \opendir($path);
-    };
-    $dir = $this->runErrorsNotFalse($func, 'opendir');
     $ret = [];
-    for (; $p = \readdir($dir); $p !== false) {
+    for (
+      $dir = self::notFalse('opendir', \opendir($path, $this->ctx()));
+      $p = \readdir($dir);
+      $p !== false
+    ) {
       if ($p === '.' || $p === '..')
         continue;
       $ret[] = $p;
@@ -322,110 +318,82 @@ final class StreamWrapperFileSystem extends FileSystem {
   }
   public function mkdir(string $path, int $mode = 0777): void {
     $path = $this->fixPath($path);
-    $func = function($_): mixed use ($path, $mode) {
-      return \mkdir($path, $mode);
-    };
-    $this->runErrorsNotFalse($func, 'mkdir');
+    self::notFalse('mkdir', \mkdir($path, $mode, false, $this->ctx()));
   }
   public function mkdir_recursive(string $path, int $mode = 0777): void {
     $path = $this->fixPath($path);
-    $func = function($_): mixed use ($path, $mode) {
-      return \mkdir($path, $mode, true);
-    };
-    $this->runErrorsNotFalse($func, 'mkdir');
+    self::notFalse('mkdir', \mkdir($path, $mode, true, $this->ctx()));
   }
   public function unlink(string $path): void {
     $path = $this->fixPath($path);
-    $func = function($_): mixed use ($path) {
-      return \unlink($path);
-    };
-    $this->runErrorsNotFalse($func, 'unlink');
+    self::notFalse('unlink', \unlink($path, $this->ctx()));
   }
   public function realpath(string $path): string {
     $path = $this->fixPath($path);
-    $func = function($_): string use ($path) {
-      \clearstatcache();
-      return \realpath($path);
-    };
-    return $this->runErrorsNotFalse($func, 'realpath');
+    \clearstatcache();
+    // TODO realpath() is not supported by stream wrappers!
+    return self::notFalse('realpath', \realpath($path));
   }
-  public function lstat(string $path): Stat {
+  public function lstat(string $path): ?Stat {
     $path = $this->fixPath($path);
-    $func = function($_): stat_array use ($path) {
-      \clearstatcache();
-      return \lstat($path);
-    };
-    return new ArrayStat($this->runErrorsNotFalse($func, 'lstat'));
+    \clearstatcache();
+    // We have to avoid calling lstat() if the file doesn't exist
+    // so we can return null without throwing an Exception
+    // or raising a PHP error.
+    // PHP's stat cache should ensure only one stat is actually done
+    // on the underlying stream wrapper.
+    if (!\file_exists($path) && !\is_link($path))
+      return null;
+    return new ArrayStat(self::notFalse('lstat', \lstat($path)));
   }
   public function rmdir(string $path): void {
     $path = $this->fixPath($path);
-    $func = function($_): mixed use ($path) {
-      return \rmdir($path);
-    };
-    $this->runErrorsNotFalse($func, 'rmdir');
+    self::notFalse('rmdir', \rmdir($path, $this->ctx()));
   }
   public function chmod(string $path, int $mode): void {
     $path = $this->fixPath($path);
-    $func = function($_): mixed use ($path, $mode) {
-      return \chmod($path, $mode);
-    };
-    $this->runErrorsNotFalse($func, 'chmod');
+    self::notFalse('chmod', \chmod($path, $mode));
   }
   public function chown(string $path, int $uid): void {
     $path = $this->fixPath($path);
-    $func = function($_): mixed use ($path, $uid) {
-      return \chown($path, (int) $uid);
-    };
-    $this->runErrorsNotFalse($func, 'chown');
+    self::notFalse('chown', \chown($path, (int) $uid));
   }
   public function chgrp(string $path, int $gid): void {
     $path = $this->fixPath($path);
-    $func = function($_): mixed use ($path, $gid) {
-      return \chgrp($path, (int) $gid);
-    };
-    $this->runErrorsNotFalse($func, 'chgrp');
+    self::notFalse('chgrp', \chgrp($path, (int) $gid));
   }
   public function lchown(string $path, int $uid): void {
     $path = $this->fixPath($path);
-    $func = function($_): mixed use ($path, $uid) {
-      return \lchown($path, (int) $uid);
-    };
-    $this->runErrorsNotFalse($func, 'lchown');
+    self::notFalse('lchown', \lchown($path, (int) $uid));
   }
   public function lchgrp(string $path, int $gid): void {
     $path = $this->fixPath($path);
-    $func = function($_): mixed use ($path, $gid) {
-      return \lchgrp($path, (int) $gid);
-    };
-    $this->runErrorsNotFalse($func, 'lchgrp');
+    self::notFalse('lchgrp', \lchgrp($path, (int) $gid));
   }
   public function utime(string $path, int $atime, int $mtime): void {
     $path = $this->fixPath($path);
-    $func = function($_): mixed use ($path, $mtime, $atime) {
-      return \touch($path, $mtime, $atime);
-    };
-    $this->runErrorsNotFalse($func, 'touch');
+    self::notFalse('touch', \touch($path, $mtime, $atime));
   }
   public function readFile(string $path): string {
     $path = $this->fixPath($path);
-    $func = function($_): string use ($path) {
-      return \file_get_contents($path);
-    };
-    return $this->runErrorsNotFalse($func, 'file_get_contents');
+    return self::notFalse(
+      'file_get_contents',
+      \file_get_contents($path, false, $this->ctx()),
+    );
   }
   public function writeFile(string $path, string $contents): void {
     $path = $this->fixPath($path);
-    $func = function($_): mixed use ($path, $contents) {
-      return \file_put_contents($path, $contents);
-    };
-    $this->runErrorsNotFalse($func, 'file_put_contents');
+    self::notFalse(
+      'file_put_contents',
+      \file_put_contents($path, $contents, 0, $this->ctx()),
+    );
   }
   public function appendFile(string $path, string $contents): void {
     $path = $this->fixPath($path);
-    $func = function($_): mixed use ($path, $contents) {
-      return \file_put_contents($path, $contents, \FILE_APPEND);
-    };
-    $this->runErrorsNotFalse($func, 'file_put_contents');
+    self::notFalse(
+      'file_put_contents',
+      \file_put_contents($path, $contents, \FILE_APPEND, $this->ctx()),
+    );
   }
   public function join(string $path, string $child): string {
     return $this->wrapper->join($path, $child);
@@ -436,8 +404,8 @@ final class StreamWrapperFileSystem extends FileSystem {
   private function fixPath(string $path): string {
     return $this->wrapper->wrapPath($path);
   }
-  private function runErrorsNotFalse<T>(fn<mixed, T> $func, string $name): T {
-    return _run_errors_not_false($func, null, $name);
+  private function ctx(): ?resource {
+    return $this->wrapper->context();
   }
 }
 
@@ -445,6 +413,9 @@ abstract class StreamWrapper {
   public abstract function split(string $path): (string, ?string);
   public abstract function join(string $path, string $child): string;
   public abstract function wrapPath(string $path): string;
+  public function context(): ?resource {
+    return null;
+  }
 }
 
 final class _streamWrapper {
@@ -495,12 +466,11 @@ final class _streamWrapper {
     $fs->rmdir($path);
     return true;
   }
-  public function stream_cast(int $cast_as): mixed /* resource|false */ {
-    return false;
-  }
+  // public function stream_cast(int $cast_as): mixed /* resource|false */ {
+  //   return false;
+  // }
   public function stream_close(): void {
     $this->stream()->close();
-    $this->stream = null;
   }
   public function stream_eof(): bool {
     return $this->stream()->eof();
@@ -510,6 +480,7 @@ final class _streamWrapper {
     return true;
   }
   public function stream_lock(int $operation): bool {
+    // Stream wrappers don't support the $wouldblock flock() parameter :((((
     return $this->stream()->lock($operation);
   }
   public function stream_metadata(
@@ -524,15 +495,13 @@ final class _streamWrapper {
         $fs->utime($path, $atime, $mtime);
         return true;
       case \STREAM_META_OWNER_NAME:
-        $data = \posix_getpwnam($value);
-        $fs->chown($path, $data['uid']);
+        $fs->chown($path, $this->name2uid((string) $value));
         return true;
       case \STREAM_META_OWNER:
         $fs->chown($path, (int) $value);
         return true;
       case \STREAM_META_GROUP_NAME:
-        $data = \posix_getgrnam($value);
-        $fs->chgrp($path, $data['gid']);
+        $fs->chgrp($path, $this->name2gid((string) $value));
         return true;
       case \STREAM_META_GROUP:
         $fs->chgrp($path, (int) $value);
@@ -544,24 +513,30 @@ final class _streamWrapper {
         return false;
     }
   }
+  private function name2gid(string $name): int {
+    $data = \posix_getgrnam($name);
+    if (!$data)
+      throw new Exception(\posix_strerror(\posix_get_last_error()));
+    return $data['gid'];
+  }
+  private function name2uid(string $name): int {
+    $data = \posix_getpwnam($name);
+    if (!$data)
+      throw new Exception(\posix_strerror(\posix_get_last_error()));
+    return $data['uid'];
+  }
   public function stream_open(
     string $path,
     string $mode,
     int $options,
     string $opened_path,
   ): bool {
-    try {
-      if ($options & \STREAM_USE_PATH) {
-        throw new Exception('STREAM_USE_PATH is not supported');
-      }
-      list($fs, $path) = $this->unwrap($path);
-      $this->stream = $fs->open($path, $mode);
-    } catch (Exception $e) {
-      if ($options & \STREAM_REPORT_ERRORS) {
-        throw $e;
-      }
-      return false;
+    if ($options & \STREAM_USE_PATH) {
+      throw new Exception('STREAM_USE_PATH is not supported');
     }
+    // TODO What if STREAM_REPORT_ERRORS is not set?
+    list($fs, $path) = $this->unwrap($path);
+    $this->stream = $fs->open($path, $mode);
     return true;
   }
   public function stream_read(int $count): string {
@@ -571,7 +546,11 @@ final class _streamWrapper {
     $this->stream()->seek($offset, $whence);
     return true;
   }
-  // public function stream_set_option(int $option, int $arg1, int $arg2): bool {
+  // public function stream_set_option(
+  //   int $option,
+  //   int $arg1,
+  //   int $arg2,
+  // ): bool {
   //   switch ($option) {
   //     case \STREAM_OPTION_BLOCKING:
   //       // TODO
@@ -608,19 +587,20 @@ final class _streamWrapper {
     string $path,
     int $flags,
   ): mixed /*stat_array|false*/ {
-    try {
-      list($fs, $path) = $this->unwrap($path);
-      return
-        ($flags & \STREAM_URL_STAT_LINK
-           ? $fs->lstat($path)
-           : $fs->stat($path))->toArray();
-    } catch (Exception $e) {
-      if ($flags & \STREAM_URL_STAT_QUIET) {
+    list($fs, $path) = $this->unwrap($path);
+
+    if ($flags & \STREAM_URL_STAT_LINK)
+      $stat = $fs->lstat($path); else
+      $stat = $fs->stat($path);
+
+    if (!$stat) {
+      // File file_exists(), is_file() etc
+      if ($flags & \STREAM_URL_STAT_QUIET)
         return false;
-      } else {
-        throw $e;
-      }
+      throw new Exception("Cannot stat '$path', path does not exist");
     }
+
+    return $stat->toArray();
   }
   private function unwrap(string $path): (FileSystem, string) {
     return FileSystemStreamWrapper::unwrapPath($path);
@@ -636,12 +616,15 @@ final class FileSystemStreamWrapper extends StreamWrapper {
   private static int $next = 1;
   private static array<arraykey, FileSystem> $fss = [];
   private static bool $registered = false;
+
   public static function unwrapPath(string $path): (FileSystem, string) {
     $match =
       Pattern::create('^hu-fs://(.*?):(.*)$', 'xDsS')->matchOrThrow($path);
     return tuple(self::$fss[$match->get(1)], $match->get(2));
   }
+
   private int $id;
+
   public function __construct(private FileSystem $fs) {
     if (!self::$registered) {
       \stream_wrapper_register('hu-fs', _streamWrapper::className());
@@ -749,102 +732,68 @@ final class LocalStreamWrapper extends StreamWrapper {
 }
 
 final class StreamWrapperStream extends Stream {
+  private static function notFalse<T>(string $name, T $ret): T {
+    return Exception::checkFalse($name, $ret);
+  }
   private resource $handle;
-  public function __construct(string $url, string $mode) {
+  public function __construct(string $url, string $mode, ?resource $ctx) {
     parent::__construct();
-    $func = function($_): resource use ($url, $mode) {
-      return \fopen($url, $mode);
-    };
-    $this->handle = _run_errors_not_false($func, 0, 'fopen');
+    $this->handle = self::notFalse('fopen', \fopen($url, $mode, false, $ctx));
   }
   public function read(int $length): string {
-    $func = function($handle): string use ($length) {
-      return \fread($handle, $length);
-    };
-    return $this->runErrorsNotFalse($func, 'fread');
+    return self::notFalse('fread', \fread($this->handle, $length));
   }
   public function write(string $data): int {
-    $func = function($handle): int use ($data) {
-      return \fwrite($handle, $data);
-    };
-    return $this->runErrorsNotFalse($func, 'fwrite');
+    return self::notFalse('fwrite', \fwrite($this->handle, $data));
   }
   public function eof(): bool {
-    // False is treated as an error, so we have to convert to int and back
-    $func = function($handle): int {
-      return (int) \feof($handle);
-    };
-    return (bool) $this->runErrorsNotFalse($func, 'feof');
+    return \feof($this->handle);
   }
   public function seek(int $offset, int $whence = \SEEK_SET): void {
-    $func = function($handle): mixed use ($offset, $whence) {
-      return \fseek($offset, $whence);
-    };
-    $this->runErrorsNotFalse($func, 'fseek');
+    self::notFalse('fseek', \fseek($offset, $whence));
   }
   public function tell(): int {
-    $func = function($handle): int {
-      return \ftell($handle);
-    };
-    return $this->runErrorsNotFalse($func, 'ftell');
+    return self::notFalse('ftell', \ftell($this->handle));
   }
   public function close(): void {
-    $func = function($handle): mixed {
-      return \fclose($handle);
-    };
-    $this->runErrorsNotFalse($func, 'fclose');
+    self::notFalse('fclose', \fclose($this->handle));
   }
   public function flush(): void {
-    $func = function($handle): mixed {
-      return \fflush($handle);
-    };
-    $this->runErrorsNotFalse($func, 'fflush');
+    self::notFalse('fflush', \fflush($this->handle));
   }
   public function lock(int $flags): bool {
-    $func = function($handle): int use ($flags) {
-      $wb = false;
-      $r = \flock($handle, $flags, $wb);
-      if ($wb)
-        return 0;
-      if ($r)
-        return 1;
-      return $r;
-    };
-    $ret = $this->runErrorsNotFalse($func, 'flock');
-    return $ret > 0;
+    $wb = false;
+    $ret = \flock($this->handle, $flags, $wb);
+    // An EWOULDBLOCK should quietly return false
+    if ($wb)
+      return false;
+    return self::notFalse('flock', $ret);
   }
   public function truncate(int $length): void {
-    $func = function($handle): mixed use ($length) {
-      return \ftruncate($handle, $length);
-    };
-    $this->runErrorsNotFalse($func, 'ftruncate');
+    self::notFalse('ftruncate', \ftruncate($this->handle, $length));
   }
   public function stat(): Stat {
-    $func = function($handle): stat_array {
-      return \fstat($handle);
-    };
-    $stat = $this->runErrorsNotFalse($func, 'fstat');
-    return new ArrayStat($stat);
+    return new ArrayStat(self::notFalse('fstat', \fstat($this->handle)));
   }
   public function getContents(): string {
-    $func = function($handle): string {
-      return \stream_get_contents($handle);
-    };
-    return $this->runErrorsNotFalse($func, 'stream_get_contents');
+    return self::notFalse(
+      \stream_get_contents($this->handle),
+      'stream_get_contents',
+    );
   }
   public function isReadable(): bool {
-    $func = function($handle): stream_meta {
-      return \stream_get_meta_data($handle);
-    };
-    $ret = $this->runErrorsNotFalse($func, 'stream_get_meta_data');
+    $ret = self::notFalse(
+      'stream_get_meta_data',
+      \stream_get_meta_data($this->handle),
+    );
     $mode = $ret['mode'];
     return \strstr($mode, 'r') || \strstr($mode, '+');
   }
   public function isWritable(): bool {
-    $func = function($handle): stream_meta {
-      return \stream_get_meta_data($handle);
-    };
-    $ret = $this->runErrorsNotFalse($func, 'stream_get_meta_data');
+    $ret = self::notFalse(
+      'stream_get_meta_data',
+      \stream_get_meta_data($this->handle),
+    );
     $mode = $ret['mode'];
     return
       \strstr($mode, 'x') ||
@@ -854,43 +803,13 @@ final class StreamWrapperStream extends Stream {
       \strstr($mode, '+');
   }
   public function getMetadata(?string $key = null): mixed {
-    $func = function($handle): stream_meta {
-      return \stream_get_meta_data($handle);
-    };
-    $ret = $this->runErrorsNotFalse($func, 'stream_get_meta_data');
+    $ret = self::notFalse(
+      'stream_get_meta_data',
+      \stream_get_meta_data($this->handle),
+    );
     if ($key === null)
       return $ret;
     /* HH_IGNORE_ERROR[4051] */
     return $ret[$key];
   }
-  private function runErrorsNotFalse<T>(
-    fn<resource, T> $func,
-    string $name,
-  ): T {
-    return _run_errors_not_false($func, $this->handle, $name);
-  }
 }
-
-function _run_errors_not_false<Tin, Tout>(
-  fn<Tin, Tout> $func,
-  Tin $in,
-  string $name,
-): Tout {
-  \set_error_handler(
-    function($severity, $message, $file, $line) {
-      throw new ErrorException($message, 0, $severity, $file, $line);
-    },
-  );
-  try {
-    $r = $func($in);
-  } catch (\Exception $e) {
-    \restore_error_handler();
-    throw $e;
-  }
-  \restore_error_handler();
-  if ($r === false)
-    throw new Exception($name.'() failed');
-  return $r;
-}
-
-type fn<-Tin, +Tout> = (function(Tin): Tout);
