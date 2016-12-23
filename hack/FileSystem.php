@@ -772,7 +772,7 @@ final class StreamWrapperStream extends Stream {
     return \feof($this->handle);
   }
   public function seek(int $offset, int $whence = \SEEK_SET): void {
-    self::notFalse('fseek', \fseek($offset, $whence));
+    self::notFalse('fseek', \fseek($this->handle, $offset, $whence));
   }
   public function tell(): int {
     return self::notFalse('ftell', \ftell($this->handle));
