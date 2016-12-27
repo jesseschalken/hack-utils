@@ -65,6 +65,11 @@ namespace HackUtils\PCRE {
     private function __construct($regex, $options = "") {
       $this->composed = "/".self::escape($regex)."/".$options;
     }
+    public function matches($subject) {
+      $ret = \preg_match($this->composed, $subject);
+      self::checkLastError();
+      return (bool) $ret;
+    }
     public function match($subject, $offset = 0) {
       $match = array();
       $flags = \PREG_OFFSET_CAPTURE;
@@ -138,7 +143,7 @@ namespace HackUtils\PCRE {
     }
     public function getOrNull($group = 0) {
       $match = HU\get_or_null($this->match, $group);
-      return $match ? $match[0] : HU\new_null();
+      return $match ? $match[0] : HU\NULL_STRING;
     }
     public function getOrEmpty($group = 0) {
       $match = HU\get_or_null($this->match, $group);

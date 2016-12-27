@@ -396,7 +396,22 @@ function _run_tests(): void {
     ],
   );
 
+  $fs = LocalFileSystem::create();
+  $path = $fs->path('/tmp/'.\mt_rand());
+  test_filesystem($fs, $path);
+
   print "okay\n";
+}
+
+function test_filesystem(FileSystem $fs, Path $base): void {
+  $fs->mkdir($base->format());
+
+  $file = $base->join_str('foo')->format();
+  $fs->writeFile($file, 'contents');
+  _assert_equal($fs->readFile($file), 'contents');
+  $fs->unlink($file);
+
+  $fs->rmdir($base->format());
 }
 
 function _test_multiple<Tin, Tout>(

@@ -1,6 +1,11 @@
 <?php
 namespace HackUtils {
   require_once ($GLOBALS["HACKLIB_ROOT"]);
+  const NULL_STRING = null;
+  const NULL_INT = null;
+  const NULL_FLOAT = null;
+  const NULL_RESOURCE = null;
+  const NULL_BOOL = null;
   function new_null() {
     return null;
   }
@@ -240,6 +245,9 @@ namespace HackUtils {
   function from_keys($keys, $value) {
     return \array_fill_keys($keys, $value);
   }
+  function unique($values) {
+    return values(combine($values, $values));
+  }
   function flip($array) {
     return \array_flip($array);
   }
@@ -426,6 +434,9 @@ namespace HackUtils {
     return $ret;
   }
   function repeat($value, $count) {
+    if (!$count) {
+      return array();
+    }
     return \array_fill(0, $count, $value);
   }
   function repeat_string($string, $count) {
@@ -686,5 +697,8 @@ namespace HackUtils {
   function ends_with($string, $suffix) {
     $length = length($suffix);
     return $length ? (slice($string, -$length) === $suffix) : true;
+  }
+  function is_windows() {
+    return \DIRECTORY_SEPARATOR === "\\";
   }
 }

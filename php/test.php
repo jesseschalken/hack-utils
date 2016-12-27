@@ -258,7 +258,7 @@ namespace HackUtils {
       array(2016, 12, 31)
     );
     _assert_equal(
-      overflow_date(2016, -3, (((30 + 31) + 30) + 31) + 17),
+      overflow_date(2016, -3, 30 + 31 + 30 + 31 + 17),
       array(2016, 1, 17)
     );
     _assert_equal(overflow_date(2016, -3, -8), array(2015, 8, 23));
@@ -354,7 +354,18 @@ namespace HackUtils {
         array(\fopen("php://memory", "rb"), "resource")
       )
     );
+    $fs = LocalFileSystem::create();
+    $path = $fs->path("/tmp/".\mt_rand());
+    test_filesystem($fs, $path);
     echo ("okay\n");
+  }
+  function test_filesystem($fs, $base) {
+    $fs->mkdir($base->format());
+    $file = $base->join_str("foo")->format();
+    $fs->writeFile($file, "contents");
+    _assert_equal($fs->readFile($file), "contents");
+    $fs->unlink($file);
+    $fs->rmdir($base->format());
   }
   function _test_multiple($function, $samples) {
     foreach ($samples as $pair) {

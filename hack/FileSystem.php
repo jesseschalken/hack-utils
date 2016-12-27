@@ -4,7 +4,7 @@ namespace HackUtils;
 
 abstract class FileSystem {
   protected function __construct() {}
-  protected function __destruct() {}
+  public function __destruct() {}
 
   public abstract function mkdir(string $path, int $mode = 0777): void;
   public abstract function readdir(string $path): array<string>;
@@ -102,12 +102,12 @@ abstract class FileSystem {
     return $this->open($path, 'rb')->getContents();
   }
 
-  public function writeFile(string $path, string $contents): void {
-    $this->open($path, 'wb')->write($contents);
+  public function writeFile(string $path, string $contents): int {
+    return $this->open($path, 'wb')->write($contents);
   }
 
-  public function appendFile(string $path, string $contents): void {
-    $this->open($path, 'ab')->write($contents);
+  public function appendFile(string $path, string $contents): int {
+    return $this->open($path, 'ab')->write($contents);
   }
 
   public function toStreamWrapper(): StreamWrapper {
@@ -269,17 +269,17 @@ abstract class StreamWrapper extends FileSystem {
     );
   }
 
-  public final function writeFile(string $path, string $contents): void {
+  public final function writeFile(string $path, string $contents): int {
     $path = $this->wrapPath($path);
-    ErrorAssert::isString(
+    return ErrorAssert::isInt(
       'file_put_contents',
       \file_put_contents($path, $contents, 0, $this->getContext()),
     );
   }
 
-  public final function appendFile(string $path, string $contents): void {
+  public final function appendFile(string $path, string $contents): int {
     $path = $this->wrapPath($path);
-    ErrorAssert::isString(
+    return ErrorAssert::isInt(
       'file_put_contents',
       \file_put_contents(
         $path,
@@ -296,12 +296,16 @@ abstract class StreamWrapper extends FileSystem {
 
   public abstract function wrapPath(string $path): string;
 
-  public function getContext(): ?resource {
-    return NULL_RESOURCE;
+  public function getContext(): resource {
+    return \stream_context_get_default();
   }
 }
 
 final class LocalFileSystem extends StreamWrapper {
+  public static function create(): FileSystem {
+    return new self();
+  }
+
   public final function symlink(string $path, string $target): void {
     $path = $this->wrapPath($path);
     ErrorAssert::isTrue('symlink', \symlink($path, $target));

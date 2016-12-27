@@ -1,12 +1,68 @@
 <?php
-namespace HackUtils\FS {
+namespace HackUtils {
   require_once ($GLOBALS["HACKLIB_ROOT"]);
   abstract class FileSystem {
+    protected function __construct() {}
+    public function __destruct() {}
     public abstract function mkdir($path, $mode = 0777);
     public abstract function readdir($path);
     public abstract function rmdir($path);
     public abstract function rename($oldpath, $newpath);
     public abstract function unlink($path);
+    public final function remove($path) {
+      $stat = $this->lstat($path);
+      if ($stat && $stat->isDir()) {
+        $this->rmdir($path);
+      } else {
+        $this->unlink($path);
+      }
+    }
+    public final function readdir_rec($path) {
+      $parsed = $this->path($path);
+      $ret = array();
+      foreach ($this->readdir($path) as $p) {
+        $ret[] = $p;
+        $full = $parsed->join_str($p)->format();
+        $stat = $this->stat($full);
+        if ($stat && $stat->isDir()) {
+          foreach ($this->readdir_rec($full) as $p2) {
+            $ret[] = $p.$this->sep().$p2;
+          }
+        }
+      }
+      return $ret;
+    }
+    public final function remove_rec($path) {
+      $stat = $this->lstat($path);
+      if ($stat && $stat->isDir()) {
+        return $this->rmdir_rec($path);
+      }
+      $this->unlink($path);
+      return 1;
+    }
+    public final function rmdir_rec($path) {
+      $parsed = $this->path($path);
+      $ret = 0;
+      foreach ($this->readdir($path) as $p) {
+        $ret += $this->rmdir_rec($parsed->join_str($p)->format());
+      }
+      $this->rmdir($path);
+      $ret++;
+      return $ret;
+    }
+    public final function mkdir_rec($path, $mode = 0777) {
+      $dir = \hacklib_nullsafe($this->path($path)->dir())->format();
+      if (($dir !== null) && (!$this->lstat($dir))) {
+        $this->mkdir_rec($dir, $mode);
+      }
+      $this->mkdir($path, $mode);
+    }
+    public final function exists($path) {
+      return $this->stat($path) ? true : false;
+    }
+    public final function lexists($path) {
+      return $this->lstat($path) ? true : false;
+    }
     public abstract function stat($path);
     public abstract function chmod($path, $mode);
     public abstract function chown($path, $uid);
@@ -19,230 +75,230 @@ namespace HackUtils\FS {
     public abstract function lchown($path, $uid);
     public abstract function lchgrp($path, $gid);
     public abstract function realpath($path);
-    public abstract function join($path, $child);
-    public abstract function split($path);
-  }
-  class Exception extends \Exception {}
-  abstract class Stream {
-    public abstract function truncate($len);
-    public abstract function lock($flags);
-    public abstract function tell();
-    public abstract function eof();
-    public abstract function seek($offset, $whence = \SEEK_SET);
-    public abstract function read($length);
-    public abstract function write($data);
-  }
-  final class Stat {
-    public static function fromArray($stat) {
-      return new self($stat);
+    public abstract function pwd();
+    public function path($path) {
+      return PosixPath::parse($path);
     }
-    private $stat;
-    private function __construct($stat) {
-      $this->stat = $stat;
+    public function sep() {
+      return "/";
     }
-    public function mtime() {
-      return $this->stat["mtime"];
+    public function readFile($path) {
+      return $this->open($path, "rb")->getContents();
     }
-    public function atime() {
-      return $this->stat["atime"];
+    public function writeFile($path, $contents) {
+      return $this->open($path, "wb")->write($contents);
     }
-    public function ctime() {
-      return $this->stat["ctime"];
+    public function appendFile($path, $contents) {
+      return $this->open($path, "ab")->write($contents);
     }
-    public function size() {
-      return $this->stat["size"];
-    }
-    public function mode() {
-      return $this->stat["mode"];
-    }
-    public function toArray() {
-      return $this->stat;
-    }
-    public function isFile() {
-      return S_ISREG($this->mode());
-    }
-    public function isDir() {
-      return S_ISDIR($this->mode());
-    }
-    public function isLink() {
-      return S_ISLNK($this->mode());
-    }
-    public function isSocket() {
-      return S_ISSOCK($this->mode());
-    }
-    public function isFIFO() {
-      return S_ISSOCK($this->mode());
-    }
-    public function isChar() {
-      return S_ISSOCK($this->mode());
-    }
-    public function isBlock() {
-      return S_ISSOCK($this->mode());
+    public function toStreamWrapper() {
+      return new FileSystemStreamWrapper($this);
     }
   }
-  function format_mode($mode) {
-    $s = "";
-    $type = $mode & S_IFMT;
-    if ($type == S_IFWHT) {
-      $s .= "w";
-    } else {
-      if ($type == S_IFDOOR) {
-        $s .= "D";
-      } else {
-        if ($type == S_IFSOCK) {
-          $s .= "s";
-        } else {
-          if ($type == S_IFLNK) {
-            $s .= "l";
-          } else {
-            if ($type == S_IFNWK) {
-              $s .= "n";
-            } else {
-              if ($type == S_IFREG) {
-                $s .= "-";
-              } else {
-                if ($type == S_IFBLK) {
-                  $s .= "b";
-                } else {
-                  if ($type == S_IFDIR) {
-                    $s .= "d";
-                  } else {
-                    if ($type == S_IFCHR) {
-                      $s .= "c";
-                    } else {
-                      if ($type == S_IFIFO) {
-                        $s .= "p";
-                      } else {
-                        $s .= "?";
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
+  class ErrorAssert extends \RuntimeException {
+    public final static function isZero($name, $ret) {
+      if ($ret !== 0) {
+        throw self::create($name);
+      }
+    }
+    public final static function isArray($name, $ret) {
+      if (!\is_array($ret)) {
+        throw self::create($name);
+      }
+      return $ret;
+    }
+    public final static function isString($name, $ret) {
+      if (!\is_string($ret)) {
+        throw self::create($name);
+      }
+      return $ret;
+    }
+    public final static function isInt($name, $ret) {
+      if (!\is_int($ret)) {
+        throw self::create($name);
+      }
+      return $ret;
+    }
+    public final static function isTrue($name, $ret) {
+      if ($ret !== true) {
+        throw self::create($name);
+      }
+    }
+    public final static function isResource($name, $ret) {
+      if (!\is_resource($ret)) {
+        throw self::create($name);
+      }
+      return $ret;
+    }
+    public final static function isBool($name, $ret) {
+      if (!\is_bool($ret)) {
+        throw self::create($name);
+      }
+      return $ret;
+    }
+    private static function create($name) {
+      $error = \error_get_last();
+      $msg = $name."() failed";
+      if ($error) {
+        $e = new self($msg.": ".$error["message"]);
+        $e->file = $error["file"];
+        $e->line = $error["line"];
+        return $e;
+      }
+      return new self($msg);
+    }
+  }
+  abstract class StreamWrapper extends FileSystem {
+    public final function open($path, $mode) {
+      $path = $this->wrapPath($path);
+      return new FOpenStream($path, $mode, $this->getContext());
+    }
+    public final function stat($path) {
+      $path = $this->wrapPath($path);
+      \clearstatcache();
+      if (!\file_exists($path)) {
+        return null;
+      }
+      return new ArrayStat(ErrorAssert::isArray("stat", \stat($path)));
+    }
+    public final function rename($from, $to) {
+      $from = $this->wrapPath($from);
+      $to = $this->wrapPath($to);
+      ErrorAssert::isTrue("rename", \rename($from, $to, $this->getContext()));
+    }
+    public final function readdir($path) {
+      $path = $this->wrapPath($path);
+      $ret = array();
+      $dir = ErrorAssert::isResource(
+        "opendir",
+        \opendir($path, $this->getContext())
+      );
+      for (; $p = \readdir($dir); $p !== false) {
+        if (($p === ".") || ($p === "..")) {
+          continue;
         }
+        $ret[] = $p;
       }
+      \closedir($dir);
+      return $ret;
     }
-    $s .= ($mode & S_IRUSR) ? "r" : "-";
-    $s .= ($mode & S_IWUSR) ? "w" : "-";
-    if ($mode & S_ISUID) {
-      $s .= ($mode & S_IXUSR) ? "s" : "S";
-    } else {
-      $s .= ($mode & S_IXUSR) ? "x" : "-";
+    public final function mkdir($path, $mode = 0777) {
+      $path = $this->wrapPath($path);
+      ErrorAssert::isTrue(
+        "mkdir",
+        \mkdir($path, $mode, false, $this->getContext())
+      );
     }
-    $s .= ($mode & S_IRGRP) ? "r" : "-";
-    $s .= ($mode & S_IWGRP) ? "w" : "-";
-    if ($mode & S_ISGID) {
-      $s .= ($mode & S_IXGRP) ? "s" : "S";
-    } else {
-      $s .= ($mode & S_IXGRP) ? "x" : "-";
+    public final function unlink($path) {
+      $path = $this->wrapPath($path);
+      ErrorAssert::isTrue("unlink", \unlink($path, $this->getContext()));
     }
-    $s .= ($mode & S_IROTH) ? "r" : "-";
-    $s .= ($mode & S_IWOTH) ? "w" : "-";
-    if ($mode & S_ISVTX) {
-      $s .= ($mode & S_IXOTH) ? "t" : "T";
-    } else {
-      $s .= ($mode & S_IXOTH) ? "x" : "-";
-    }
-    return $s;
-  }
-  class MixedFileSystem extends FileSystem {
-    public function open($path, $mode) {
-      return new MixedStream($path, $mode);
-    }
-    public function symlink($path, $target) {
-      notfalse(\symlink($target, $path), "symlink");
-    }
-    public function stat($path) {
-      return Stat::fromArray(notfalse(\stat($path), "stat"));
-    }
-    public function readlink($path) {
-      return notfalse(\readlink($path), "readlink");
-    }
-    public function rename($from, $to) {
-      notfalse(\rename($from, $to), "rename");
-    }
-    public function readdir($path) {
-      return notfalse(\scandir($path), "scandir");
-    }
-    public function mkdir($path, $mode = 0777) {
-      notfalse(\mkdir($path, $mode), "mkdir");
-    }
-    public function unlink($path) {
-      notfalse(\unlink($path), "unlink");
-    }
-    public function realpath($path) {
-      return notfalse(\realpath($path), "realpath");
-    }
-    public function lstat($path) {
-      return Stat::fromArray(notfalse(\lstat($path), "lstat"));
-    }
-    public function rmdir($path) {
-      notfalse(\rmdir($path), "rmdir");
-    }
-    public function chmod($path, $mode) {
-      notfalse(\chmod($path, $mode), "chmod");
-    }
-    public function chown($path, $uid) {
-      notfalse(\chown($path, (int) $uid), "chown");
-    }
-    public function chgrp($path, $gid) {
-      notfalse(\chgrp($path, (int) $gid), "chgrp");
-    }
-    public function lchown($path, $uid) {
-      notfalse(\lchown($path, (int) $uid), "lchown");
-    }
-    public function lchgrp($path, $gid) {
-      notfalse(\lchgrp($path, (int) $gid), "lchgrp");
-    }
-    public function utime($path, $atime, $mtime) {
-      notfalse(\touch($path, $mtime, $atime), "touch");
-    }
-    public function join($path, $child) {
-      return "";
-    }
-    public function split($path) {
-      return array("", "");
-    }
-  }
-  final class MixedStream extends Stream {
-    private $handle;
-    public function __construct($path, $mode) {
-      $this->handle = notfalse(\fopen($path, $mode), "fopen");
-    }
-    public function read($length) {
-      return notfalse(\fread($this->handle, $length), "fread");
-    }
-    public function write($data) {
-      return notfalse(\fwrite($this->handle, $data), "fwrite");
-    }
-    public function eof() {
-      return \feof($this->handle);
-    }
-    public function seek($offset, $whence = \SEEK_SET) {
-      notfalse(\fseek($this->handle, $offset, $whence), "fseek");
-    }
-    public function tell() {
-      return notfalse(\ftell($this->handle), "ftell");
-    }
-    public function lock($flags) {
-      $wouldblock = false;
-      $ret = \flock($this->handle, $flags, $wouldblock);
-      if ($wouldblock) {
-        return false;
+    public final function lstat($path) {
+      $path = $this->wrapPath($path);
+      \clearstatcache();
+      if ((!\file_exists($path)) && (!\is_link($path))) {
+        return new_null();
       }
-      notfalse($ret, "flock");
-      return true;
+      return new ArrayStat(ErrorAssert::isArray("lstat", \lstat($path)));
     }
-    public function truncate($length) {
-      notfalse(\ftruncate($this->handle, $length), "ftruncate");
+    public final function rmdir($path) {
+      $path = $this->wrapPath($path);
+      ErrorAssert::isTrue("rmdir", \rmdir($path, $this->getContext()));
+    }
+    public final function chmod($path, $mode) {
+      $path = $this->wrapPath($path);
+      ErrorAssert::isTrue("chmod", \chmod($path, $mode));
+    }
+    public final function chown($path, $uid) {
+      $path = $this->wrapPath($path);
+      ErrorAssert::isTrue("chown", \chown($path, (int) $uid));
+    }
+    public final function chgrp($path, $gid) {
+      $path = $this->wrapPath($path);
+      ErrorAssert::isTrue("chgrp", \chgrp($path, (int) $gid));
+    }
+    public final function utime($path, $atime, $mtime) {
+      $path = $this->wrapPath($path);
+      ErrorAssert::isTrue("touch", \touch($path, $mtime, $atime));
+    }
+    public final function readFile($path) {
+      $path = $this->wrapPath($path);
+      return ErrorAssert::isString(
+        "file_get_contents",
+        \file_get_contents($path, false, $this->getContext())
+      );
+    }
+    public final function writeFile($path, $contents) {
+      $path = $this->wrapPath($path);
+      return ErrorAssert::isInt(
+        "file_put_contents",
+        \file_put_contents($path, $contents, 0, $this->getContext())
+      );
+    }
+    public final function appendFile($path, $contents) {
+      $path = $this->wrapPath($path);
+      return ErrorAssert::isInt(
+        "file_put_contents",
+        \file_put_contents(
+          $path,
+          $contents,
+          \FILE_APPEND,
+          $this->getContext()
+        )
+      );
+    }
+    public final function toStreamWrapper() {
+      return $this;
+    }
+    public abstract function wrapPath($path);
+    public function getContext() {
+      return \stream_context_get_default();
     }
   }
-  function notfalse($x, $f) {
-    if ($x === false) {
-      throw new Exception($f."() failed");
+  final class LocalFileSystem extends StreamWrapper {
+    public static function create() {
+      return new self();
     }
-    return $x;
+    public final function symlink($path, $target) {
+      $path = $this->wrapPath($path);
+      ErrorAssert::isTrue("symlink", \symlink($path, $target));
+    }
+    public final function readlink($path) {
+      $path = $this->wrapPath($path);
+      return ErrorAssert::isString("readlink", \readlink($path));
+    }
+    public final function realpath($path) {
+      $path = $this->wrapPath($path);
+      \clearstatcache();
+      return ErrorAssert::isString("realpath", \realpath($path));
+    }
+    public final function lchown($path, $uid) {
+      $path = $this->wrapPath($path);
+      ErrorAssert::isTrue("lchown", \lchown($path, (int) $uid));
+    }
+    public final function lchgrp($path, $gid) {
+      $path = $this->wrapPath($path);
+      ErrorAssert::isTrue("lchgrp", \lchgrp($path, (int) $gid));
+    }
+    public final function pwd() {
+      return ErrorAssert::isString("getcwd", \getcwd());
+    }
+    public function path($path) {
+      return Path::parse($path);
+    }
+    public function sep() {
+      return \DIRECTORY_SEPARATOR;
+    }
+    public function wrapPath($path) {
+      $regex =
+        "\n      ^(\n          [a-zA-Z0-9+\\-.]{2,}\n          ://\n        |\n          data:\n        |\n          zlib:\n      )\n    ";
+      if (self::regex($regex)->matches($path)) {
+        return ".".$this->sep().$path;
+      }
+      return $path;
+    }
+    private static function regex($regex) {
+      return PCRE\Pattern::create($regex, "xDsS");
+    }
   }
 }

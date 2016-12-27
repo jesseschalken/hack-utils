@@ -53,7 +53,7 @@ namespace HackUtils {
     }
     public static function fuzzyParse($string, $tz) {
       $result = new \DateTimeImmutable($string, $tz->_unwrap());
-      self::checkErrors($string, new_null());
+      self::checkErrors($string, NULL_STRING);
       return new self($result);
     }
     private static function checkErrors($string, $format) {
