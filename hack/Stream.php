@@ -64,7 +64,7 @@ final class FOpenStream extends Stream {
     return ErrorAssert::isBool('feof', \feof($this->handle));
   }
   public function seek(int $offset, int $whence = \SEEK_SET): void {
-    ErrorAssert::isZero('fseek', \fseek($offset, $whence));
+    ErrorAssert::isZero('fseek', \fseek($this->handle, $offset, $whence));
   }
   public function tell(): int {
     return ErrorAssert::isInt('ftell', \ftell($this->handle));
