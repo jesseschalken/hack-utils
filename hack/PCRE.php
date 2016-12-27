@@ -169,7 +169,7 @@ final class Match {
 
   public function getOrNull(arraykey $group = 0): ?string {
     $match = HU\get_or_null($this->match, $group);
-    return $match ? $match[0] : HU\new_null();
+    return $match ? $match[0] : HU\NULL_STRING;
   }
 
   public function getOrEmpty(arraykey $group = 0): string {

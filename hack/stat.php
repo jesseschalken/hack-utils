@@ -1,6 +1,6 @@
 <?hh // strict
 
-namespace HackUtils\FS;
+namespace HackUtils;
 
 // From https://en.wikibooks.org/wiki/C_Programming/POSIX_Reference/sys/stat.h
 const int S_IFMT = 00170000;
@@ -59,3 +59,157 @@ const int S_IRWXO = 00007;
 const int S_IROTH = 00004;
 const int S_IWOTH = 00002;
 const int S_IXOTH = 00001;
+
+abstract class Stat {
+  public abstract function mtime(): int;
+  public abstract function atime(): int;
+  public abstract function ctime(): int;
+  public abstract function size(): int;
+  public abstract function mode(): int;
+  public abstract function uid(): int;
+  public abstract function gid(): int;
+  public function toArray(): stat_array {
+    return shape(
+      'dev' => 0,
+      'ino' => 0,
+      'mode' => $this->mode(),
+      'nlink' => 1,
+      'uid' => $this->uid(),
+      'gid' => $this->gid(),
+      'rdev' => -1,
+      'size' => $this->size(),
+      'atime' => $this->atime(),
+      'mtime' => $this->mtime(),
+      'ctime' => $this->ctime(),
+      'blksize' => -1,
+      'blocks' => -1,
+    );
+  }
+  public final function isFile(): bool {
+    return S_ISREG($this->mode());
+  }
+  public final function isDir(): bool {
+    return S_ISDIR($this->mode());
+  }
+  public final function isLink(): bool {
+    return S_ISLNK($this->mode());
+  }
+  public final function isSocket(): bool {
+    return S_ISSOCK($this->mode());
+  }
+  public final function isPipe(): bool {
+    return S_ISFIFO($this->mode());
+  }
+  public final function isChar(): bool {
+    return S_ISCHR($this->mode());
+  }
+  public final function isBlock(): bool {
+    return S_ISBLK($this->mode());
+  }
+  public final function modeSymbolic(): string {
+    return symbolic_mode($this->mode());
+  }
+  public final function modeOctal(): string {
+    return pad_left(\decoct($this->mode() & 07777), 4, '0');
+  }
+}
+
+final class ArrayStat extends Stat {
+  public function __construct(private stat_array $stat) {}
+  public function mtime(): int {
+    return $this->stat['mtime'];
+  }
+  public function atime(): int {
+    return $this->stat['atime'];
+  }
+  public function ctime(): int {
+    return $this->stat['ctime'];
+  }
+  public function size(): int {
+    return $this->stat['size'];
+  }
+  public function mode(): int {
+    return $this->stat['mode'];
+  }
+  public function uid(): int {
+    return $this->stat['uid'];
+  }
+  public function gid(): int {
+    return $this->stat['gid'];
+  }
+  public function toArray(): stat_array {
+    return $this->stat;
+  }
+}
+
+function symbolic_mode(int $mode): string {
+  $s = '';
+
+  $type = $mode & S_IFMT;
+  if ($type == S_IFWHT)
+    $s .= 'w'; else if ($type == S_IFDOOR)
+    $s .= 'D'; else if ($type == S_IFSOCK)
+    $s .= 's'; else if ($type == S_IFLNK)
+    $s .= 'l'; else if ($type == S_IFNWK)
+    $s .= 'n'; else if ($type == S_IFREG)
+    $s .= '-'; else if ($type == S_IFBLK)
+    $s .= 'b'; else if ($type == S_IFDIR)
+    $s .= 'd'; else if ($type == S_IFCHR)
+    $s .= 'c'; else if ($type == S_IFIFO)
+    $s .= 'p'; else
+    $s .= '?';
+
+  $s .= $mode & S_IRUSR ? 'r' : '-';
+  $s .= $mode & S_IWUSR ? 'w' : '-';
+  if ($mode & S_ISUID)
+    $s .= $mode & S_IXUSR ? 's' : 'S'; else
+    $s .= $mode & S_IXUSR ? 'x' : '-';
+
+  $s .= $mode & S_IRGRP ? 'r' : '-';
+  $s .= $mode & S_IWGRP ? 'w' : '-';
+  if ($mode & S_ISGID)
+    $s .= $mode & S_IXGRP ? 's' : 'S'; else
+    $s .= $mode & S_IXGRP ? 'x' : '-';
+
+  $s .= $mode & S_IROTH ? 'r' : '-';
+  $s .= $mode & S_IWOTH ? 'w' : '-';
+  if ($mode & S_ISVTX)
+    $s .= $mode & S_IXOTH ? 't' : 'T'; else
+    $s .= $mode & S_IXOTH ? 'x' : '-';
+
+  return $s;
+}
+
+type stat_array = shape(
+  'dev' => int,
+  'ino' => int,
+  'mode' => int,
+  'nlink' => int,
+  'uid' => int,
+  'gid' => int,
+  'rdev' => int,
+  'size' => int,
+  'atime' => int,
+  'mtime' => int,
+  'ctime' => int,
+  'blksize' => int,
+  'blocks' => int,
+);
+
+function new_stat(int $fileSize = 0): stat_array {
+  return shape(
+    'dev' => 0,
+    'ino' => 0,
+    'mode' => 0666 | S_IFREG,
+    'nlink' => 1,
+    'uid' => 0,
+    'gid' => 0,
+    'rdev' => -1,
+    'size' => $fileSize,
+    'atime' => 0,
+    'mtime' => 0,
+    'ctime' => 0,
+    'blksize' => -1,
+    'blocks' => -1,
+  );
+}

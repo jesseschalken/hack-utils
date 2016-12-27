@@ -83,7 +83,7 @@ final class DateTime {
 
   public static function fuzzyParse(string $string, TimeZone $tz): DateTime {
     $result = new \DateTimeImmutable($string, $tz->_unwrap());
-    self::checkErrors($string, new_null());
+    self::checkErrors($string, NULL_STRING);
     return new self($result);
   }
 

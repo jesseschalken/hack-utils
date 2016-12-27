@@ -2,6 +2,12 @@
 
 namespace HackUtils;
 
+const ?string NULL_STRING = null;
+const ?int NULL_INT = null;
+const ?float NULL_FLOAT = null;
+const ?resource NULL_RESOURCE = null;
+const ?bool NULL_BOOL = null;
+
 /**
  * The Hack typechecker reports "null" as "Partially type checked code.
  * Consider adding type annotations". To avoid that, you can replace it with
@@ -673,6 +679,8 @@ function chunk_string(string $string, int $size): array<string> {
 }
 
 function repeat<T>(T $value, int $count): array<T> {
+  if (!$count)
+    return [];
   return \array_fill(0, $count, $value);
 }
 
@@ -1085,4 +1093,8 @@ function starts_with(string $string, string $prefix): bool {
 function ends_with(string $string, string $suffix): bool {
   $length = length($suffix);
   return $length ? slice($string, -$length) === $suffix : true;
+}
+
+function is_windows(): bool {
+  return \DIRECTORY_SEPARATOR === '\\';
 }
