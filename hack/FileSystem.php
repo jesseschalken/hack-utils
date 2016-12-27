@@ -49,7 +49,7 @@ abstract class FileSystem {
     $parsed = $this->path($path);
     $ret = 0;
     foreach ($this->readdir($path) as $p) {
-      $ret += $this->rmdir_rec($parsed->join_str($p)->format());
+      $ret += $this->remove_rec($parsed->join_str($p)->format());
     }
     $this->rmdir($path);
     $ret++;
