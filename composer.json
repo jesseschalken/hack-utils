@@ -2,7 +2,8 @@
     "name": "jesseschalken/hack-utils",
     "license": "MIT",
     "require": {
-        "hack-psr/psr7-http-message-hhi": "^1.0"
+        "hack-psr/psr7-http-message-hhi": "^1.0",
+        "psr/http-message": "^1.0"
     },
     "autoload": {
         "files": [

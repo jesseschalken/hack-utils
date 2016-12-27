@@ -18,11 +18,10 @@ namespace HackUtils {
       }
     }
     public final function readdir_rec($path) {
-      $parsed = $this->path($path);
       $ret = array();
       foreach ($this->readdir($path) as $p) {
         $ret[] = $p;
-        $full = $parsed->join_str($p)->format();
+        $full = $path.$this->sep().$p;
         $stat = $this->stat($full);
         if ($stat && $stat->isDir()) {
           foreach ($this->readdir_rec($full) as $p2) {
@@ -41,10 +40,9 @@ namespace HackUtils {
       return 1;
     }
     public final function rmdir_rec($path) {
-      $parsed = $this->path($path);
       $ret = 0;
       foreach ($this->readdir($path) as $p) {
-        $ret += $this->remove_rec($parsed->join_str($p)->format());
+        $ret += $this->remove_rec($path.$this->sep().$p);
       }
       $this->rmdir($path);
       $ret++;
@@ -92,6 +90,7 @@ namespace HackUtils {
       return $this->open($path, "ab")->write($contents);
     }
     public function toStreamWrapper() {
+      echo (__METHOD__."\n");
       return new FileSystemStreamWrapper($this);
     }
   }
@@ -261,7 +260,7 @@ namespace HackUtils {
     }
     public final function symlink($path, $target) {
       $path = $this->wrapPath($path);
-      ErrorAssert::isTrue("symlink", \symlink($path, $target));
+      ErrorAssert::isTrue("symlink", \symlink($target, $path));
     }
     public final function readlink($path) {
       $path = $this->wrapPath($path);

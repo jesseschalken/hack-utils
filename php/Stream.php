@@ -2,6 +2,8 @@
 namespace HackUtils {
   require_once ($GLOBALS["HACKLIB_ROOT"]);
   abstract class Stream implements \Psr\Http\Message\StreamInterface {
+    protected function __construct() {}
+    public function __destruct() {}
     public abstract function truncate($len);
     public abstract function tell();
     public abstract function eof();
@@ -95,8 +97,8 @@ namespace HackUtils {
     }
     public function getContents() {
       return ErrorAssert::isString(
-        \stream_get_contents($this->handle),
-        "stream_get_contents"
+        "stream_get_contents",
+        \stream_get_contents($this->handle)
       );
     }
     public function isReadable() {

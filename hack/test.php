@@ -397,21 +397,82 @@ function _run_tests(): void {
   );
 
   $fs = LocalFileSystem::create();
-  $path = $fs->path('/tmp/'.\mt_rand());
+  $path = $fs->path('/tmp/hufs-test-'.\mt_rand());
   test_filesystem($fs, $path);
+  test_filesystem(new FileSystemStreamWrapper($fs), $path);
 
   print "okay\n";
 }
 
 function test_filesystem(FileSystem $fs, Path $base): void {
+  _assert_equal($fs->stat($base->format()), null);
   $fs->mkdir($base->format());
+  _assert_equal($fs->stat($base->format())?->modeSymbolic(), 'drwxrwxr-x');
 
   $file = $base->join_str('foo')->format();
   $fs->writeFile($file, 'contents');
   _assert_equal($fs->readFile($file), 'contents');
+
+  $open = $fs->open($file, 'rb');
+  _assert_equal($open->eof(), false);
+  _assert_equal($open->tell(), 0);
+  _assert_equal($open->read(4), 'cont');
+  _assert_equal($open->eof(), false);
+  _assert_equal($open->tell(), 4);
+  $open->seek(2);
+  _assert_equal($open->tell(), 2);
+  $open->seek(2, \SEEK_CUR);
+  _assert_equal($open->tell(), 4);
+  _assert_equal($open->eof(), false);
+  _assert_equal($open->read(100), 'ents');
+  _assert_equal($open->read(100), '');
+  _assert_equal($open->eof(), true);
+  _assert_equal($open->getSize(), 8);
+  _assert_equal($open->stat()->modeSymbolic(), '-rw-rw-r--');
+  _assert_equal($open->getContents(), '');
+  _assert_equal($open->__toString(), 'contents');
+  _assert_equal($open->getContents(), '');
+  $open->rewind();
+  _assert_equal($open->getContents(), 'contents');
+  _assert_equal($open->tell(), 8);
+  _assert_equal($open->isReadable(), true);
+  _assert_equal($open->isWritable(), false);
+  _assert_equal($open->isSeekable(), true);
+  $open->close();
+
+  $open = $fs->open($file, 'wb+');
+  _assert_equal($open->tell(), 0);
+  _assert_equal($open->eof(), false);
+  _assert_equal($open->getSize(), 0);
+  _assert_equal($open->getContents(), '');
+  _assert_equal($open->__toString(), '');
+  _assert_equal($open->write('hello'), 5);
+  _assert_equal($open->tell(), 5);
+  _assert_equal($open->eof(), true);
+  _assert_equal($open->getContents(), '');
+  _assert_equal($open->__toString(), 'hello');
+  $open->rewind();
+  _assert_equal($open->getContents(), 'hello');
+  _assert_equal($open->getContents(), '');
+  $open->seek(2);
+  _assert_equal($open->tell(), 2);
+  _assert_equal($open->write('__'), 2);
+  _assert_equal($open->tell(), 4);
+  _assert_equal($open->getContents(), 'o');
+  _assert_equal($open->tell(), 5);
+  _assert_equal($open->__toString(), 'he__o');
+  _assert_equal($open->tell(), 5);
+  _assert_equal($open->eof(), true);
+
+  $fs->symlink($file.'2', $file);
+  _assert_equal($fs->stat($file)?->modeSymbolic(), '-rw-rw-r--');
+  _assert_equal($fs->stat($file.'2')?->modeSymbolic(), '-rw-rw-r--');
+  _assert_equal($fs->lstat($file)?->modeSymbolic(), '-rw-rw-r--');
+  _assert_equal($fs->lstat($file.'2')?->modeSymbolic(), 'lrwxrwxrwx');
+
   $fs->unlink($file);
 
-  $fs->rmdir($base->format());
+  $fs->rmdir_rec($base->format());
 }
 
 function _test_multiple<Tin, Tout>(

@@ -3,6 +3,8 @@
 namespace HackUtils;
 
 abstract class Stream implements \Psr\Http\Message\StreamInterface {
+  protected function __construct() {}
+  public function __destruct() {}
   // public abstract function chmod(int $mode): void;
   // public abstract function chown(int $uid, int $gid): void;
   public abstract function truncate(int $len): void;
@@ -102,8 +104,8 @@ final class FOpenStream extends Stream {
   }
   public function getContents(): string {
     return ErrorAssert::isString(
-      \stream_get_contents($this->handle),
       'stream_get_contents',
+      \stream_get_contents($this->handle),
     );
   }
   public function isReadable(): bool {

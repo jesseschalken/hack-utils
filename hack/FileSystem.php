@@ -21,11 +21,10 @@ abstract class FileSystem {
   }
 
   public final function readdir_rec(string $path): array<string> {
-    $parsed = $this->path($path);
     $ret = [];
     foreach ($this->readdir($path) as $p) {
       $ret[] = $p;
-      $full = $parsed->join_str($p)->format();
+      $full = $path.$this->sep().$p;
       $stat = $this->stat($full);
       if ($stat && $stat->isDir()) {
         foreach ($this->readdir_rec($full) as $p2) {
@@ -46,10 +45,9 @@ abstract class FileSystem {
   }
 
   public final function rmdir_rec(string $path): int {
-    $parsed = $this->path($path);
     $ret = 0;
     foreach ($this->readdir($path) as $p) {
-      $ret += $this->remove_rec($parsed->join_str($p)->format());
+      $ret += $this->remove_rec($path.$this->sep().$p);
     }
     $this->rmdir($path);
     $ret++;
@@ -111,6 +109,7 @@ abstract class FileSystem {
   }
 
   public function toStreamWrapper(): StreamWrapper {
+    print __METHOD__."\n";
     return new FileSystemStreamWrapper($this);
   }
 }
@@ -308,7 +307,7 @@ final class LocalFileSystem extends StreamWrapper {
 
   public final function symlink(string $path, string $target): void {
     $path = $this->wrapPath($path);
-    ErrorAssert::isTrue('symlink', \symlink($path, $target));
+    ErrorAssert::isTrue('symlink', \symlink($target, $path));
   }
 
   public final function readlink(string $path): string {
