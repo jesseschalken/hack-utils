@@ -34,8 +34,8 @@ abstract class _BuiltinSorter<T> extends Sorter<T> {
   <<__Override>>
   public function sort<Tv as T>(array<Tv> $array): array<Tv> {
     if ($this->reverse)
-      _check_return(\rsort($array, $this->flags), 'rsort'); else
-      _check_return(\sort($array, $this->flags), 'sort');
+      ErrorAssert::isTrue('rsort', \rsort($array, $this->flags)); else
+      ErrorAssert::isTrue('sort', \sort($array, $this->flags));
     return $array;
   }
 
@@ -44,16 +44,16 @@ abstract class _BuiltinSorter<T> extends Sorter<T> {
     array<Tk, Tv> $array,
   ): array<Tk, Tv> {
     if ($this->reverse)
-      _check_return(\arsort($array, $this->flags), 'arsort'); else
-      _check_return(\asort($array, $this->flags), 'asort');
+      ErrorAssert::isTrue('arsort', \arsort($array, $this->flags)); else
+      ErrorAssert::isTrue('asort', \asort($array, $this->flags));
     return $array;
   }
 
   <<__Override>>
   public function sortKeys<Tk as T, Tv>(array<Tk, Tv> $array): array<Tk, Tv> {
     if ($this->reverse)
-      _check_return(\krsort($array, $this->flags), 'krsort'); else
-      _check_return(\ksort($array, $this->flags), 'ksort');
+      ErrorAssert::isTrue('krsort', \krsort($array, $this->flags)); else
+      ErrorAssert::isTrue('ksort', \ksort($array, $this->flags));
     return $array;
   }
 }
@@ -63,7 +63,7 @@ final class CallbackSorter<T> extends Sorter<T> {
 
   <<__Override>>
   public function sort<Tv as T>(array<Tv> $array): array<Tv> {
-    _check_return(\usort($array, $this->cmp), 'usort');
+    ErrorAssert::isTrue('usort', \usort($array, $this->cmp));
     return $array;
   }
 
@@ -71,13 +71,13 @@ final class CallbackSorter<T> extends Sorter<T> {
   public function sortValues<Tk, Tv as T>(
     array<Tk, Tv> $array,
   ): array<Tk, Tv> {
-    _check_return(\uasort($array, $this->cmp), 'uasort');
+    ErrorAssert::isTrue('uasort', \uasort($array, $this->cmp));
     return $array;
   }
 
   <<__Override>>
   public function sortKeys<Tk as T, Tv>(array<Tk, Tv> $array): array<Tk, Tv> {
-    _check_return(\uksort($array, $this->cmp), 'uksort');
+    ErrorAssert::isTrue('uksort', \uksort($array, $this->cmp));
     return $array;
   }
 }
@@ -114,9 +114,4 @@ final class MixedSorter extends _BuiltinSorter<mixed> {
   public function __construct() {
     parent::__construct(\SORT_REGULAR);
   }
-}
-
-function _check_return(bool $ret, string $func): void {
-  if ($ret === false)
-    throw new \Exception("$func() failed");
 }
