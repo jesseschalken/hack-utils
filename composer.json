@@ -11,6 +11,7 @@
         ]
     },
     "require-dev": {
-        "jesseschalken/autoload-generator": "^0.2.3"
+        "jesseschalken/autoload-generator": "^0.2.3",
+        "phpunit/php-code-coverage": "^4.0"
     }
 }
