@@ -23,6 +23,9 @@ namespace HackUtils {
     if (\is_array($x)) {
       return "array";
     }
+    if ($x instanceof \Closure) {
+      return "Closure";
+    }
     if (\is_object($x)) {
       return \get_class($x);
     }
