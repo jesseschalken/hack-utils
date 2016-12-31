@@ -7,7 +7,7 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 $coverage = new \SebastianBergmann\CodeCoverage\CodeCoverage();
 $coverage->setAddUncoveredFilesFromWhitelist(true);
-$coverage->filter()->addDirectoryToWhitelist(__DIR__ . '/php');
+$coverage->filter()->addDirectoryToWhitelist(SRC_DIR);
 $coverage->start('Hack Utils');
 
 try {
@@ -18,5 +18,3 @@ try {
     $writer = new \SebastianBergmann\CodeCoverage\Report\Html\Facade();
     $writer->process($coverage, __DIR__ . '/coverage');
 }
-
-

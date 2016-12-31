@@ -5,7 +5,7 @@
 \spl_autoload_register(function ($class) {
   static $map = array (
   'HackUtils\\ArrayIterator' => 'ArrayIterator.php',
-  'HackUtils\\ArrayStat' => 'stat.php',
+  'HackUtils\\ArrayStat' => 'Stat.php',
   'HackUtils\\CallbackSorter' => 'sort.php',
   'HackUtils\\DateTime' => 'DateTime.php',
   'HackUtils\\DateTimeException' => 'DateTime.php',
@@ -31,7 +31,7 @@
   'HackUtils\\Ref' => 'main.php',
   'HackUtils\\Settable' => 'main.php',
   'HackUtils\\Sorter' => 'sort.php',
-  'HackUtils\\Stat' => 'stat.php',
+  'HackUtils\\Stat' => 'Stat.php',
   'HackUtils\\Stream' => 'Stream.php',
   'HackUtils\\StreamWrapper' => 'FileSystem.php',
   'HackUtils\\StringSorter' => 'sort.php',
@@ -47,12 +47,12 @@
   }
 }, true, false);
 
+require_once __DIR__ . '/SRC_DIR.php';
+require_once __DIR__ . '/Stat.php';
 require_once __DIR__ . '/ctype.php';
 require_once __DIR__ . '/date_utils.php';
 require_once __DIR__ . '/main.php';
 require_once __DIR__ . '/math.php';
-require_once __DIR__ . '/sort.php';
-require_once __DIR__ . '/stat.php';
 require_once __DIR__ . '/test.php';
 require_once __DIR__ . '/typeof.php';
 
