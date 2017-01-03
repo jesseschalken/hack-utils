@@ -1,512 +1,544 @@
 <?php
 namespace HackUtils {
   require_once ($GLOBALS["HACKLIB_ROOT"]);
-  function _assert_equal($actual, $expected) {
-    if (!_is_equal($actual, $expected)) {
-      throw new \Exception(
-        \sprintf(
-          "Expected %s, got %s",
-          \var_export($expected, true),
-          \var_export($actual, true)
-        )
-      );
-    }
-  }
-  function _is_equal($a, $b) {
-    if (\is_float($a) && \is_float($b)) {
-      if (\is_nan($a) && \is_nan($b)) {
-        return true;
-      }
-      if (($a === 0.0) && ($b === 0.0) && (((string) $a) !== ((string) $b))) {
-        return false;
+  final class _Tests {
+    private static function assertEqual($actual, $expected) {
+      if (!self::isEqual($actual, $expected)) {
+        throw new \Exception(
+          \sprintf(
+            "Expected %s, got %s",
+            \var_export($expected, true),
+            \var_export($actual, true)
+          )
+        );
       }
     }
-    if (\is_array($a) && \is_array($b)) {
-      if (\count($a) !== \count($b)) {
-        return false;
-      }
-      $iterA = new ArrayIterator($a);
-      $iterB = new ArrayIterator($b);
-      for (
-        $iterA->reset(), $iterB->reset();
-        $iterA->valid() && $iterB->valid();
-        $iterA->next(), $iterB->next()
-      ) {
-        if ((!_is_equal($iterA->key(), $iterB->key())) ||
-            (!_is_equal($iterA->current(), $iterB->current()))) {
+    private static function isEqual($a, $b) {
+      if (\is_float($a) && \is_float($b)) {
+        if (\is_nan($a) && \is_nan($b)) {
+          return true;
+        }
+        if (signbit($a) != signbit($b)) {
           return false;
         }
       }
-      if ($iterA->valid() != $iterB->valid()) {
-        return false;
+      if (\is_array($a) && \is_array($b)) {
+        if (\count($a) !== \count($b)) {
+          return false;
+        }
+        $iterA = new ArrayIterator($a);
+        $iterB = new ArrayIterator($b);
+        for (
+          $iterA->reset(), $iterB->reset();
+          $iterA->valid() && $iterB->valid();
+          $iterA->next(), $iterB->next()
+        ) {
+          if ((!self::isEqual($iterA->key(), $iterB->key())) ||
+              (!self::isEqual($iterA->current(), $iterB->current()))) {
+            return false;
+          }
+        }
+        if ($iterA->valid() != $iterB->valid()) {
+          return false;
+        }
+        return true;
       }
-      return true;
+      return $a === $b;
     }
-    return $a === $b;
-  }
-  function _run_tests() {
-    _assert_equal(to_hex("\000\377 "), "00ff20");
-    _assert_equal(from_hex("00ff20"), "\000\377 ");
-    _assert_equal(from_hex("00Ff20"), "\000\377 ");
-    _assert_equal(length(str_shuffle("abc")), 3);
-    _assert_equal(reverse_string("abc"), "cba");
-    _assert_equal(reverse_string(""), "");
-    _assert_equal(to_lower("ABC.1.2.3"), "abc.1.2.3");
-    _assert_equal(to_upper("abc.1.2.3"), "ABC.1.2.3");
-    _assert_equal(split(""), array());
-    _assert_equal(split("a"), array("a"));
-    _assert_equal(split("abc"), array("a", "b", "c"));
-    _assert_equal(split("", "", 1), array());
-    _assert_equal(split("a", "", 1), array("a"));
-    _assert_equal(split("abc", "", 1), array("abc"));
-    _assert_equal(split("abc", "", 2), array("a", "bc"));
-    _assert_equal(split("abc", "", 3), array("a", "b", "c"));
-    _assert_equal(split("", "b"), array(""));
-    _assert_equal(split("abc", "b"), array("a", "c"));
-    _assert_equal(split("abc", "b", 1), array("abc"));
-    _assert_equal(split("abc", "b", 2), array("a", "c"));
-    _assert_equal(chunk_string("abc", 1), array("a", "b", "c"));
-    _assert_equal(chunk_string("abc", 2), array("ab", "c"));
-    _assert_equal(chunk_string("abc", 3), array("abc"));
-    _assert_equal(join(array()), "");
-    _assert_equal(join(array("abc")), "abc");
-    _assert_equal(join(array("a", "bc")), "abc");
-    _assert_equal(join(array(), ","), "");
-    _assert_equal(join(array("abc"), ","), "abc");
-    _assert_equal(join(array("a", "bc"), ","), "a,bc");
-    _assert_equal(replace_count("abc", "b", "lol"), array("alolc", 1));
-    _assert_equal(replace_count("abc", "B", "lol"), array("abc", 0));
-    _assert_equal(replace_count("abc", "B", "lol", true), array("alolc", 1));
-    _assert_equal(splice("abc", 1, 1), "ac");
-    _assert_equal(splice("abc", 1, 1, "lol"), "alolc");
-    _assert_equal(slice("abc", 1, 1), "b");
-    _assert_equal(slice("abc", -1, 1), "c");
-    _assert_equal(slice("abc", 1, -1), "b");
-    _assert_equal(slice("abc", 1), "bc");
-    _assert_equal(slice("abc", -1), "c");
-    _assert_equal(pad("abc", 3), "abc");
-    _assert_equal(pad("abc", 4), "abc ");
-    _assert_equal(pad("abc", 5), " abc ");
-    _assert_equal(pad("abc", 6), " abc  ");
-    _assert_equal(pad("1", 3, "ab"), "a1a");
-    _assert_equal(pad("1", 4, "ab"), "a1ab");
-    _assert_equal(pad_left("abc", 3), "abc");
-    _assert_equal(pad_left("abc", 4), " abc");
-    _assert_equal(pad_left("abc", 5), "  abc");
-    _assert_equal(pad_left("abc", 6), "   abc");
-    _assert_equal(pad_left("1", 3, "ab"), "ab1");
-    _assert_equal(pad_left("1", 4, "ab"), "aba1");
-    _assert_equal(pad_right("abc", 3), "abc");
-    _assert_equal(pad_right("abc", 4), "abc ");
-    _assert_equal(pad_right("abc", 5), "abc  ");
-    _assert_equal(pad_right("abc", 6), "abc   ");
-    _assert_equal(pad_right("1", 3, "ab"), "1ab");
-    _assert_equal(pad_right("1", 4, "ab"), "1aba");
-    _assert_equal(str_repeat("123", 3), "123123123");
-    _assert_equal(from_char_code(128), "\200");
-    _assert_equal(from_char_code(0), "\000");
-    _assert_equal(from_char_code(255), "\377");
-    _assert_equal(char_code_at("a"), 97);
-    _assert_equal(char_code_at("a99"), 97);
-    _assert_equal(str_cmp("a", "a"), 0);
-    _assert_equal(str_cmp("a", "A"), 1);
-    _assert_equal(str_cmp("", ""), 0);
-    _assert_equal(str_cmp("", "a"), -1);
-    _assert_equal(str_cmp("a", ""), 1);
-    _assert_equal(str_cmp("a", "a", true), 0);
-    _assert_equal(str_cmp("a", "A", true), 0);
-    _assert_equal(str_cmp("", "", true), 0);
-    _assert_equal(str_cmp("", "a", true), -1);
-    _assert_equal(str_cmp("a", "", true), 1);
-    _assert_equal(str_eq("a", "a"), true);
-    _assert_equal(str_eq("a", "A"), false);
-    _assert_equal(str_eq("", ""), true);
-    _assert_equal(str_eq("", "a"), false);
-    _assert_equal(str_eq("a", ""), false);
-    _assert_equal(str_eq("a", "a", true), true);
-    _assert_equal(str_eq("a", "A", true), true);
-    _assert_equal(str_eq("", "", true), true);
-    _assert_equal(str_eq("", "a", true), false);
-    _assert_equal(str_eq("a", "", true), false);
-    _assert_equal(find("a", "a"), 0);
-    _assert_equal(find("a", "a", 1), null);
-    _assert_equal(find("a", "a", -1), 0);
-    _assert_equal(find("abc", "a"), 0);
-    _assert_equal(find("abc", "b"), 1);
-    _assert_equal(find("abc", "c"), 2);
-    _assert_equal(find("abc", "a", -2), null);
-    _assert_equal(find("abc", "b", -2), 1);
-    _assert_equal(find("abc", "c", -2), 2);
-    _assert_equal(find("abbb", "bb"), 1);
-    _assert_equal(find("abbb", "bb", 2), 2);
-    _assert_equal(find_last("a", "a"), 0);
-    _assert_equal(find_last("a", "a", 1), null);
-    _assert_equal(find_last("a", "a", -1), 0);
-    _assert_equal(find_last("aba", "a"), 2);
-    _assert_equal(find_last("aba", "b"), 1);
-    _assert_equal(find_last("aba", "c"), null);
-    _assert_equal(find_last("aba", "a", -2), 0);
-    _assert_equal(find_last("aba", "b", -2), 1);
-    _assert_equal(find_last("aba", "c", -2), null);
-    _assert_equal(find_last("abbb", "bb"), 2);
-    _assert_equal(find_last("abbb", "bb", 2), 2);
-    _assert_equal(ends_with("abbb", "bb"), true);
-    _assert_equal(ends_with("abbb", "ba"), false);
-    _assert_equal(ends_with("abbb", ""), true);
-    _assert_equal(ends_with("", ""), true);
-    _assert_equal(ends_with("", "a"), false);
-    _assert_equal(starts_with("abbb", "ab"), true);
-    _assert_equal(starts_with("abbb", "bb"), false);
-    _assert_equal(starts_with("abbb", ""), true);
-    _assert_equal(starts_with("", ""), true);
-    _assert_equal(starts_with("", "a"), false);
-    _assert_equal(round_half_down(0.5), 0.0);
-    _assert_equal(round_half_down(1.5), 1.0);
-    _assert_equal(round_half_down(-0.5), -1.0);
-    _assert_equal(round_half_down(-1.5), -2.0);
-    _assert_equal(round_half_down(INF), INF);
-    _assert_equal(round_half_down(-INF), -INF);
-    _assert_equal(round_half_down(NAN), NAN);
-    _assert_equal(round_half_up(0.5), 1.0);
-    _assert_equal(round_half_up(1.5), 2.0);
-    _assert_equal(round_half_up(-0.5), 0.0);
-    _assert_equal(round_half_up(-1.5), -1.0);
-    _assert_equal(round_half_up(INF), INF);
-    _assert_equal(round_half_up(-INF), -INF);
-    _assert_equal(round_half_up(NAN), NAN);
-    _assert_equal(round_half_to_inf(0.5), 1.0);
-    _assert_equal(round_half_to_inf(1.5), 2.0);
-    _assert_equal(round_half_to_inf(-0.5), -1.0);
-    _assert_equal(round_half_to_inf(-1.5), -2.0);
-    _assert_equal(round_half_to_inf(INF), INF);
-    _assert_equal(round_half_to_inf(-INF), -INF);
-    _assert_equal(round_half_to_inf(NAN), NAN);
-    _assert_equal(round_half_to_zero(0.5), 0.0);
-    _assert_equal(round_half_to_zero(1.5), 1.0);
-    _assert_equal(round_half_to_zero(-0.5), 0.0);
-    _assert_equal(round_half_to_zero(-1.5), -1.0);
-    _assert_equal(round_half_to_zero(INF), INF);
-    _assert_equal(round_half_to_zero(-INF), -INF);
-    _assert_equal(round_half_to_zero(NAN), NAN);
-    _assert_equal(round_half_to_even(0.5), 0.0);
-    _assert_equal(round_half_to_even(1.5), 2.0);
-    _assert_equal(round_half_to_even(-0.5), 0.0);
-    _assert_equal(round_half_to_even(-1.5), -2.0);
-    _assert_equal(round_half_to_even(INF), INF);
-    _assert_equal(round_half_to_even(-INF), -INF);
-    _assert_equal(round_half_to_even(NAN), NAN);
-    _assert_equal(round_half_to_odd(0.5), 1.0);
-    _assert_equal(round_half_to_odd(1.5), 1.0);
-    _assert_equal(round_half_to_odd(-0.5), -1.0);
-    _assert_equal(round_half_to_odd(-1.5), -1.0);
-    _assert_equal(round_half_to_odd(INF), INF);
-    _assert_equal(round_half_to_odd(-INF), -INF);
-    _assert_equal(round_half_to_odd(NAN), NAN);
-    _assert_equal(set_length("ab", -3), "");
-    _assert_equal(set_length("ab", -2), "");
-    _assert_equal(set_length("ab", -1), "a");
-    _assert_equal(set_length("ab", 0), "");
-    _assert_equal(set_length("ab", 1), "a");
-    _assert_equal(set_length("ab", 2), "ab");
-    _assert_equal(set_length("ab", 3), "ab ");
-    _assert_equal(set_length("ab", 4), "ab  ");
-    _assert_equal(set_length("ab", 3, "12"), "ab1");
-    _assert_equal(set_length("ab", 4, "12"), "ab12");
-    _assert_equal(set_length("ab", 5, "12"), "ab121");
-    _assert_equal(set_length("ab", 6, "12"), "ab1212");
-    _assert_equal(split_at("abc", -4), array("", "abc"));
-    _assert_equal(split_at("abc", -3), array("", "abc"));
-    _assert_equal(split_at("abc", -2), array("a", "bc"));
-    _assert_equal(split_at("abc", -1), array("ab", "c"));
-    _assert_equal(split_at("abc", 0), array("", "abc"));
-    _assert_equal(split_at("abc", 1), array("a", "bc"));
-    _assert_equal(split_at("abc", 2), array("ab", "c"));
-    _assert_equal(split_at("abc", 3), array("abc", ""));
-    _assert_equal(split_at("abc", 4), array("abc", ""));
-    _assert_equal(is_leap_year(2016), true);
-    _assert_equal(is_leap_year(2015), false);
-    _assert_equal(is_leap_year(2000), true);
-    _assert_equal(is_leap_year(2400), true);
-    _assert_equal(is_leap_year(2401), false);
-    _assert_equal(is_leap_year(2404), true);
-    _assert_equal(is_leap_year(2500), false);
-    _assert_equal(is_leap_year(2504), true);
-    _assert_equal(is_leap_year(1900), false);
-    _assert_equal(is_leap_year(2100), false);
-    _assert_equal(is_leap_year(2104), true);
-    _assert_equal(days_in_month(2016, 1), 31);
-    _assert_equal(days_in_month(2016, 2), 29);
-    _assert_equal(days_in_month(2016, 3), 31);
-    _assert_equal(days_in_month(2016, 4), 30);
-    _assert_equal(days_in_month(2016, 5), 31);
-    _assert_equal(days_in_month(2016, 6), 30);
-    _assert_equal(days_in_month(2016, 7), 31);
-    _assert_equal(days_in_month(2016, 8), 31);
-    _assert_equal(days_in_month(2016, 9), 30);
-    _assert_equal(days_in_month(2016, 10), 31);
-    _assert_equal(days_in_month(2016, 11), 30);
-    _assert_equal(days_in_month(2016, 12), 31);
-    _assert_equal(days_in_month(2015, 2), 28);
-    _assert_equal(days_in_month(2012, 2), 29);
-    _assert_equal(overflow_date(2015, 1, 0), array(2014, 12, 31));
-    _assert_equal(overflow_date(2015, 1, 365), array(2015, 12, 31));
-    _assert_equal(overflow_date(2015, 2, 29), array(2015, 3, 1));
-    _assert_equal(overflow_date(2016, 1, 366), array(2016, 12, 31));
-    _assert_equal(overflow_date(2015, 13, 366), array(2016, 12, 31));
-    _assert_equal(
-      overflow_date(2016, 16, ((-31) - 28) - 31),
-      array(2016, 12, 31)
-    );
-    _assert_equal(
-      overflow_date(2016, -3, (((30 + 31) + 30) + 31) + 17),
-      array(2016, 1, 17)
-    );
-    _assert_equal(overflow_date(2016, -3, -8), array(2015, 8, 23));
-    _assert_equal(is_valid_date(2016, 2, 29), true);
-    _assert_equal(is_valid_date(2015, 2, 29), false);
-    _assert_equal(is_valid_date(2016, 11, 23), true);
-    _assert_equal(is_valid_date(2016, 11, 30), true);
-    _assert_equal(is_valid_date(2016, 11, 31), false);
-    _assert_equal(is_valid_date(2016, 12, 31), true);
-    _assert_equal(is_valid_date(2016, 12, 32), false);
-    _assert_equal(is_valid_date(2016, 13, 31), false);
-    _assert_equal(is_valid_date(2016, 0, 31), false);
-    _assert_equal(is_valid_date(2016, -1, 31), false);
-    _assert_equal(is_valid_date(2016, 1, 30), true);
-    _assert_equal(is_valid_date(2016, 1, 0), false);
-    _assert_equal(is_valid_date(2016, 1, -1), false);
-    _assert_equal(is_valid_date(0, 1, 1), true);
-    _assert_equal(is_valid_date(INT_MAX, 1, 1), true);
-    _assert_equal(is_valid_date(INT_MIN, 1, 1), true);
-    _assert_equal(quot(-20, 3), -6);
-    _assert_equal(rem(-20, 3), -2);
-    _assert_equal(div(-20, 3), -7);
-    _assert_equal(mod(-20, 3), 1);
-    _assert_equal(mod(2, 3), 2);
-    _assert_equal(rem(2, 3), 2);
-    _assert_equal(mod(10, 5), 0);
-    _assert_equal(rem(10, 5), 0);
-    _assert_equal(mod(1, -1), 0);
-    _assert_equal(rem(1, -1), 0);
-    _assert_equal(mod(2, -3), -1);
-    _assert_equal(rem(2, -3), 2);
-    _assert_equal(mod(5, 3), 2);
-    _assert_equal(rem(5, 3), 2);
-    _assert_equal(mod(5, -3), -1);
-    _assert_equal(rem(5, -3), 2);
-    _assert_equal(mod(-5, 3), 1);
-    _assert_equal(rem(-5, 3), -2);
-    _assert_equal(mod(-5, -3), -2);
-    _assert_equal(rem(-5, -3), -2);
-    _assert_equal(div_mod(-20, 3), array(-7, 1));
-    _assert_equal(div_mod(-20, -3), array(6, -2));
-    _assert_equal(quot_rem(-20, 3), array(-6, -2));
-    _assert_equal(quot_rem(-20, -3), array(6, -2));
-    _assert_equal(
-      concat_map(
-        array(1, 5),
-        function($x) {
-          return array($x + 1, $x + 2);
-        }
-      ),
-      array(2, 3, 6, 7)
-    );
-    _test_multiple(
-      function($x) {
-        return frac($x);
-      },
-      array(
-        array(0.1, 0.1),
-        array(0.9, 0.9),
-        array(0.5, 0.5),
-        array(0.0, 0.0),
-        array(5.0, 5.0 - 5.0),
-        array(5.1, 5.1 - 5.0),
-        array(5.9, 5.9 - 5.0),
-        array(5.5, 5.5 - 5.0),
-        array(-0.1, -0.1),
-        array(-0.9, -0.9),
-        array(-0.5, -0.5),
-        array(-0.0, 0.0),
-        array(-5.0, (-5.0) + 5.0),
-        array(-5.1, (-5.1) + 5.0),
-        array(-5.9, (-5.9) + 5.0),
-        array(-5.5, (-5.5) + 5.0)
-      )
-    );
-    _test_multiple(
-      function($x) {
-        return typeof($x);
-      },
-      array(
-        array(null, "null"),
-        array(true, "bool"),
-        array(false, "bool"),
-        array(0.0, "float"),
-        array(PI, "float"),
-        array(0, "int"),
-        array(129837, "int"),
-        array(array(), "array"),
-        array(array(array()), "array"),
-        array(array(1), "array"),
-        array(new \stdClass(), "stdClass"),
-        array(function() {}, "Closure"),
-        array(\fopen("php://memory", "rb"), "resource")
-      )
-    );
-    $fs = LocalFileSystem::create();
-    $path = $fs->path("/tmp/hufs-test-".\mt_rand());
-    test_filesystem($fs, $path);
-    test_filesystem(new FileSystemStreamWrapper($fs), $path);
-    echo ("ArrayIterator\n");
-    test_array_iterator();
-    echo ("okay\n");
-  }
-  function test_array_iterator() {
-    $a = new ArrayIterator(array("a" => 1, "b" => 2));
-    _assert_equal($a->count(), 2);
-    _assert_equal($a->unwrap(), array("a" => 1, "b" => 2));
-    _assert_equal($a->valid(), true);
-    _assert_equal($a->key(), "a");
-    _assert_equal($a->current(), 1);
-    _assert_equal($a->valid(), true);
-    _assert_equal($a->each(), array("a", 1));
-    $a->prev();
-    _assert_equal($a->valid(), true);
-    _assert_equal($a->each(), array("a", 1));
-    _assert_equal($a->valid(), true);
-    _assert_equal($a->each(), array("b", 2));
-    _assert_equal($a->valid(), false);
-    _assert_equal($a->each(), null);
-    $a->prev();
-    _assert_equal($a->valid(), false);
-    _assert_equal($a->each(), null);
-    _assert_equal($a->reset(), 1);
-    _assert_equal($a->valid(), true);
-    _assert_equal($a->each(), array("a", 1));
-    _assert_equal($a->end(), 2);
-    _assert_equal($a->valid(), true);
-    _assert_equal($a->each(), array("b", 2));
-    _assert_equal($a->valid(), false);
-    _assert_equal($a->each(), null);
-    _assert_equal(
-      _get_exception(
-        function() use ($a) {
-          $a->current();
-        }
-      )->getMessage(),
-      "Cannot get value: Array is beyond last element"
-    );
-    _assert_equal(
-      _get_exception(
-        function() use ($a) {
-          $a->key();
-        }
-      )->getMessage(),
-      "Cannot get key: Array is beyond last element"
-    );
-    $a = new ArrayIterator(array());
-    _assert_equal($a->count(), 0);
-    _assert_equal($a->unwrap(), array());
-    _assert_equal($a->reset(), null);
-    _assert_equal($a->end(), null);
-    $a = new ArrayIterator(array("foot", "bike", "car", "plane"));
-    _assert_equal($a->current(), "foot");
-    _assert_equal($a->next(), "bike");
-    _assert_equal($a->next(), "car");
-    _assert_equal($a->prev(), "bike");
-    _assert_equal($a->end(), "plane");
-  }
-  function _get_exception($f) {
-    try {
-      $f();
-    } catch (\Exception $e) {
-      return $e;
+    private static function getException($f) {
+      try {
+        $f();
+      } catch (\Exception $e) {
+        return $e;
+      }
+      throw new \Exception("Code was supposed to throw but didnt");
     }
-    throw new \Exception("Code was supposed to throw but didnt");
-  }
-  function test_filesystem($fs, $base) {
-    _assert_equal($fs->stat($base->format()), null);
-    $fs->mkdir($base->format());
-    _assert_equal(
-      \hacklib_nullsafe($fs->stat($base->format()))->modeSymbolic(),
-      "drwxr-xr-x"
-    );
-    $file = $base->join_str("foo")->format();
-    $fs->writeFile($file, "contents");
-    _assert_equal($fs->readFile($file), "contents");
-    $open = $fs->open($file, "rb");
-    _assert_equal($open->eof(), false);
-    _assert_equal($open->tell(), 0);
-    _assert_equal($open->read(4), "cont");
-    _assert_equal($open->eof(), false);
-    _assert_equal($open->tell(), 4);
-    $open->seek(2);
-    _assert_equal($open->tell(), 2);
-    $open->seek(2, \SEEK_CUR);
-    _assert_equal($open->tell(), 4);
-    _assert_equal($open->eof(), false);
-    _assert_equal($open->read(100), "ents");
-    _assert_equal($open->read(100), "");
-    _assert_equal($open->eof(), true);
-    _assert_equal($open->getSize(), 8);
-    _assert_equal($open->stat()->modeSymbolic(), "-rw-r--r--");
-    _assert_equal($open->getContents(), "");
-    _assert_equal($open->__toString(), "contents");
-    _assert_equal($open->getContents(), "");
-    $open->rewind();
-    _assert_equal($open->getContents(), "contents");
-    _assert_equal($open->tell(), 8);
-    _assert_equal($open->isReadable(), true);
-    _assert_equal($open->isWritable(), false);
-    _assert_equal($open->isSeekable(), true);
-    $open->close();
-    $open = $fs->open($file, "wb+");
-    _assert_equal($open->tell(), 0);
-    _assert_equal($open->eof(), false);
-    _assert_equal($open->getSize(), 0);
-    _assert_equal($open->getContents(), "");
-    _assert_equal($open->__toString(), "");
-    _assert_equal($open->write("hello"), 5);
-    _assert_equal($open->tell(), 5);
-    _assert_equal($open->eof(), true);
-    _assert_equal($open->getContents(), "");
-    _assert_equal($open->__toString(), "hello");
-    $open->rewind();
-    _assert_equal($open->getContents(), "hello");
-    _assert_equal($open->getContents(), "");
-    $open->seek(2);
-    _assert_equal($open->tell(), 2);
-    _assert_equal($open->write("__"), 2);
-    _assert_equal($open->tell(), 4);
-    _assert_equal($open->getContents(), "o");
-    _assert_equal($open->tell(), 5);
-    _assert_equal($open->__toString(), "he__o");
-    _assert_equal($open->tell(), 5);
-    _assert_equal($open->eof(), true);
-    $fs->symlink($file."2", $file);
-    _assert_equal(
-      \hacklib_nullsafe($fs->stat($file))->modeSymbolic(),
-      "-rw-r--r--"
-    );
-    _assert_equal(
-      \hacklib_nullsafe($fs->stat($file."2"))->modeSymbolic(),
-      "-rw-r--r--"
-    );
-    _assert_equal(
-      \hacklib_nullsafe($fs->lstat($file))->modeSymbolic(),
-      "-rw-r--r--"
-    );
-    _assert_equal(
-      \hacklib_nullsafe($fs->lstat($file."2"))->modeSymbolic(),
-      "lrwxrwxrwx"
-    );
-    $fs->unlink($file);
-    $fs->rmdir_rec($base->format());
-  }
-  function _test_multiple($function, $samples) {
-    foreach ($samples as $pair) {
-      _assert_equal($function($pair[0]), $pair[1]);
+    public static function main() {
+      self::log("to_hex");
+      self::assertEqual(to_hex("\000\377 "), "00ff20");
+      self::log("from_hex");
+      self::assertEqual(from_hex("00ff20"), "\000\377 ");
+      self::assertEqual(from_hex("00Ff20"), "\000\377 ");
+      self::log("shuffle_string");
+      self::assertEqual(length(shuffle_string("abc")), 3);
+      self::log("reverse_string");
+      self::assertEqual(reverse_string("abc"), "cba");
+      self::assertEqual(reverse_string(""), "");
+      self::log("to_lower");
+      self::assertEqual(to_lower("ABC.1.2.3"), "abc.1.2.3");
+      self::log("to_upper");
+      self::assertEqual(to_upper("abc.1.2.3"), "ABC.1.2.3");
+      self::log("split");
+      self::assertEqual(split(""), array());
+      self::assertEqual(split("a"), array("a"));
+      self::assertEqual(split("abc"), array("a", "b", "c"));
+      self::assertEqual(split("", "", 1), array());
+      self::assertEqual(split("a", "", 1), array("a"));
+      self::assertEqual(split("abc", "", 1), array("abc"));
+      self::assertEqual(split("abc", "", 2), array("a", "bc"));
+      self::assertEqual(split("abc", "", 3), array("a", "b", "c"));
+      self::assertEqual(split("", "b"), array(""));
+      self::assertEqual(split("abc", "b"), array("a", "c"));
+      self::assertEqual(split("abc", "b", 1), array("abc"));
+      self::assertEqual(split("abc", "b", 2), array("a", "c"));
+      self::log("chunk_string");
+      self::assertEqual(chunk_string("abc", 1), array("a", "b", "c"));
+      self::assertEqual(chunk_string("abc", 2), array("ab", "c"));
+      self::assertEqual(chunk_string("abc", 3), array("abc"));
+      self::log("join");
+      self::assertEqual(join(array()), "");
+      self::assertEqual(join(array("abc")), "abc");
+      self::assertEqual(join(array("a", "bc")), "abc");
+      self::assertEqual(join(array(), ","), "");
+      self::assertEqual(join(array("abc"), ","), "abc");
+      self::assertEqual(join(array("a", "bc"), ","), "a,bc");
+      self::log("replace_count");
+      self::assertEqual(replace_count("abc", "b", "lol"), array("alolc", 1));
+      self::assertEqual(replace_count("abc", "B", "lol"), array("abc", 0));
+      self::assertEqual(
+        replace_count("abc", "B", "lol", true),
+        array("alolc", 1)
+      );
+      self::log("splice");
+      self::assertEqual(splice("abc", 1, 1), "ac");
+      self::assertEqual(splice("abc", 1, 1, "lol"), "alolc");
+      self::log("slice");
+      self::assertEqual(slice("abc", 1, 1), "b");
+      self::assertEqual(slice("abc", -1, 1), "c");
+      self::assertEqual(slice("abc", 1, -1), "b");
+      self::assertEqual(slice("abc", 1), "bc");
+      self::assertEqual(slice("abc", -1), "c");
+      self::log("pad");
+      self::assertEqual(pad("abc", 3), "abc");
+      self::assertEqual(pad("abc", 4), "abc ");
+      self::assertEqual(pad("abc", 5), " abc ");
+      self::assertEqual(pad("abc", 6), " abc  ");
+      self::assertEqual(pad("1", 3, "ab"), "a1a");
+      self::assertEqual(pad("1", 4, "ab"), "a1ab");
+      self::log("pad_left");
+      self::assertEqual(pad_left("abc", 3), "abc");
+      self::assertEqual(pad_left("abc", 4), " abc");
+      self::assertEqual(pad_left("abc", 5), "  abc");
+      self::assertEqual(pad_left("abc", 6), "   abc");
+      self::assertEqual(pad_left("1", 3, "ab"), "ab1");
+      self::assertEqual(pad_left("1", 4, "ab"), "aba1");
+      self::log("pad_right");
+      self::assertEqual(pad_right("abc", 3), "abc");
+      self::assertEqual(pad_right("abc", 4), "abc ");
+      self::assertEqual(pad_right("abc", 5), "abc  ");
+      self::assertEqual(pad_right("abc", 6), "abc   ");
+      self::assertEqual(pad_right("1", 3, "ab"), "1ab");
+      self::assertEqual(pad_right("1", 4, "ab"), "1aba");
+      self::log("repeat_string");
+      self::assertEqual(repeat_string("123", 3), "123123123");
+      self::log("from_char_code");
+      self::assertEqual(from_char_code(128), "\200");
+      self::assertEqual(from_char_code(0), "\000");
+      self::assertEqual(from_char_code(255), "\377");
+      self::log("char_code_at");
+      self::assertEqual(char_code_at("a"), 97);
+      self::assertEqual(char_code_at("a99"), 97);
+      self::log("str_cmp");
+      self::assertEqual(str_cmp("a", "a"), 0);
+      self::assertEqual(str_cmp("a", "A"), 1);
+      self::assertEqual(str_cmp("", ""), 0);
+      self::assertEqual(str_cmp("", "a"), -1);
+      self::assertEqual(str_cmp("a", ""), 1);
+      self::assertEqual(str_cmp("a", "a", true), 0);
+      self::assertEqual(str_cmp("a", "A", true), 0);
+      self::assertEqual(str_cmp("", "", true), 0);
+      self::assertEqual(str_cmp("", "a", true), -1);
+      self::assertEqual(str_cmp("a", "", true), 1);
+      self::log("str_eq");
+      self::assertEqual(str_eq("a", "a"), true);
+      self::assertEqual(str_eq("a", "A"), false);
+      self::assertEqual(str_eq("", ""), true);
+      self::assertEqual(str_eq("", "a"), false);
+      self::assertEqual(str_eq("a", ""), false);
+      self::assertEqual(str_eq("a", "a", true), true);
+      self::assertEqual(str_eq("a", "A", true), true);
+      self::assertEqual(str_eq("", "", true), true);
+      self::assertEqual(str_eq("", "a", true), false);
+      self::assertEqual(str_eq("a", "", true), false);
+      self::log("find");
+      self::assertEqual(find("a", "a"), 0);
+      self::assertEqual(find("a", "a", 1), NULL_INT);
+      self::assertEqual(find("a", "a", -1), 0);
+      self::assertEqual(find("abc", "a"), 0);
+      self::assertEqual(find("abc", "b"), 1);
+      self::assertEqual(find("abc", "c"), 2);
+      self::assertEqual(find("abc", "a", -2), NULL_INT);
+      self::assertEqual(find("abc", "b", -2), 1);
+      self::assertEqual(find("abc", "c", -2), 2);
+      self::assertEqual(find("abbb", "bb"), 1);
+      self::assertEqual(find("abbb", "bb", 2), 2);
+      self::log("find_last");
+      self::assertEqual(find_last("a", "a"), 0);
+      self::assertEqual(find_last("a", "a", 1), NULL_INT);
+      self::assertEqual(find_last("a", "a", -1), 0);
+      self::assertEqual(find_last("aba", "a"), 2);
+      self::assertEqual(find_last("aba", "b"), 1);
+      self::assertEqual(find_last("aba", "c"), NULL_INT);
+      self::assertEqual(find_last("aba", "a", -2), 0);
+      self::assertEqual(find_last("aba", "b", -2), 1);
+      self::assertEqual(find_last("aba", "c", -2), NULL_INT);
+      self::assertEqual(find_last("abbb", "bb"), 2);
+      self::assertEqual(find_last("abbb", "bb", 2), 2);
+      self::log("ends_with");
+      self::assertEqual(ends_with("abbb", "bb"), true);
+      self::assertEqual(ends_with("abbb", "ba"), false);
+      self::assertEqual(ends_with("abbb", ""), true);
+      self::assertEqual(ends_with("", ""), true);
+      self::assertEqual(ends_with("", "a"), false);
+      self::log("starts_with");
+      self::assertEqual(starts_with("abbb", "ab"), true);
+      self::assertEqual(starts_with("abbb", "bb"), false);
+      self::assertEqual(starts_with("abbb", ""), true);
+      self::assertEqual(starts_with("", ""), true);
+      self::assertEqual(starts_with("", "a"), false);
+      self::log("round_half_down");
+      self::assertEqual(round_half_down(0.5), 0.0);
+      self::assertEqual(round_half_down(1.5), 1.0);
+      self::assertEqual(round_half_down(-0.5), -1.0);
+      self::assertEqual(round_half_down(-1.5), -2.0);
+      self::assertEqual(round_half_down(INF), INF);
+      self::assertEqual(round_half_down(-INF), -INF);
+      self::assertEqual(round_half_down(NAN), NAN);
+      self::log("round_half_up");
+      self::assertEqual(round_half_up(0.5), 1.0);
+      self::assertEqual(round_half_up(1.5), 2.0);
+      self::assertEqual(round_half_up(-0.5), 0.0);
+      self::assertEqual(round_half_up(-1.5), -1.0);
+      self::assertEqual(round_half_up(INF), INF);
+      self::assertEqual(round_half_up(-INF), -INF);
+      self::assertEqual(round_half_up(NAN), NAN);
+      self::log("round_half_to_inf");
+      self::assertEqual(round_half_to_inf(0.5), 1.0);
+      self::assertEqual(round_half_to_inf(1.5), 2.0);
+      self::assertEqual(round_half_to_inf(-0.5), -1.0);
+      self::assertEqual(round_half_to_inf(-1.5), -2.0);
+      self::assertEqual(round_half_to_inf(INF), INF);
+      self::assertEqual(round_half_to_inf(-INF), -INF);
+      self::assertEqual(round_half_to_inf(NAN), NAN);
+      self::log("round_half_to_zero");
+      self::assertEqual(round_half_to_zero(0.5), 0.0);
+      self::assertEqual(round_half_to_zero(1.5), 1.0);
+      self::assertEqual(round_half_to_zero(-0.5), 0.0);
+      self::assertEqual(round_half_to_zero(-1.5), -1.0);
+      self::assertEqual(round_half_to_zero(INF), INF);
+      self::assertEqual(round_half_to_zero(-INF), -INF);
+      self::assertEqual(round_half_to_zero(NAN), NAN);
+      self::log("round_half_to_even");
+      self::assertEqual(round_half_to_even(0.5), 0.0);
+      self::assertEqual(round_half_to_even(1.5), 2.0);
+      self::assertEqual(round_half_to_even(-0.5), 0.0);
+      self::assertEqual(round_half_to_even(-1.5), -2.0);
+      self::assertEqual(round_half_to_even(INF), INF);
+      self::assertEqual(round_half_to_even(-INF), -INF);
+      self::assertEqual(round_half_to_even(NAN), NAN);
+      self::log("round_half_to_odd");
+      self::assertEqual(round_half_to_odd(0.5), 1.0);
+      self::assertEqual(round_half_to_odd(1.5), 1.0);
+      self::assertEqual(round_half_to_odd(-0.5), -1.0);
+      self::assertEqual(round_half_to_odd(-1.5), -1.0);
+      self::assertEqual(round_half_to_odd(INF), INF);
+      self::assertEqual(round_half_to_odd(-INF), -INF);
+      self::assertEqual(round_half_to_odd(NAN), NAN);
+      self::log("set_length");
+      self::assertEqual(set_length("ab", -3), "");
+      self::assertEqual(set_length("ab", -2), "");
+      self::assertEqual(set_length("ab", -1), "a");
+      self::assertEqual(set_length("ab", 0), "");
+      self::assertEqual(set_length("ab", 1), "a");
+      self::assertEqual(set_length("ab", 2), "ab");
+      self::assertEqual(set_length("ab", 3), "ab ");
+      self::assertEqual(set_length("ab", 4), "ab  ");
+      self::assertEqual(set_length("ab", 3, "12"), "ab1");
+      self::assertEqual(set_length("ab", 4, "12"), "ab12");
+      self::assertEqual(set_length("ab", 5, "12"), "ab121");
+      self::assertEqual(set_length("ab", 6, "12"), "ab1212");
+      self::log("split_at");
+      self::assertEqual(split_at("abc", -4), array("", "abc"));
+      self::assertEqual(split_at("abc", -3), array("", "abc"));
+      self::assertEqual(split_at("abc", -2), array("a", "bc"));
+      self::assertEqual(split_at("abc", -1), array("ab", "c"));
+      self::assertEqual(split_at("abc", 0), array("", "abc"));
+      self::assertEqual(split_at("abc", 1), array("a", "bc"));
+      self::assertEqual(split_at("abc", 2), array("ab", "c"));
+      self::assertEqual(split_at("abc", 3), array("abc", ""));
+      self::assertEqual(split_at("abc", 4), array("abc", ""));
+      self::log("is_leap_year");
+      self::assertEqual(is_leap_year(2016), true);
+      self::assertEqual(is_leap_year(2015), false);
+      self::assertEqual(is_leap_year(2000), true);
+      self::assertEqual(is_leap_year(2400), true);
+      self::assertEqual(is_leap_year(2401), false);
+      self::assertEqual(is_leap_year(2404), true);
+      self::assertEqual(is_leap_year(2500), false);
+      self::assertEqual(is_leap_year(2504), true);
+      self::assertEqual(is_leap_year(1900), false);
+      self::assertEqual(is_leap_year(2100), false);
+      self::assertEqual(is_leap_year(2104), true);
+      self::log("days_in_month");
+      self::assertEqual(days_in_month(2016, 1), 31);
+      self::assertEqual(days_in_month(2016, 2), 29);
+      self::assertEqual(days_in_month(2016, 3), 31);
+      self::assertEqual(days_in_month(2016, 4), 30);
+      self::assertEqual(days_in_month(2016, 5), 31);
+      self::assertEqual(days_in_month(2016, 6), 30);
+      self::assertEqual(days_in_month(2016, 7), 31);
+      self::assertEqual(days_in_month(2016, 8), 31);
+      self::assertEqual(days_in_month(2016, 9), 30);
+      self::assertEqual(days_in_month(2016, 10), 31);
+      self::assertEqual(days_in_month(2016, 11), 30);
+      self::assertEqual(days_in_month(2016, 12), 31);
+      self::assertEqual(days_in_month(2015, 2), 28);
+      self::assertEqual(days_in_month(2012, 2), 29);
+      self::log("overflow_date");
+      self::assertEqual(overflow_date(2015, 1, 0), array(2014, 12, 31));
+      self::assertEqual(overflow_date(2015, 1, 365), array(2015, 12, 31));
+      self::assertEqual(overflow_date(2015, 2, 29), array(2015, 3, 1));
+      self::assertEqual(overflow_date(2016, 1, 366), array(2016, 12, 31));
+      self::assertEqual(overflow_date(2015, 13, 366), array(2016, 12, 31));
+      self::assertEqual(
+        overflow_date(2016, 16, ((-31) - 28) - 31),
+        array(2016, 12, 31)
+      );
+      self::assertEqual(
+        overflow_date(2016, -3, 30 + 31 + 30 + 31 + 17),
+        array(2016, 1, 17)
+      );
+      self::assertEqual(overflow_date(2016, -3, -8), array(2015, 8, 23));
+      self::log("is_valid_date");
+      self::assertEqual(is_valid_date(2016, 2, 29), true);
+      self::assertEqual(is_valid_date(2015, 2, 29), false);
+      self::assertEqual(is_valid_date(2016, 11, 23), true);
+      self::assertEqual(is_valid_date(2016, 11, 30), true);
+      self::assertEqual(is_valid_date(2016, 11, 31), false);
+      self::assertEqual(is_valid_date(2016, 12, 31), true);
+      self::assertEqual(is_valid_date(2016, 12, 32), false);
+      self::assertEqual(is_valid_date(2016, 13, 31), false);
+      self::assertEqual(is_valid_date(2016, 0, 31), false);
+      self::assertEqual(is_valid_date(2016, -1, 31), false);
+      self::assertEqual(is_valid_date(2016, 1, 30), true);
+      self::assertEqual(is_valid_date(2016, 1, 0), false);
+      self::assertEqual(is_valid_date(2016, 1, -1), false);
+      self::assertEqual(is_valid_date(0, 1, 1), true);
+      self::assertEqual(is_valid_date(INT_MAX, 1, 1), true);
+      self::assertEqual(is_valid_date(INT_MIN, 1, 1), true);
+      self::log("quot/rem/div/mod");
+      self::assertEqual(quot(-20, 3), -6);
+      self::assertEqual(rem(-20, 3), -2);
+      self::assertEqual(div(-20, 3), -7);
+      self::assertEqual(mod(-20, 3), 1);
+      self::assertEqual(mod(2, 3), 2);
+      self::assertEqual(rem(2, 3), 2);
+      self::assertEqual(mod(10, 5), 0);
+      self::assertEqual(rem(10, 5), 0);
+      self::assertEqual(mod(1, -1), 0);
+      self::assertEqual(rem(1, -1), 0);
+      self::assertEqual(mod(2, -3), -1);
+      self::assertEqual(rem(2, -3), 2);
+      self::assertEqual(mod(5, 3), 2);
+      self::assertEqual(rem(5, 3), 2);
+      self::assertEqual(mod(5, -3), -1);
+      self::assertEqual(rem(5, -3), 2);
+      self::assertEqual(mod(-5, 3), 1);
+      self::assertEqual(rem(-5, 3), -2);
+      self::assertEqual(mod(-5, -3), -2);
+      self::assertEqual(rem(-5, -3), -2);
+      self::log("div_mod/quot_rem");
+      self::assertEqual(div_mod(-20, 3), array(-7, 1));
+      self::assertEqual(div_mod(-20, -3), array(6, -2));
+      self::assertEqual(quot_rem(-20, 3), array(-6, -2));
+      self::assertEqual(quot_rem(-20, -3), array(6, -2));
+      self::log("concat_map");
+      self::assertEqual(
+        concat_map(
+          array(1, 5),
+          function($x) {
+            return array($x + 1, $x + 2);
+          }
+        ),
+        array(2, 3, 6, 7)
+      );
+      self::log("frac");
+      self::assertEqual(frac(0.1), 0.1);
+      self::assertEqual(frac(0.9), 0.9);
+      self::assertEqual(frac(0.5), 0.5);
+      self::assertEqual(frac(0.0), 0.0);
+      self::assertEqual(frac(5.0), 5.0 - 5.0);
+      self::assertEqual(frac(5.1), 5.1 - 5.0);
+      self::assertEqual(frac(5.9), 5.9 - 5.0);
+      self::assertEqual(frac(5.5), 5.5 - 5.0);
+      self::assertEqual(frac(-0.1), -0.1);
+      self::assertEqual(frac(-0.9), -0.9);
+      self::assertEqual(frac(-0.5), -0.5);
+      self::assertEqual(frac(-0.0), 0.0);
+      self::assertEqual(frac(-5.0), (-5.0) + 5.0);
+      self::assertEqual(frac(-5.1), (-5.1) + 5.0);
+      self::assertEqual(frac(-5.9), (-5.9) + 5.0);
+      self::assertEqual(frac(-5.5), (-5.5) + 5.0);
+      self::log("typeof");
+      self::assertEqual(typeof(NULL_INT), "null");
+      self::assertEqual(typeof(true), "bool");
+      self::assertEqual(typeof(false), "bool");
+      self::assertEqual(typeof(0.0), "float");
+      self::assertEqual(typeof(PI), "float");
+      self::assertEqual(typeof(0), "int");
+      self::assertEqual(typeof(129837), "int");
+      self::assertEqual(typeof(array()), "array");
+      self::assertEqual(typeof(array(array())), "array");
+      self::assertEqual(typeof(array(1)), "array");
+      self::assertEqual(typeof(new \stdClass()), "stdClass");
+      self::assertEqual(typeof(function() {}), "Closure");
+      self::assertEqual(typeof(\fopen("php://memory", "rb")), "resource");
+      self::log("LocalFileSystem");
+      $fs = LocalFileSystem::create();
+      $path = $fs->path("/tmp/hufs-test-".\mt_rand());
+      self::testFilesystem($fs, $path);
+      self::testFilesystem(new FileSystemStreamWrapper($fs), $path);
+      self::log("ArrayIterator");
+      self::testArrayIterator();
+      self::log("done");
+    }
+    private static function testArrayIterator() {
+      $a = new ArrayIterator(array("a" => 1, "b" => 2));
+      self::assertEqual($a->count(), 2);
+      self::assertEqual($a->unwrap(), array("a" => 1, "b" => 2));
+      self::assertEqual($a->valid(), true);
+      self::assertEqual($a->key(), "a");
+      self::assertEqual($a->current(), 1);
+      self::assertEqual($a->valid(), true);
+      self::assertEqual($a->each(), array("a", 1));
+      self::assertEqual($a->prev(), 1);
+      self::assertEqual($a->valid(), true);
+      self::assertEqual($a->each(), array("a", 1));
+      self::assertEqual($a->valid(), true);
+      self::assertEqual($a->each(), array("b", 2));
+      self::assertEqual($a->valid(), false);
+      self::assertEqual($a->each(), NULL_INT);
+      self::assertEqual($a->prev(), NULL_INT);
+      self::assertEqual($a->valid(), false);
+      self::assertEqual($a->each(), NULL_INT);
+      self::assertEqual($a->reset(), 1);
+      self::assertEqual($a->valid(), true);
+      self::assertEqual($a->each(), array("a", 1));
+      self::assertEqual($a->end(), 2);
+      self::assertEqual($a->valid(), true);
+      self::assertEqual($a->each(), array("b", 2));
+      self::assertEqual($a->valid(), false);
+      self::assertEqual($a->each(), NULL_INT);
+      self::assertEqual(
+        self::getException(
+          function() use ($a) {
+            $a->current();
+          }
+        )->getMessage(),
+        "Cannot get value: Array is beyond last element"
+      );
+      self::assertEqual(
+        self::getException(
+          function() use ($a) {
+            $a->key();
+          }
+        )->getMessage(),
+        "Cannot get key: Array is beyond last element"
+      );
+      $a = new ArrayIterator(array());
+      self::assertEqual($a->count(), 0);
+      self::assertEqual($a->unwrap(), array());
+      self::assertEqual($a->reset(), NULL_INT);
+      self::assertEqual($a->end(), NULL_INT);
+      $a = new ArrayIterator(array("foot", "bike", "car", "plane"));
+      self::assertEqual($a->current(), "foot");
+      self::assertEqual($a->next(), "bike");
+      self::assertEqual($a->next(), "car");
+      self::assertEqual($a->prev(), "bike");
+      self::assertEqual($a->end(), "plane");
+    }
+    private static function testFilesystem($fs, $base) {
+      self::log(__METHOD__);
+      self::assertEqual($fs->stat($base->format()), NULL_INT);
+      $fs->mkdir($base->format());
+      self::assertEqual(
+        \hacklib_nullsafe($fs->stat($base->format()))->modeSymbolic(),
+        "drwxr-xr-x"
+      );
+      $file = $base->join_str("foo")->format();
+      $fs->writeFile($file, "contents");
+      self::assertEqual($fs->readFile($file), "contents");
+      $open = $fs->open($file, "rb");
+      self::assertEqual($open->eof(), false);
+      self::assertEqual($open->tell(), 0);
+      self::assertEqual($open->read(4), "cont");
+      self::assertEqual($open->eof(), false);
+      self::assertEqual($open->tell(), 4);
+      $open->seek(2);
+      self::assertEqual($open->tell(), 2);
+      $open->seek(2, \SEEK_CUR);
+      self::assertEqual($open->tell(), 4);
+      self::assertEqual($open->eof(), false);
+      self::assertEqual($open->read(100), "ents");
+      self::assertEqual($open->read(100), "");
+      self::assertEqual($open->eof(), true);
+      self::assertEqual($open->getSize(), 8);
+      self::assertEqual($open->stat()->modeSymbolic(), "-rw-r--r--");
+      self::assertEqual($open->getContents(), "");
+      self::assertEqual($open->__toString(), "contents");
+      self::assertEqual($open->getContents(), "");
+      $open->rewind();
+      self::assertEqual($open->getContents(), "contents");
+      self::assertEqual($open->tell(), 8);
+      self::assertEqual($open->isReadable(), true);
+      self::assertEqual($open->isWritable(), false);
+      self::assertEqual($open->isSeekable(), true);
+      $open->close();
+      $open = $fs->open($file, "wb+");
+      self::assertEqual($open->tell(), 0);
+      self::assertEqual($open->eof(), false);
+      self::assertEqual($open->getSize(), 0);
+      self::assertEqual($open->getContents(), "");
+      self::assertEqual($open->__toString(), "");
+      self::assertEqual($open->write("hello"), 5);
+      self::assertEqual($open->tell(), 5);
+      self::assertEqual($open->eof(), true);
+      self::assertEqual($open->getContents(), "");
+      self::assertEqual($open->__toString(), "hello");
+      $open->rewind();
+      self::assertEqual($open->getContents(), "hello");
+      self::assertEqual($open->getContents(), "");
+      $open->seek(2);
+      self::assertEqual($open->tell(), 2);
+      self::assertEqual($open->write("__"), 2);
+      self::assertEqual($open->tell(), 4);
+      self::assertEqual($open->getContents(), "o");
+      self::assertEqual($open->tell(), 5);
+      self::assertEqual($open->__toString(), "he__o");
+      self::assertEqual($open->tell(), 5);
+      self::assertEqual($open->eof(), true);
+      $fs->symlink($file."2", $file);
+      self::assertEqual(
+        \hacklib_nullsafe($fs->stat($file))->modeSymbolic(),
+        "-rw-r--r--"
+      );
+      self::assertEqual(
+        \hacklib_nullsafe($fs->stat($file."2"))->modeSymbolic(),
+        "-rw-r--r--"
+      );
+      self::assertEqual(
+        \hacklib_nullsafe($fs->lstat($file))->modeSymbolic(),
+        "-rw-r--r--"
+      );
+      self::assertEqual(
+        \hacklib_nullsafe($fs->lstat($file."2"))->modeSymbolic(),
+        "lrwxrwxrwx"
+      );
+      $fs->unlink($file);
+      $fs->rmdir_rec($base->format());
+    }
+    private static function log($message) {
+      echo ($message."\n");
     }
   }
 }

@@ -29,7 +29,7 @@ function tests_main() {
 
   try {
     \umask(0022);
-    _run_tests();
+    _Tests::main();
   } finally {
     $coverage->stop();
     $coverage->write();
