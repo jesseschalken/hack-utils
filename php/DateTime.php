@@ -198,6 +198,24 @@ namespace HackUtils {
       $f = "YmdHisu";
       return (int) $this->format($f[$part]);
     }
+    public function withYear($yaer) {
+      return $this->withDate($yaer, $this->getMonth(), $this->getDay());
+    }
+    public function withMonth($month) {
+      return $this->withDate($this->getYear(), $month, $this->getDay());
+    }
+    public function withDay($day) {
+      return $this->withDate($this->getYear(), $this->getMonth(), $day);
+    }
+    public function withHour($hour) {
+      return $this->withTime($hour, $this->getMinute(), $this->getSecond());
+    }
+    public function withMinute($minute) {
+      return $this->withTime($this->getHour(), $minute, $this->getSecond());
+    }
+    public function withSecond($second) {
+      return $this->withTime($this->getHour(), $this->getMinute(), $second);
+    }
     public function withTimezone($tz) {
       return new self($this->dt->setTimezone($tz->_unwrap()));
     }

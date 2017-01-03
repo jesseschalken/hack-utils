@@ -30,16 +30,13 @@ namespace HackUtils {
         $iterB = new ArrayIterator($b);
         for (
           $iterA->reset(), $iterB->reset();
-          $iterA->valid() && $iterB->valid();
+          $iterA->valid() || $iterB->valid();
           $iterA->next(), $iterB->next()
         ) {
           if ((!self::isEqual($iterA->key(), $iterB->key())) ||
               (!self::isEqual($iterA->current(), $iterB->current()))) {
             return false;
           }
-        }
-        if ($iterA->valid() != $iterB->valid()) {
-          return false;
         }
         return true;
       }
@@ -53,7 +50,50 @@ namespace HackUtils {
       }
       throw new \Exception("Code was supposed to throw but didnt");
     }
+    private static function testAssertions() {
+      self::assertEqual(
+        self::getException(
+          function() {
+            _Tests::assertEqual(array(), array(1));
+          }
+        )->getMessage(),
+        "Expected array (\n  0 => 1,\n), got array (\n)"
+      );
+      self::assertEqual(
+        self::getException(
+          function() {
+            _Tests::assertEqual(array(2), array(1));
+          }
+        )->getMessage(),
+        "Expected array (\n  0 => 1,\n), got array (\n  0 => 2,\n)"
+      );
+      self::assertEqual(
+        self::getException(
+          function() {
+            _Tests::assertEqual(array(0.0), array(0.0 * (-1.0)));
+          }
+        )->getMessage(),
+        "Expected array (\n  0 => -0.0,\n), got array (\n  0 => 0.0,\n)"
+      );
+      self::assertEqual(
+        self::getException(
+          function() {
+            _Tests::assertEqual(0.0, 0.0 * (-1.0));
+          }
+        )->getMessage(),
+        "Expected -0.0, got 0.0"
+      );
+      self::assertEqual(
+        self::getException(
+          function() {
+            _Tests::getException(function() {});
+          }
+        )->getMessage(),
+        "Code was supposed to throw but didnt"
+      );
+    }
     public static function main() {
+      self::testAssertions();
       self::log("to_hex");
       self::assertEqual(to_hex("\000\377 "), "00ff20");
       self::log("from_hex");
@@ -400,7 +440,141 @@ namespace HackUtils {
       self::testFilesystem(new FileSystemStreamWrapper($fs), $path);
       self::log("ArrayIterator");
       self::testArrayIterator();
+      self::log("DateTime");
+      self::testDateTime();
       self::log("done");
+    }
+    private static function testDateTime() {
+      $utc = TimeZone::UTC();
+      $melb = TimeZone::create("Australia/Melbourne");
+      self::assertEqual($utc->getName(), "UTC");
+      self::assertEqual($melb->getName(), "Australia/Melbourne");
+      $dt = DateTime::fromParts(array(2017, 1, 3, 22, 20, 8, 15648), $melb);
+      self::assertEqual($dt->getYear(), 2017);
+      self::assertEqual($dt->getMonth(), 1);
+      self::assertEqual($dt->getDay(), 3);
+      self::assertEqual($dt->getHour(), 22);
+      self::assertEqual($dt->getMinute(), 20);
+      self::assertEqual($dt->getSecond(), 8);
+      self::assertEqual($dt->getMicrosecond(), 15648);
+      self::assertEqual($dt->getTimestamp(), 1483442408);
+      self::assertEqual($dt->getMicrotimestamp(), 1483442408015648);
+      self::assertEqual($dt->getUTCOffset(), 39600);
+      self::assertEqual($dt->getTimezone()->getName(), "Australia/Melbourne");
+      $format = "Y-m-d H:i:s.uP";
+      self::assertEqual(
+        $dt->format($format),
+        "2017-01-03 22:20:08.015648+11:00"
+      );
+      self::assertEqual(
+        $dt->withYear(826)->format($format),
+        "0826-01-03 22:20:08.015648+10:00"
+      );
+      self::assertEqual(
+        $dt->withMonth(15)->format($format),
+        "2018-03-03 22:20:08.015648+11:00"
+      );
+      self::assertEqual(
+        $dt->withDay(15)->format($format),
+        "2017-01-15 22:20:08.015648+11:00"
+      );
+      self::assertEqual(
+        $dt->withHour(-5)->format($format),
+        "2017-01-02 19:20:08.015648+11:00"
+      );
+      self::assertEqual(
+        $dt->withMinute(-5)->format($format),
+        "2017-01-03 21:55:08.015648+11:00"
+      );
+      self::assertEqual(
+        $dt->withSecond(-5)->format($format),
+        "2017-01-03 22:19:55.015648+11:00"
+      );
+      self::assertEqual(
+        $dt->withMicrosecond(-5)->format($format),
+        "2017-01-03 22:20:07.999995+11:00"
+      );
+      self::assertEqual(
+        $dt->withTimezone($utc)->format($format),
+        "2017-01-03 11:20:08.015648+00:00"
+      );
+      self::assertEqual(
+        $dt->withTimestamp(10 - 36000, 8623467)->format($format),
+        "1970-01-01 00:00:18.623467+10:00"
+      );
+      self::assertEqual(
+        $dt->withISODate(1984, -25, -8)->format($format),
+        "1983-06-25 22:20:08.015648+10:00"
+      );
+      self::assertEqual(
+        DateTime::fromMicrotimestamp(
+          $dt->getMicrotimestamp(),
+          $dt->getTimezone()
+        )->format($format),
+        "2017-01-03 22:20:08.015648+11:00"
+      );
+      $dt2 = $dt->withDate(2017, 1, 1);
+      self::assertEqual($dt2->getISOYear(), 2016);
+      self::assertEqual($dt2->getISOWeek(), 52);
+      self::assertEqual($dt2->getISOWeekday(), 7);
+      $dt2 = $dt->withTimezone($utc);
+      self::assertEqual(
+        $dt2->getParts(),
+        array(2017, 1, 3, 11, 20, 8, 15648)
+      );
+      self::assertEqual($dt2->getPart(DateTime::PART_HOUR), 11);
+      self::assertEqual(
+        self::getException(
+          function() use ($dt2) {
+            $dt2->getPart(543);
+          }
+        )->getMessage(),
+        "Invalid date/time part: 543"
+      );
+      self::assertEqual($dt2->getUTCOffset(), 0);
+      $nowNoUsec = DateTime::now($melb);
+      $count = 0;
+      do {
+        $nowWithUsec = DateTime::now($melb, true);
+        $count++;
+        if ($count > 10) {
+          throw new \Exception("Cant get current time with micrseconds :(");
+        }
+      } while (!$nowWithUsec->getMicrosecond());
+      self::assertEqual($nowNoUsec->getMicrosecond(), 0);
+      self::assertEqual(
+        $nowWithUsec->withMicrosecond(0)->format($format),
+        $nowNoUsec->format($format)
+      );
+      self::assertEqual(
+        $nowNoUsec->withMicrosecond(0)->format($format),
+        $nowNoUsec->format($format)
+      );
+      self::assertEqual(
+        DateTime::fuzzyParse("first sat of July 2015", $melb)
+          ->format($format),
+        "2015-07-04 00:00:00.000000+10:00"
+      );
+      self::assertEqual(
+        DateTime::fromTimestamp((-5) - 36000, $melb, -5)->format($format),
+        "1969-12-31 23:59:54.999995+10:00"
+      );
+      self::assertEqual(
+        self::getException(
+          function() use ($utc) {
+            DateTime::parse("Y-m-d H:i:s", "", $utc);
+          }
+        )->getMessage(),
+        "Could not parse date \"\" in format \"Y-m-d H:i:s\": Data missing at offset 0"
+      );
+      self::assertEqual(
+        self::getException(
+          function() use ($utc) {
+            DateTime::fuzzyParse("99999999999999999", $utc);
+          }
+        )->getMessage(),
+        "DateTimeImmutable::__construct(): Failed to parse time string (99999999999999999) at position 16 (9): Unexpected character"
+      );
     }
     private static function testArrayIterator() {
       $a = new ArrayIterator(array("a" => 1, "b" => 2));
@@ -458,7 +632,6 @@ namespace HackUtils {
       self::assertEqual($a->end(), "plane");
     }
     private static function testFilesystem($fs, $base) {
-      self::log(__METHOD__);
       self::assertEqual($fs->stat($base->format()), NULL_INT);
       $fs->mkdir($base->format());
       self::assertEqual(

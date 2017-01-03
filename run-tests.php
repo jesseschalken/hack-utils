@@ -24,16 +24,22 @@ class Coverage {
 }
 
 function tests_main() {
+  \date_default_timezone_set('UTC');
+  \umask(0022);
+  \error_reporting(-1);
+  \ini_set('log_errors', '0');
+  \ini_set('display_errors', '1');
+  \ini_set('html_errors', '0');
+
   $coverage = new Coverage();
   $coverage->start();
 
   try {
-    \umask(0022);
     _Tests::main();
   } finally {
     $coverage->stop();
-    $coverage->write();
   }
+  $coverage->write();
 }
 
 tests_main();

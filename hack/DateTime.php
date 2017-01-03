@@ -267,6 +267,30 @@ final class DateTime {
     return (int) $this->format($f[$part]);
   }
 
+  public function withYear(int $yaer): DateTime {
+    return $this->withDate($yaer, $this->getMonth(), $this->getDay());
+  }
+
+  public function withMonth(int $month): DateTime {
+    return $this->withDate($this->getYear(), $month, $this->getDay());
+  }
+
+  public function withDay(int $day): DateTime {
+    return $this->withDate($this->getYear(), $this->getMonth(), $day);
+  }
+
+  public function withHour(int $hour): DateTime {
+    return $this->withTime($hour, $this->getMinute(), $this->getSecond());
+  }
+
+  public function withMinute(int $minute): DateTime {
+    return $this->withTime($this->getHour(), $minute, $this->getSecond());
+  }
+
+  public function withSecond(int $second): DateTime {
+    return $this->withTime($this->getHour(), $this->getMinute(), $second);
+  }
+
   public function withTimezone(TimeZone $tz): DateTime {
     return new self($this->dt->setTimezone($tz->_unwrap()));
   }
