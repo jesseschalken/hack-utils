@@ -419,7 +419,7 @@ function test_array_iterator(): void {
   _assert_equal($a->valid(), true);
   _assert_equal($a->each(), ['a', 1]);
 
-  $a->prev();
+  _assert_equal($a->prev(), 1);
 
   _assert_equal($a->valid(), true);
   _assert_equal($a->each(), ['a', 1]);
@@ -431,7 +431,7 @@ function test_array_iterator(): void {
   _assert_equal($a->each(), null);
 
   // prev() on an invalid iterator does nothing
-  $a->prev();
+  _assert_equal($a->prev(), null);
 
   _assert_equal($a->valid(), false);
   _assert_equal($a->each(), null);
