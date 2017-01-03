@@ -1,7 +1,7 @@
 <?php
 namespace HackUtils {
   require_once ($GLOBALS["HACKLIB_ROOT"]);
-  final class ArrayIterator implements \Iterator, \Countable {
+  final class ArrayIterator {
     private $array;
     public function __construct($array) {
       $this->array = $array;
@@ -11,7 +11,7 @@ namespace HackUtils {
       if ($ret === false) {
         return null;
       }
-      return $ret;
+      return array($ret[0], $ret[1]);
     }
     public function current() {
       $ret = \current($this->array);
@@ -33,10 +33,18 @@ namespace HackUtils {
       return \key($this->array) !== null;
     }
     public function next() {
-      \next($this->array);
+      $ret = \next($this->array);
+      if (($ret === false) && (!$this->valid())) {
+        return null;
+      }
+      return $ret;
     }
     public function prev() {
-      \prev($this->array);
+      $ret = \prev($this->array);
+      if (($ret === false) && (!$this->valid())) {
+        return null;
+      }
+      return $ret;
     }
     public function reset() {
       $ret = \reset($this->array);
@@ -51,9 +59,6 @@ namespace HackUtils {
         return null;
       }
       return $ret;
-    }
-    public function rewind() {
-      $this->reset();
     }
     public function count() {
       return \count($this->array);

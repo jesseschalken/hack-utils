@@ -12,14 +12,14 @@ namespace HackUtils;
  * - Iterate in reverse using prev()
  * - Jump to the last element using end()
  */
-final class ArrayIterator<+Tk, +Tv> implements \Iterator<Tv>, \Countable {
+final class ArrayIterator<+Tk, +Tv> {
   public function __construct(private array<Tk, Tv> $array) {}
 
   public function each(): ?(Tk, Tv) {
     $ret = \each($this->array);
     if ($ret === false)
       return null;
-    return $ret;
+    return tuple($ret[0], $ret[1]);
   }
 
   public function current(): Tv {
@@ -42,18 +42,18 @@ final class ArrayIterator<+Tk, +Tv> implements \Iterator<Tv>, \Countable {
     return \key($this->array) !== null;
   }
 
-  public function next(): void {
-    // There's no way we can tell whether the return value of next() is
-    // a real value or FALSE because we were at the end of the array without
-    // making another call to valid()/key(), so just ignore the return value
-    // and require the caller to call current() if they want the current value
-    // instead.
-    \next($this->array);
+  public function next(): ?Tv {
+    $ret = \next($this->array);
+    if ($ret === false && !$this->valid())
+      return null;
+    return $ret;
   }
 
-  public function prev(): void {
-    // See comment in next() for why the return value is ignored.
-    \prev($this->array);
+  public function prev(): ?Tv {
+    $ret = \prev($this->array);
+    if ($ret === false && !$this->valid())
+      return null;
+    return $ret;
   }
 
   public function reset(): ?Tv {
@@ -68,10 +68,6 @@ final class ArrayIterator<+Tk, +Tv> implements \Iterator<Tv>, \Countable {
     if ($ret === false && !$this->valid())
       return null;
     return $ret;
-  }
-
-  public function rewind(): void {
-    $this->reset();
   }
 
   public function count(): int {
