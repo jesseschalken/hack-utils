@@ -28,7 +28,7 @@ namespace HackUtils {
       $iterA = new ArrayIterator($a);
       $iterB = new ArrayIterator($b);
       for (
-        $iterA->rewind(), $iterB->rewind();
+        $iterA->reset(), $iterB->reset();
         $iterA->valid() && $iterB->valid();
         $iterA->next(), $iterB->next()
       ) {
@@ -258,7 +258,7 @@ namespace HackUtils {
       array(2016, 12, 31)
     );
     _assert_equal(
-      overflow_date(2016, -3, 30 + 31 + 30 + 31 + 17),
+      overflow_date(2016, -3, (((30 + 31) + 30) + 31) + 17),
       array(2016, 1, 17)
     );
     _assert_equal(overflow_date(2016, -3, -8), array(2015, 8, 23));
@@ -358,14 +358,79 @@ namespace HackUtils {
     $path = $fs->path("/tmp/hufs-test-".\mt_rand());
     test_filesystem($fs, $path);
     test_filesystem(new FileSystemStreamWrapper($fs), $path);
+    echo ("ArrayIterator\n");
+    test_array_iterator();
     echo ("okay\n");
+  }
+  function test_array_iterator() {
+    $a = new ArrayIterator(array("a" => 1, "b" => 2));
+    _assert_equal($a->count(), 2);
+    _assert_equal($a->unwrap(), array("a" => 1, "b" => 2));
+    _assert_equal($a->valid(), true);
+    _assert_equal($a->key(), "a");
+    _assert_equal($a->current(), 1);
+    _assert_equal($a->valid(), true);
+    _assert_equal($a->each(), array("a", 1));
+    $a->prev();
+    _assert_equal($a->valid(), true);
+    _assert_equal($a->each(), array("a", 1));
+    _assert_equal($a->valid(), true);
+    _assert_equal($a->each(), array("b", 2));
+    _assert_equal($a->valid(), false);
+    _assert_equal($a->each(), null);
+    $a->prev();
+    _assert_equal($a->valid(), false);
+    _assert_equal($a->each(), null);
+    _assert_equal($a->reset(), 1);
+    _assert_equal($a->valid(), true);
+    _assert_equal($a->each(), array("a", 1));
+    _assert_equal($a->end(), 2);
+    _assert_equal($a->valid(), true);
+    _assert_equal($a->each(), array("b", 2));
+    _assert_equal($a->valid(), false);
+    _assert_equal($a->each(), null);
+    _assert_equal(
+      _get_exception(
+        function() use ($a) {
+          $a->current();
+        }
+      )->getMessage(),
+      "Cannot get value: Array is beyond last element"
+    );
+    _assert_equal(
+      _get_exception(
+        function() use ($a) {
+          $a->key();
+        }
+      )->getMessage(),
+      "Cannot get key: Array is beyond last element"
+    );
+    $a = new ArrayIterator(array());
+    _assert_equal($a->count(), 0);
+    _assert_equal($a->unwrap(), array());
+    _assert_equal($a->reset(), null);
+    _assert_equal($a->end(), null);
+    $a = new ArrayIterator(array("foot", "bike", "car", "plane"));
+    _assert_equal($a->current(), "foot");
+    _assert_equal($a->next(), "bike");
+    _assert_equal($a->next(), "car");
+    _assert_equal($a->prev(), "bike");
+    _assert_equal($a->end(), "plane");
+  }
+  function _get_exception($f) {
+    try {
+      $f();
+    } catch (\Exception $e) {
+      return $e;
+    }
+    throw new \Exception("Code was supposed to throw but didnt");
   }
   function test_filesystem($fs, $base) {
     _assert_equal($fs->stat($base->format()), null);
     $fs->mkdir($base->format());
     _assert_equal(
       \hacklib_nullsafe($fs->stat($base->format()))->modeSymbolic(),
-      "drwxrwxr-x"
+      "drwxr-xr-x"
     );
     $file = $base->join_str("foo")->format();
     $fs->writeFile($file, "contents");
@@ -385,7 +450,7 @@ namespace HackUtils {
     _assert_equal($open->read(100), "");
     _assert_equal($open->eof(), true);
     _assert_equal($open->getSize(), 8);
-    _assert_equal($open->stat()->modeSymbolic(), "-rw-rw-r--");
+    _assert_equal($open->stat()->modeSymbolic(), "-rw-r--r--");
     _assert_equal($open->getContents(), "");
     _assert_equal($open->__toString(), "contents");
     _assert_equal($open->getContents(), "");
@@ -422,15 +487,15 @@ namespace HackUtils {
     $fs->symlink($file."2", $file);
     _assert_equal(
       \hacklib_nullsafe($fs->stat($file))->modeSymbolic(),
-      "-rw-rw-r--"
+      "-rw-r--r--"
     );
     _assert_equal(
       \hacklib_nullsafe($fs->stat($file."2"))->modeSymbolic(),
-      "-rw-rw-r--"
+      "-rw-r--r--"
     );
     _assert_equal(
       \hacklib_nullsafe($fs->lstat($file))->modeSymbolic(),
-      "-rw-rw-r--"
+      "-rw-r--r--"
     );
     _assert_equal(
       \hacklib_nullsafe($fs->lstat($file."2"))->modeSymbolic(),

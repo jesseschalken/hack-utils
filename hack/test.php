@@ -31,7 +31,7 @@ function _is_equal<T>(T $a, T $b): bool {
     $iterA = new ArrayIterator($a);
     $iterB = new ArrayIterator($b);
     for (
-      $iterA->rewind(), $iterB->rewind();
+      $iterA->reset(), $iterB->reset();
       $iterA->valid() && $iterB->valid();
       $iterA->next(), $iterB->next()
     ) {
@@ -401,13 +401,99 @@ function _run_tests(): void {
   test_filesystem($fs, $path);
   test_filesystem(new FileSystemStreamWrapper($fs), $path);
 
+  print "ArrayIterator\n";
+  test_array_iterator();
   print "okay\n";
+}
+
+function test_array_iterator(): void {
+  $a = new ArrayIterator(['a' => 1, 'b' => 2]);
+
+  _assert_equal($a->count(), 2);
+  _assert_equal($a->unwrap(), ['a' => 1, 'b' => 2]);
+
+  _assert_equal($a->valid(), true);
+  _assert_equal($a->key(), 'a');
+  _assert_equal($a->current(), 1);
+
+  _assert_equal($a->valid(), true);
+  _assert_equal($a->each(), ['a', 1]);
+
+  $a->prev();
+
+  _assert_equal($a->valid(), true);
+  _assert_equal($a->each(), ['a', 1]);
+
+  _assert_equal($a->valid(), true);
+  _assert_equal($a->each(), ['b', 2]);
+
+  _assert_equal($a->valid(), false);
+  _assert_equal($a->each(), null);
+
+  // prev() on an invalid iterator does nothing
+  $a->prev();
+
+  _assert_equal($a->valid(), false);
+  _assert_equal($a->each(), null);
+
+  _assert_equal($a->reset(), 1);
+
+  _assert_equal($a->valid(), true);
+  _assert_equal($a->each(), ['a', 1]);
+
+  _assert_equal($a->end(), 2);
+
+  _assert_equal($a->valid(), true);
+  _assert_equal($a->each(), ['b', 2]);
+
+  _assert_equal($a->valid(), false);
+  _assert_equal($a->each(), null);
+
+  _assert_equal(
+    _get_exception(
+      function() use ($a) {
+        $a->current();
+      },
+    )->getMessage(),
+    'Cannot get value: Array is beyond last element',
+  );
+
+  _assert_equal(
+    _get_exception(
+      function() use ($a) {
+        $a->key();
+      },
+    )->getMessage(),
+    'Cannot get key: Array is beyond last element',
+  );
+
+  $a = new ArrayIterator([]);
+  _assert_equal($a->count(), 0);
+  _assert_equal($a->unwrap(), []);
+  _assert_equal($a->reset(), null);
+  _assert_equal($a->end(), null);
+
+  $a = new ArrayIterator(['foot', 'bike', 'car', 'plane']);
+  _assert_equal($a->current(), 'foot');
+  _assert_equal($a->next(), 'bike');
+  _assert_equal($a->next(), 'car');
+  _assert_equal($a->prev(), 'bike');
+  _assert_equal($a->end(), 'plane');
+}
+
+function _get_exception<T>((function(): T) $f): \Exception {
+  try {
+    $f();
+  } catch (\Exception $e) {
+    return $e;
+  }
+  throw new \Exception('Code was supposed to throw but didnt');
 }
 
 function test_filesystem(FileSystem $fs, Path $base): void {
   _assert_equal($fs->stat($base->format()), null);
   $fs->mkdir($base->format());
-  _assert_equal($fs->stat($base->format())?->modeSymbolic(), 'drwxrwxr-x');
+  _assert_equal($fs->stat($base->format())?->modeSymbolic(), 'drwxr-xr-x');
 
   $file = $base->join_str('foo')->format();
   $fs->writeFile($file, 'contents');
@@ -428,7 +514,7 @@ function test_filesystem(FileSystem $fs, Path $base): void {
   _assert_equal($open->read(100), '');
   _assert_equal($open->eof(), true);
   _assert_equal($open->getSize(), 8);
-  _assert_equal($open->stat()->modeSymbolic(), '-rw-rw-r--');
+  _assert_equal($open->stat()->modeSymbolic(), '-rw-r--r--');
   _assert_equal($open->getContents(), '');
   _assert_equal($open->__toString(), 'contents');
   _assert_equal($open->getContents(), '');
@@ -465,9 +551,9 @@ function test_filesystem(FileSystem $fs, Path $base): void {
   _assert_equal($open->eof(), true);
 
   $fs->symlink($file.'2', $file);
-  _assert_equal($fs->stat($file)?->modeSymbolic(), '-rw-rw-r--');
-  _assert_equal($fs->stat($file.'2')?->modeSymbolic(), '-rw-rw-r--');
-  _assert_equal($fs->lstat($file)?->modeSymbolic(), '-rw-rw-r--');
+  _assert_equal($fs->stat($file)?->modeSymbolic(), '-rw-r--r--');
+  _assert_equal($fs->stat($file.'2')?->modeSymbolic(), '-rw-r--r--');
+  _assert_equal($fs->lstat($file)?->modeSymbolic(), '-rw-r--r--');
   _assert_equal($fs->lstat($file.'2')?->modeSymbolic(), 'lrwxrwxrwx');
 
   $fs->unlink($file);
