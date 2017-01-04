@@ -345,7 +345,7 @@ namespace HackUtils {
         array(2016, 12, 31)
       );
       self::assertEqual(
-        overflow_date(2016, -3, 30 + 31 + 30 + 31 + 17),
+        overflow_date(2016, -3, (((30 + 31) + 30) + 31) + 17),
         array(2016, 1, 17)
       );
       self::assertEqual(overflow_date(2016, -3, -8), array(2015, 8, 23));
