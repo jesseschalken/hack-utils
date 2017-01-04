@@ -44,49 +44,37 @@ namespace HackUtils {
       }
       return $this->withNames($names);
     }
-    public final function join_str($name) {
-      return $this->join($this->reparse($name));
+    public final function split($i) {
+      list($left, $right) = split_array_at($this->names(), $i);
+      return array($this->withNames($left), $this->withNames($right, true));
     }
-    public abstract function isAbsolute();
     public final function join($path) {
       if ($path->isAbsolute()) {
         return $path;
       }
       return $this->withNames(concat($this->names(), $path->names()));
     }
-    public final function dir() {
-      if (!$this->len()) {
-        return new_null();
-      }
-      return $this->withNames(slice_array($this->names(), 0, -1));
-    }
-    public final function base() {
-      if (!$this->len()) {
-        return NULL_STRING;
-      }
-      return $this->name(-1);
-    }
-    public final function ext() {
-      $name = $this->base();
-      if ($name === null) {
-        return NULL_STRING;
-      }
-      $pos = find_last($name, ".");
-      if (($pos === null) || ($pos == 0)) {
-        return NULL_STRING;
-      }
-      return slice($name, $pos + 1);
-    }
+    public abstract function isAbsolute();
     public abstract function names();
     public abstract function format();
     public abstract function hasSameRoot($path);
     public abstract function withNames($names, $relative = false);
-    public abstract function reparse($path);
   }
   final class PosixPath extends Path {
     public static function parse($path) {
       $self = new self();
-      $self->fromString($path);
+      if ($path === "") {
+        $self->absolute = false;
+        $self->names = array();
+      } else {
+        $self->absolute = $path[0] === "/";
+        $self->names = array();
+        foreach (split($path, "/") as $name) {
+          if ($name !== "") {
+            $self->names[] = $name;
+          }
+        }
+      }
       return $self;
     }
     private $absolute = false;
@@ -96,8 +84,8 @@ namespace HackUtils {
       $ret = parent::normalize();
       if ($ret->absolute) {
         $i = 0;
-        $l = \count($this->names);
-        while (($i < $l) && ($this->names[$i] === "..")) {
+        $l = \count($ret->names);
+        while (($i < $l) && ($ret->names[$i] === "..")) {
           $i++;
         }
         if ($i) {
@@ -110,9 +98,6 @@ namespace HackUtils {
       $ret = join($this->names, "/");
       if ($this->absolute) {
         $ret = "/".$ret;
-      }
-      if ($ret === "") {
-        $ret = ".";
       }
       return $ret;
     }
@@ -134,30 +119,22 @@ namespace HackUtils {
       return
         ($path instanceof PosixPath) && ($path->absolute === $this->absolute);
     }
-    public function reparse($path) {
-      $clone = clone $this;
-      $clone->fromString($path);
-      return $clone;
-    }
-    private function fromString($path) {
-      if ($path === "") {
-        $this->absolute = false;
-        $this->names = array();
-      } else {
-        $this->absolute = $path[0] === "/";
-        $this->names = array();
-        foreach (split($path, "/") as $name) {
-          if ($name !== "") {
-            $this->names[] = $name;
-          }
-        }
-      }
-    }
   }
   final class WindowsPath extends Path {
     public static function parse($path) {
       $self = new self();
-      $self->fromString($path);
+      $regex =
+        self::regex(
+          "^\n      (\n        [A-Za-z]:[\\\\/]?\n        |\n        [\\\\/]{0,2}\n        (?![\\\\/])\n      )\n      (.*)\n    \044"
+        );
+      $match = $regex->matchOrThrow($path);
+      $root = $match->get(1);
+      $path = $match->get(2);
+      $self->root = replace($root, "/", "\\");
+      $self->names = array();
+      foreach (self::regex("[^\\\\/]+")->matchAll($path) as $match) {
+        $self->names[] = $match->toString();
+      }
       return $self;
     }
     private static function regex($regex) {
@@ -167,11 +144,7 @@ namespace HackUtils {
     private $names = array();
     private function __construct() {}
     public function format() {
-      $ret = $this->root.join($this->names, "\\");
-      if ($ret === "") {
-        return ".";
-      }
-      return $ret;
+      return $this->root.join($this->names, "\\");
     }
     public function names() {
       return $this->names;
@@ -189,25 +162,6 @@ namespace HackUtils {
     }
     public function hasSameRoot($path) {
       return ($path instanceof WindowsPath) && ($path->root === $this->root);
-    }
-    public function reparse($path) {
-      $clone = clone $this;
-      $clone->fromString($path);
-      return $clone;
-    }
-    private function fromString($path) {
-      $regex =
-        self::regex(
-          "^\n      (\n        [A-Za-z]:[\\\\/]?\n        |\n        [\\\\/]{0,2}\n        (?![\\\\/])\n      )\n      (.*)\n    \044"
-        );
-      $match = $regex->matchOrThrow($path);
-      $root = $match->get(1);
-      $path = $match->get(2);
-      $this->root = replace($root, "/", "\\");
-      $this->names = array();
-      foreach (self::regex("[^\\\\/]+")->matchAll($path) as $match) {
-        $this->names[] = $match->toString();
-      }
     }
   }
 }

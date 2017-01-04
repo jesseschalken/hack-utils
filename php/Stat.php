@@ -52,31 +52,7 @@ namespace HackUtils {
   const S_IROTH = 00004;
   const S_IWOTH = 00002;
   const S_IXOTH = 00001;
-  abstract class Stat {
-    public abstract function mtime();
-    public abstract function atime();
-    public abstract function ctime();
-    public abstract function size();
-    public abstract function mode();
-    public abstract function uid();
-    public abstract function gid();
-    public function toArray() {
-      return array(
-        "dev" => 0,
-        "ino" => 0,
-        "mode" => $this->mode(),
-        "nlink" => 1,
-        "uid" => $this->uid(),
-        "gid" => $this->gid(),
-        "rdev" => -1,
-        "size" => $this->size(),
-        "atime" => $this->atime(),
-        "mtime" => $this->mtime(),
-        "ctime" => $this->ctime(),
-        "blksize" => -1,
-        "blocks" => -1
-      );
-    }
+  abstract class Stat implements StatInterface {
     public final function isFile() {
       return S_ISREG($this->mode());
     }
@@ -201,22 +177,5 @@ namespace HackUtils {
       $s .= ($mode & S_IXOTH) ? "x" : "-";
     }
     return $s;
-  }
-  function new_stat($fileSize = 0) {
-    return array(
-      "dev" => 0,
-      "ino" => 0,
-      "mode" => 0666 | S_IFREG,
-      "nlink" => 1,
-      "uid" => 0,
-      "gid" => 0,
-      "rdev" => -1,
-      "size" => $fileSize,
-      "atime" => 0,
-      "mtime" => 0,
-      "ctime" => 0,
-      "blksize" => -1,
-      "blocks" => -1
-    );
   }
 }

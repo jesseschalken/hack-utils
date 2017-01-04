@@ -2,6 +2,12 @@
 
 namespace HackUtils;
 
+/**
+ * A path is a sequence of names or path components relative to some root.
+ * On POSIX, the possible roots are "/" and "" (".").
+ * On Windows, there are many possible roots. See
+ *   https://en.wikipedia.org/wiki/Path_(computing)#Representations_of_paths_by_operating_system_and_shell
+ */
 abstract class Path {
   public static function parse(string $path): Path {
     return is_windows() ? WindowsPath::parse($path) : PosixPath::parse($path);
@@ -53,11 +59,10 @@ abstract class Path {
     return $this->withNames($names);
   }
 
-  public final function join_str(string $name): this {
-    return $this->join($this->reparse($name));
+  public final function split(int $i): (this, this) {
+    list($left, $right) = split_array_at($this->names(), $i);
+    return tuple($this->withNames($left), $this->withNames($right, true));
   }
-
-  public abstract function isAbsolute(): bool;
 
   public final function join<T super this as Path>(T $path): T {
     if ($path->isAbsolute())
@@ -65,28 +70,7 @@ abstract class Path {
     return $this->withNames(concat($this->names(), $path->names()));
   }
 
-  public final function dir(): ?this {
-    if (!$this->len())
-      return new_null();
-    return $this->withNames(slice_array($this->names(), 0, -1));
-  }
-
-  public final function base(): ?string {
-    if (!$this->len())
-      return NULL_STRING;
-    return $this->name(-1);
-  }
-
-  public final function ext(): ?string {
-    $name = $this->base();
-    if ($name === null)
-      return NULL_STRING;
-    $pos = find_last($name, '.');
-    if ($pos === null || $pos == 0)
-      return NULL_STRING;
-    return slice($name, $pos + 1);
-  }
-
+  public abstract function isAbsolute(): bool;
   public abstract function names(): array<string>;
   public abstract function format(): string;
   public abstract function hasSameRoot(Path $path): bool;
@@ -94,13 +78,22 @@ abstract class Path {
     array<string> $names,
     bool $relative = false,
   ): this;
-  public abstract function reparse(string $path): this;
 }
 
 final class PosixPath extends Path {
   public static function parse(string $path): PosixPath {
     $self = new self();
-    $self->fromString($path);
+    if ($path === '') {
+      $self->absolute = false;
+      $self->names = [];
+    } else {
+      $self->absolute = $path[0] === '/';
+      $self->names = [];
+      foreach (split($path, '/') as $name) {
+        if ($name !== '')
+          $self->names[] = $name;
+      }
+    }
     return $self;
   }
 
@@ -116,8 +109,8 @@ final class PosixPath extends Path {
     // types of path roots, so it isn't done by default in the parent class.
     if ($ret->absolute) {
       $i = 0;
-      $l = \count($this->names);
-      while ($i < $l && $this->names[$i] === '..')
+      $l = \count($ret->names);
+      while ($i < $l && $ret->names[$i] === '..')
         $i++;
       if ($i)
         $ret->names = slice_array($this->names, $i);
@@ -129,8 +122,6 @@ final class PosixPath extends Path {
     $ret = join($this->names, '/');
     if ($this->absolute)
       $ret = '/'.$ret;
-    if ($ret === '')
-      $ret = '.';
     return $ret;
   }
 
@@ -156,32 +147,28 @@ final class PosixPath extends Path {
   public function hasSameRoot(Path $path): bool {
     return $path instanceof PosixPath && $path->absolute === $this->absolute;
   }
-
-  public function reparse(string $path): this {
-    $clone = clone $this;
-    $clone->fromString($path);
-    return $clone;
-  }
-
-  private function fromString(string $path): void {
-    if ($path === '') {
-      $this->absolute = false;
-      $this->names = [];
-    } else {
-      $this->absolute = $path[0] === '/';
-      $this->names = [];
-      foreach (split($path, '/') as $name) {
-        if ($name !== '')
-          $this->names[] = $name;
-      }
-    }
-  }
 }
 
 final class WindowsPath extends Path {
   public static function parse(string $path): WindowsPath {
     $self = new self();
-    $self->fromString($path);
+    $regex = self::regex('^
+      (
+        [A-Za-z]:[\\\\/]?
+        |
+        [\\\\/]{0,2}
+        (?![\\\\/])
+      )
+      (.*)
+    $');
+    $match = $regex->matchOrThrow($path);
+    $root = $match->get(1);
+    $path = $match->get(2);
+    $self->root = replace($root, '/', '\\');
+    $self->names = [];
+    foreach (self::regex('[^\\\\/]+')->matchAll($path) as $match) {
+      $self->names[] = $match->toString();
+    }
     return $self;
   }
 
@@ -195,10 +182,7 @@ final class WindowsPath extends Path {
   private function __construct() {}
 
   public function format(): string {
-    $ret = $this->root.join($this->names, '\\');
-    if ($ret === '')
-      return '.';
-    return $ret;
+    return $this->root.join($this->names, '\\');
   }
 
   public function names(): array<string> {
@@ -222,31 +206,5 @@ final class WindowsPath extends Path {
 
   public function hasSameRoot(Path $path): bool {
     return $path instanceof WindowsPath && $path->root === $this->root;
-  }
-
-  public function reparse(string $path): this {
-    $clone = clone $this;
-    $clone->fromString($path);
-    return $clone;
-  }
-
-  private function fromString(string $path): void {
-    $regex = self::regex('^
-      (
-        [A-Za-z]:[\\\\/]?
-        |
-        [\\\\/]{0,2}
-        (?![\\\\/])
-      )
-      (.*)
-    $');
-    $match = $regex->matchOrThrow($path);
-    $root = $match->get(1);
-    $path = $match->get(2);
-    $this->root = replace($root, '/', '\\');
-    $this->names = [];
-    foreach (self::regex('[^\\\\/]+')->matchAll($path) as $match) {
-      $this->names[] = $match->toString();
-    }
   }
 }

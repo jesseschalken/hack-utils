@@ -2,22 +2,9 @@
 
 namespace HackUtils;
 
-abstract class Stream implements \Psr\Http\Message\StreamInterface {
-  protected function __construct() {}
-  public function __destruct() {}
-  // public abstract function chmod(int $mode): void;
-  // public abstract function chown(int $uid, int $gid): void;
-  public abstract function truncate(int $len): void;
-  public abstract function tell(): int;
-  public abstract function eof(): bool;
-  public abstract function seek(int $offset, int $whence = \SEEK_SET): void;
-  public abstract function read(int $length): string;
-  public abstract function write(string $data): int;
-  public abstract function close(): void;
+abstract class Stream
+  implements \Psr\Http\Message\StreamInterface, StreamInterface {
   public abstract function stat(): Stat;
-  public abstract function lock(int $flags): bool;
-  public abstract function flush(): void;
-  public abstract function setbuf(int $size): void;
   public function getContents(): string {
     $ret = '';
     while (!$this->eof())
@@ -40,9 +27,6 @@ abstract class Stream implements \Psr\Http\Message\StreamInterface {
   public function detach(): ?resource {
     return null;
   }
-  public function isSeekable(): bool {
-    return true;
-  }
 }
 
 final class FOpenStream extends Stream {
@@ -52,7 +36,6 @@ final class FOpenStream extends Stream {
     string $mode,
     ?resource $ctx = NULL_RESOURCE,
   ) {
-    parent::__construct();
     $this->handle =
       ErrorAssert::isResource('fopen', \fopen($url, $mode, false, $ctx));
   }

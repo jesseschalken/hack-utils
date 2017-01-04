@@ -3,14 +3,14 @@
 namespace HackUtils;
 
 final class _streamWrapper {
-  public static function className(): string {
-    return __CLASS__;
+  public static function classname(): classname<_streamWrapper> {
+    return \get_called_class();
   }
 
   public ?resource $context;
   private array<string> $readdir = [];
   private int $readdir_i = 0;
-  private ?Stream $stream;
+  private ?StreamInterface $stream;
 
   public function __construct() {}
   public function __destruct() {}
@@ -40,9 +40,15 @@ final class _streamWrapper {
 
   public function mkdir(string $path, int $mode, int $options): bool {
     list($fs, $path) = $this->unwrap($path);
-    if ($options & \STREAM_MKDIR_RECURSIVE)
-      $fs->mkdir_rec($path, $mode); else
+    if ($options & \STREAM_MKDIR_RECURSIVE) {
+      if ($fs instanceof FileSystem) {
+        $fs->mkdirRec($path, $mode);
+      } else {
+        throw new \RuntimeException('Recursive mkdir() is not supported');
+      }
+    } else {
       $fs->mkdir($path, $mode);
+    }
     return true;
   }
 
@@ -167,7 +173,7 @@ final class _streamWrapper {
   }
 
   public function stream_stat(): stat_array {
-    return $this->stream()->stat()->toArray();
+    return $this->stat2array($this->stream()->stat());
   }
 
   public function stream_tell(): int {
@@ -206,85 +212,92 @@ final class _streamWrapper {
       throw new \RuntimeException("Cannot stat '$path', path does not exist");
     }
 
-    return $stat->toArray();
+    return $this->stat2array($stat);
   }
 
-  private function unwrap(string $path): (FileSystem, string) {
+  private function stat2array(StatInterface $stat): stat_array {
+    if ($stat instanceof ArrayStat)
+      return $stat->toArray();
+    return shape(
+      'dev' => 0,
+      'ino' => 0,
+      'mode' => $stat->mode(),
+      'nlink' => 1,
+      'uid' => $stat->uid(),
+      'gid' => $stat->gid(),
+      'rdev' => -1,
+      'size' => $stat->size(),
+      'atime' => $stat->atime(),
+      'mtime' => $stat->mtime(),
+      'ctime' => $stat->ctime(),
+      'blksize' => -1,
+      'blocks' => -1,
+    );
+  }
+
+  private function unwrap(string $path): (FileSystemInterface, string) {
     return FileSystemStreamWrapper::unwrapPath($path);
   }
 
-  private function stream(): Stream {
+  private function stream(): StreamInterface {
     if (!$this->stream)
       throw new \Exception('No stream is open');
     return $this->stream;
   }
 }
 
-final class FileSystemStreamWrapper extends StreamWrapper {
+final class FileSystemStreamWrapper implements StreamWrapperInterface {
+  const string PROTOCOL = 'hu-fs';
+
   private static int $next = 1;
-  private static array<arraykey, FileSystem> $fss = [];
+  private static array<int, FileSystemInterface> $fileSystems = [];
   private static bool $registered = false;
 
-  public static function unwrapPath(string $path): (FileSystem, string) {
-    $match =
-      PCRE\Pattern::create('^hu-fs://(.*?):(.*)$', 'xDsS')
-        ->matchOrThrow($path);
-    return tuple(self::$fss[$match->get(1)], $match->get(2));
+  public static function unwrapPath(
+    string $path,
+  ): (FileSystemInterface, string) {
+    list($protocol, $path) = split($path, '://', 2);
+    if ($protocol !== self::PROTOCOL) {
+      throw new \Exception(
+        'Protocol must be '.self::PROTOCOL.', got '.$protocol.'.',
+      );
+    }
+    list($id, $path) = split($path, ',', 2);
+    return tuple(self::$fileSystems[(int) $id], $path);
   }
 
   private int $id;
 
-  public function __construct(private FileSystem $fs) {
-    parent::__construct();
+  public function __construct(private FileSystemInterface $fs) {
     if (!self::$registered) {
-      \stream_wrapper_register('hu-fs', _streamWrapper::className());
+      \stream_wrapper_register(self::PROTOCOL, _streamWrapper::classname());
       self::$registered = true;
     }
     $this->id = self::$next++;
-    self::$fss[$this->id] = $fs;
+    self::$fileSystems[$this->id] = $fs;
   }
 
   public function __destruct() {
-    unset(self::$fss[$this->id]);
+    unset(self::$fileSystems[$this->id]);
   }
 
   public function wrapPath(string $path): string {
-    return 'hu-fs://'.$this->id.':'.$path;
+    return self::PROTOCOL.'://'.$this->id.','.$path;
   }
 
-  public function sep(): string {
-    return $this->fs->sep();
+  public function getContext(): resource {
+    return \stream_context_get_default();
   }
 
-  public function unwrap(): FileSystem {
+  public function unwrap(): FileSystemInterface {
     return $this->fs;
   }
 
-  public function path(string $path): Path {
-    return $this->fs->path($path);
+  public function join(string $path1, string $path2): string {
+    return $this->fs->join($path1, $path2);
   }
 
-  public function symlink(string $path, string $contents): void {
-    $this->fs->symlink($path, $contents);
-  }
-
-  public function readlink(string $path): string {
-    return $this->fs->readlink($path);
-  }
-
-  public function lchown(string $path, int $uid): void {
-    $this->fs->lchown($path, $uid);
-  }
-
-  public function lchgrp(string $path, int $gid): void {
-    $this->fs->lchgrp($path, $gid);
-  }
-
-  public function realpath(string $path): string {
-    return $this->fs->realpath($path);
-  }
-
-  public function pwd(): string {
-    return $this->fs->pwd();
+  public function split(string $path, int $i): (string, string) {
+    return $this->fs->split($path, $i);
   }
 }

@@ -2,8 +2,8 @@
 namespace HackUtils {
   require_once ($GLOBALS["HACKLIB_ROOT"]);
   final class _streamWrapper {
-    public static function className() {
-      return __CLASS__;
+    public static function classname() {
+      return \get_called_class();
     }
     public $context;
     private $readdir = array();
@@ -34,7 +34,11 @@ namespace HackUtils {
     public function mkdir($path, $mode, $options) {
       list($fs, $path) = $this->unwrap($path);
       if ($options & \STREAM_MKDIR_RECURSIVE) {
-        $fs->mkdir_rec($path, $mode);
+        if ($fs instanceof FileSystem) {
+          $fs->mkdirRec($path, $mode);
+        } else {
+          throw new \RuntimeException("Recursive mkdir() is not supported");
+        }
       } else {
         $fs->mkdir($path, $mode);
       }
@@ -134,7 +138,7 @@ namespace HackUtils {
       }
     }
     public function stream_stat() {
-      return $this->stream()->stat()->toArray();
+      return $this->stat2array($this->stream()->stat());
     }
     public function stream_tell() {
       return $this->stream()->tell();
@@ -166,7 +170,27 @@ namespace HackUtils {
           "Cannot stat '".$path."', path does not exist"
         );
       }
-      return $stat->toArray();
+      return $this->stat2array($stat);
+    }
+    private function stat2array($stat) {
+      if ($stat instanceof ArrayStat) {
+        return $stat->toArray();
+      }
+      return array(
+        "dev" => 0,
+        "ino" => 0,
+        "mode" => $stat->mode(),
+        "nlink" => 1,
+        "uid" => $stat->uid(),
+        "gid" => $stat->gid(),
+        "rdev" => -1,
+        "size" => $stat->size(),
+        "atime" => $stat->atime(),
+        "mtime" => $stat->mtime(),
+        "ctime" => $stat->ctime(),
+        "blksize" => -1,
+        "blocks" => -1
+      );
     }
     private function unwrap($path) {
       return FileSystemStreamWrapper::unwrapPath($path);
@@ -178,60 +202,49 @@ namespace HackUtils {
       return $this->stream;
     }
   }
-  final class FileSystemStreamWrapper extends StreamWrapper {
+  final class FileSystemStreamWrapper implements StreamWrapperInterface {
+    const PROTOCOL = "hu-fs";
     private static $next = 1;
-    private static $fss = array();
+    private static $fileSystems = array();
     private static $registered = false;
     public static function unwrapPath($path) {
-      $match =
-        PCRE\Pattern::create("^hu-fs://(.*?):(.*)\044", "xDsS")
-          ->matchOrThrow($path);
-      return array(self::$fss[$match->get(1)], $match->get(2));
+      list($protocol, $path) = split($path, "://", 2);
+      if ($protocol !== self::PROTOCOL) {
+        throw new \Exception(
+          "Protocol must be ".self::PROTOCOL.", got ".$protocol."."
+        );
+      }
+      list($id, $path) = split($path, ",", 2);
+      return array(self::$fileSystems[(int) $id], $path);
     }
     private $id;
     private $fs;
     public function __construct($fs) {
       $this->fs = $fs;
-      parent::__construct();
       if (!self::$registered) {
-        \stream_wrapper_register("hu-fs", _streamWrapper::className());
+        \stream_wrapper_register(self::PROTOCOL, _streamWrapper::classname());
         self::$registered = true;
       }
       $this->id = self::$next++;
-      self::$fss[$this->id] = $fs;
+      self::$fileSystems[$this->id] = $fs;
     }
     public function __destruct() {
-      unset(self::$fss[$this->id]);
+      unset(self::$fileSystems[$this->id]);
     }
     public function wrapPath($path) {
-      return "hu-fs://".$this->id.":".$path;
+      return self::PROTOCOL."://".$this->id.",".$path;
     }
-    public function sep() {
-      return $this->fs->sep();
+    public function getContext() {
+      return \stream_context_get_default();
     }
     public function unwrap() {
       return $this->fs;
     }
-    public function path($path) {
-      return $this->fs->path($path);
+    public function join($path1, $path2) {
+      return $this->fs->join($path1, $path2);
     }
-    public function symlink($path, $contents) {
-      $this->fs->symlink($path, $contents);
-    }
-    public function readlink($path) {
-      return $this->fs->readlink($path);
-    }
-    public function lchown($path, $uid) {
-      $this->fs->lchown($path, $uid);
-    }
-    public function lchgrp($path, $gid) {
-      $this->fs->lchgrp($path, $gid);
-    }
-    public function realpath($path) {
-      return $this->fs->realpath($path);
-    }
-    public function pwd() {
-      return $this->fs->pwd();
+    public function split($path, $i) {
+      return $this->fs->split($path, $i);
     }
   }
 }

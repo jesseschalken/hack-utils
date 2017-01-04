@@ -60,31 +60,7 @@ const int S_IROTH = 00004;
 const int S_IWOTH = 00002;
 const int S_IXOTH = 00001;
 
-abstract class Stat {
-  public abstract function mtime(): int;
-  public abstract function atime(): int;
-  public abstract function ctime(): int;
-  public abstract function size(): int;
-  public abstract function mode(): int;
-  public abstract function uid(): int;
-  public abstract function gid(): int;
-  public function toArray(): stat_array {
-    return shape(
-      'dev' => 0,
-      'ino' => 0,
-      'mode' => $this->mode(),
-      'nlink' => 1,
-      'uid' => $this->uid(),
-      'gid' => $this->gid(),
-      'rdev' => -1,
-      'size' => $this->size(),
-      'atime' => $this->atime(),
-      'mtime' => $this->mtime(),
-      'ctime' => $this->ctime(),
-      'blksize' => -1,
-      'blocks' => -1,
-    );
-  }
+abstract class Stat implements StatInterface {
   public final function isFile(): bool {
     return S_ISREG($this->mode());
   }
@@ -195,21 +171,3 @@ type stat_array = shape(
   'blksize' => int,
   'blocks' => int,
 );
-
-function new_stat(int $fileSize = 0): stat_array {
-  return shape(
-    'dev' => 0,
-    'ino' => 0,
-    'mode' => 0666 | S_IFREG,
-    'nlink' => 1,
-    'uid' => 0,
-    'gid' => 0,
-    'rdev' => -1,
-    'size' => $fileSize,
-    'atime' => 0,
-    'mtime' => 0,
-    'ctime' => 0,
-    'blksize' => -1,
-    'blocks' => -1,
-  );
-}

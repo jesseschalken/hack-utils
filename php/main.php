@@ -442,17 +442,17 @@ namespace HackUtils {
   function repeat_string($string, $count) {
     return \str_repeat($string, $count);
   }
-  function slice($string, $offset, $length = null) {
+  function slice($string, $offset, $length = NULL_INT) {
     $ret = \substr($string, $offset, if_null($length, 0x7FFFFFFF));
     return ($ret === false) ? "" : $ret;
   }
-  function slice_array($array, $offset, $length = null) {
+  function slice_array($array, $offset, $length = NULL_INT) {
     return \array_slice($array, $offset, $length);
   }
-  function slice_assoc($array, $offset, $length = null) {
+  function slice_assoc($array, $offset, $length = NULL_INT) {
     return \array_slice($array, $offset, $length, true);
   }
-  function splice($string, $offset, $length = null, $replacement = "") {
+  function splice($string, $offset, $length = NULL_INT, $replacement = "") {
     return \substr_replace(
       $string,
       $replacement,
@@ -463,7 +463,7 @@ namespace HackUtils {
   function splice_array(
     $array,
     $offset,
-    $length = null,
+    $length = NULL_INT,
     $replacement = array()
   ) {
     $removed = \array_splice($array, $offset, $length, $replacement);
@@ -570,7 +570,7 @@ namespace HackUtils {
   function strip_slashes($s) {
     return \stripslashes($s);
   }
-  function split($string, $delimiter = "", $limit = null) {
+  function split($string, $delimiter = "", $limit = NULL_INT) {
     $limit = if_null($limit, 0x7FFFFFFF);
     if ($limit < 1) {
       throw new \Exception("Limit must be >= 1, ".$limit." given");
@@ -607,6 +607,12 @@ namespace HackUtils {
   }
   function split_at($string, $offset) {
     return array(slice($string, 0, $offset), slice($string, $offset));
+  }
+  function split_array_at($array, $offset) {
+    return array(
+      slice_array($array, 0, $offset),
+      slice_array($array, $offset)
+    );
   }
   function join($strings, $delimiter = "") {
     return \implode($delimiter, $strings);
@@ -700,5 +706,16 @@ namespace HackUtils {
   }
   function is_windows() {
     return \DIRECTORY_SEPARATOR === "\\";
+  }
+  function is_path_local($path) {
+    $regex =
+      "\n    ^(\n        [a-zA-Z0-9+\\-.]{2,}\n        ://\n      |\n        data:\n      |\n        zlib:\n    )\n  ";
+    return !PCRE\Pattern::create($regex, "xDsS")->matches($path);
+  }
+  function make_path_local($path) {
+    if (is_path_local($path)) {
+      return $path;
+    }
+    return ".".\DIRECTORY_SEPARATOR.$path;
   }
 }

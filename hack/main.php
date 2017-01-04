@@ -688,7 +688,7 @@ function repeat_string(string $string, int $count): string {
   return \str_repeat($string, $count);
 }
 
-function slice(string $string, int $offset, ?int $length = null): string {
+function slice(string $string, int $offset, ?int $length = NULL_INT): string {
   $ret = \substr($string, $offset, if_null($length, 0x7FFFFFFF));
   // \substr() returns false "on failure".
   return $ret === false ? '' : $ret;
@@ -697,7 +697,7 @@ function slice(string $string, int $offset, ?int $length = null): string {
 function slice_array<T>(
   array<T> $array,
   int $offset,
-  ?int $length = null,
+  ?int $length = NULL_INT,
 ): array<T> {
   return \array_slice($array, $offset, $length);
 }
@@ -705,7 +705,7 @@ function slice_array<T>(
 function slice_assoc<Tk, Tv>(
   array<Tk, Tv> $array,
   int $offset,
-  ?int $length = null,
+  ?int $length = NULL_INT,
 ): array<Tk, Tv> {
   return \array_slice($array, $offset, $length, true);
 }
@@ -713,7 +713,7 @@ function slice_assoc<Tk, Tv>(
 function splice(
   string $string,
   int $offset,
-  ?int $length = null,
+  ?int $length = NULL_INT,
   string $replacement = '',
 ): string {
   return \substr_replace(
@@ -730,7 +730,7 @@ function splice(
 function splice_array<T>(
   array<T> $array,
   int $offset,
-  ?int $length = null,
+  ?int $length = NULL_INT,
   array<T> $replacement = [],
 ): (array<T>, array<T>) {
   $removed = \array_splice($array, $offset, $length, $replacement);
@@ -905,7 +905,7 @@ function strip_slashes(string $s): string {
 function split(
   string $string,
   string $delimiter = '',
-  ?int $limit = null,
+  ?int $limit = NULL_INT,
 ): array<string> {
   $limit = if_null($limit, 0x7FFFFFFF);
   // TODO Add support for negative limits with the same semantics as explode().
@@ -960,6 +960,17 @@ function split_lines(string $string): array<string> {
  */
 function split_at(string $string, int $offset): (string, string) {
   return tuple(slice($string, 0, $offset), slice($string, $offset));
+}
+
+/**
+ * Split the array at the specified offset.
+ * Negative offsets are supported.
+ */
+function split_array_at<T>(
+  array<T> $array,
+  int $offset,
+): (array<T>, array<T>) {
+  return tuple(slice_array($array, 0, $offset), slice_array($array, $offset));
 }
 
 function join(array<string> $strings, string $delimiter = ''): string {
@@ -1097,4 +1108,38 @@ function ends_with(string $string, string $suffix): bool {
 
 function is_windows(): bool {
   return \DIRECTORY_SEPARATOR === '\\';
+}
+
+/**
+ * Whether the given path is a local filesystem path or a path for some
+ * other stream wrapper.
+ */
+function is_path_local(string $path): bool {
+  // Look at php_stream_locate_url_wrapper() in PHP source
+  // or Stream::getWrapperProtocol() in HHVM
+  //
+  // Basically, any path that matches this regex will to be considered a
+  // URL for another stream wrapper.
+  $regex = '
+    ^(
+        [a-zA-Z0-9+\\-.]{2,}
+        ://
+      |
+        data:
+      |
+        zlib:
+    )
+  ';
+
+  return !PCRE\Pattern::create($regex, 'xDsS')->matches($path);
+}
+
+function make_path_local(string $path): string {
+  if (is_path_local($path))
+    return $path;
+  // Handily, a path that matches the regex in is_path_local() is guaranteed
+  // not to be an absolute path on POSIX or Windows, so if it matches we can
+  // safely force it not to match by prefixing it with ./ on POSIX and .\ on
+  // Windows.
+  return '.'.\DIRECTORY_SEPARATOR.$path;
 }

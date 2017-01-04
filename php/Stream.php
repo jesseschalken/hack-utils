@@ -1,20 +1,9 @@
 <?php
 namespace HackUtils {
   require_once ($GLOBALS["HACKLIB_ROOT"]);
-  abstract class Stream implements \Psr\Http\Message\StreamInterface {
-    protected function __construct() {}
-    public function __destruct() {}
-    public abstract function truncate($len);
-    public abstract function tell();
-    public abstract function eof();
-    public abstract function seek($offset, $whence = \SEEK_SET);
-    public abstract function read($length);
-    public abstract function write($data);
-    public abstract function close();
+  abstract class Stream
+    implements \Psr\Http\Message\StreamInterface, StreamInterface {
     public abstract function stat();
-    public abstract function lock($flags);
-    public abstract function flush();
-    public abstract function setbuf($size);
     public function getContents() {
       $ret = "";
       while (!$this->eof()) {
@@ -38,14 +27,10 @@ namespace HackUtils {
     public function detach() {
       return null;
     }
-    public function isSeekable() {
-      return true;
-    }
   }
   final class FOpenStream extends Stream {
     private $handle;
     public function __construct($url, $mode, $ctx = NULL_RESOURCE) {
-      parent::__construct();
       $this->handle =
         ErrorAssert::isResource("fopen", \fopen($url, $mode, false, $ctx));
     }

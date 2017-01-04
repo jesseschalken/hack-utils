@@ -1,14 +1,28 @@
 <?php
 namespace HackUtils {
   require_once ($GLOBALS["HACKLIB_ROOT"]);
-  abstract class FileSystem {
-    protected function __construct() {}
-    public function __destruct() {}
-    public abstract function mkdir($path, $mode = 0777);
-    public abstract function readdir($path);
-    public abstract function rmdir($path);
-    public abstract function rename($oldpath, $newpath);
-    public abstract function unlink($path);
+  final class LocalStreamWrapper implements StreamWrapperInterface {
+    public function wrapPath($path) {
+      if ($path === "") {
+        $path = ".";
+      }
+      return make_path_local($path);
+    }
+    public function getContext() {
+      return \stream_context_get_default();
+    }
+    public function join($path1, $path2) {
+      return Path::parse($path1)->join(Path::parse($path2))->format();
+    }
+    public function split($path, $i) {
+      list($a, $b) = Path::parse($path)->split($i);
+      return array($a->format(), $b->format());
+    }
+  }
+  abstract class FileSystem implements FileSystemInterface {
+    public abstract function open($path, $mode);
+    public abstract function stat($path);
+    public abstract function lstat($path);
     public final function remove($path) {
       $stat = $this->lstat($path);
       if ($stat && $stat->isDir()) {
@@ -17,43 +31,64 @@ namespace HackUtils {
         $this->unlink($path);
       }
     }
-    public final function readdir_rec($path) {
+    public final function readdirPaths($path) {
       $ret = array();
       foreach ($this->readdir($path) as $p) {
+        $ret[] = $this->join($path, $p);
+      }
+      return $ret;
+    }
+    public final function readdirPathsRec($path) {
+      $ret = array();
+      foreach ($this->readdirPaths($path) as $p) {
         $ret[] = $p;
-        $full = $path.$this->sep().$p;
-        $stat = $this->stat($full);
+        $stat = $this->stat($p);
         if ($stat && $stat->isDir()) {
-          foreach ($this->readdir_rec($full) as $p2) {
-            $ret[] = $p.$this->sep().$p2;
+          foreach ($this->readdirPathsRec($p) as $p2) {
+            $ret[] = $p2;
           }
         }
       }
       return $ret;
     }
-    public final function remove_rec($path) {
+    public final function readdirRec($path) {
+      $ret = array();
+      foreach ($this->readdir($path) as $p) {
+        foreach ($this->expandDirs($this->join($path, $p)) as $p2) {
+          $ret[] = $this->join($p, $p2);
+        }
+      }
+      return $ret;
+    }
+    public final function expandDirs($path) {
+      $stat = $this->stat($path);
+      if ($stat && $stat->isDir()) {
+        return $this->readdirRec($path);
+      }
+      return array("");
+    }
+    public final function removeRec($path) {
       $stat = $this->lstat($path);
       if ($stat && $stat->isDir()) {
-        return $this->rmdir_rec($path);
+        return $this->rmdirRec($path);
       }
       $this->unlink($path);
       return 1;
     }
-    public final function rmdir_rec($path) {
+    public final function rmdirRec($path) {
       $ret = 0;
-      foreach ($this->readdir($path) as $p) {
-        $ret += $this->remove_rec($path.$this->sep().$p);
+      foreach ($this->readdirPaths($path) as $p) {
+        $ret += $this->removeRec($p);
       }
       $this->rmdir($path);
       $ret++;
       return $ret;
     }
-    public final function mkdir_rec($path, $mode = 0777) {
-      $dir = \hacklib_nullsafe($this->path($path)->dir())->format();
-      if (($dir !== null) && (!$this->lstat($dir))) {
-        $this->mkdir_rec($dir, $mode);
+    public final function createDirs($path, $mode = 0777) {
+      list($dir, $child) = $this->split($path, -1);
+      if (($child !== "") && (!$this->lexists($dir))) {
+        $this->mkdirRec($dir, $mode);
       }
-      $this->mkdir($path, $mode);
     }
     public final function exists($path) {
       return $this->stat($path) ? true : false;
@@ -61,96 +96,38 @@ namespace HackUtils {
     public final function lexists($path) {
       return $this->lstat($path) ? true : false;
     }
-    public abstract function stat($path);
-    public abstract function chmod($path, $mode);
-    public abstract function chown($path, $uid);
-    public abstract function chgrp($path, $gid);
-    public abstract function utime($path, $atime, $mtime);
-    public abstract function open($path, $mode);
-    public abstract function symlink($path, $contents);
-    public abstract function readlink($path);
-    public abstract function lstat($path);
-    public abstract function lchown($path, $uid);
-    public abstract function lchgrp($path, $gid);
-    public abstract function realpath($path);
-    public abstract function pwd();
-    public function path($path) {
-      return PosixPath::parse($path);
-    }
-    public function sep() {
-      return "/";
-    }
-    public function readFile($path) {
+    public final function readFile($path) {
       return $this->open($path, "rb")->getContents();
     }
-    public function writeFile($path, $contents) {
+    public final function writeFile($path, $contents) {
       return $this->open($path, "wb")->write($contents);
     }
-    public function appendFile($path, $contents) {
+    public final function appendFile($path, $contents) {
       return $this->open($path, "ab")->write($contents);
     }
-    public function toStreamWrapper() {
-      echo (__METHOD__."\n");
-      return new FileSystemStreamWrapper($this);
+    public final function writeFileRec($path, $contents) {
+      $this->createDirs($path);
+      return $this->writeFile($path, $contents);
+    }
+    public final function appendFileRec($path, $contents) {
+      $this->createDirs($path);
+      return $this->appendFile($path, $contents);
+    }
+    public final function mkdirRec($path, $mode = 0777) {
+      $this->createDirs($path, $mode);
+      $this->mkdir($path, $mode);
     }
   }
-  class ErrorAssert extends \RuntimeException {
-    public final static function isZero($name, $ret) {
-      if ($ret !== 0) {
-        throw self::create($name);
-      }
+  class StreamWrapperFileSystem extends FileSystem
+    implements StreamWrapperInterface {
+    private $wrapper;
+    public function __construct($wrapper) {
+      $this->wrapper = $wrapper;
     }
-    public final static function isArray($name, $ret) {
-      if (!\is_array($ret)) {
-        throw self::create($name);
-      }
-      return $ret;
-    }
-    public final static function isString($name, $ret) {
-      if (!\is_string($ret)) {
-        throw self::create($name);
-      }
-      return $ret;
-    }
-    public final static function isInt($name, $ret) {
-      if (!\is_int($ret)) {
-        throw self::create($name);
-      }
-      return $ret;
-    }
-    public final static function isTrue($name, $ret) {
-      if ($ret !== true) {
-        throw self::create($name);
-      }
-    }
-    public final static function isResource($name, $ret) {
-      if (!\is_resource($ret)) {
-        throw self::create($name);
-      }
-      return $ret;
-    }
-    public final static function isBool($name, $ret) {
-      if (!\is_bool($ret)) {
-        throw self::create($name);
-      }
-      return $ret;
-    }
-    private static function create($name) {
-      $error = \error_get_last();
-      $msg = $name."() failed";
-      if ($error) {
-        $e = new self($msg.": ".$error["message"]);
-        $e->file = $error["file"];
-        $e->line = $error["line"];
-        return $e;
-      }
-      return new self($msg);
-    }
-  }
-  abstract class StreamWrapper extends FileSystem {
     public final function open($path, $mode) {
+      $ctx = $this->getContext();
       $path = $this->wrapPath($path);
-      return new FOpenStream($path, $mode, $this->getContext());
+      return new FOpenStream($path, $mode, $ctx);
     }
     public final function stat($path) {
       $path = $this->wrapPath($path);
@@ -161,17 +138,16 @@ namespace HackUtils {
       return new ArrayStat(ErrorAssert::isArray("stat", \stat($path)));
     }
     public final function rename($from, $to) {
+      $ctx = $this->getContext();
       $from = $this->wrapPath($from);
       $to = $this->wrapPath($to);
-      ErrorAssert::isTrue("rename", \rename($from, $to, $this->getContext()));
+      ErrorAssert::isTrue("rename", \rename($from, $to, $ctx));
     }
     public final function readdir($path) {
+      $ctx = $this->getContext();
       $path = $this->wrapPath($path);
       $ret = array();
-      $dir = ErrorAssert::isResource(
-        "opendir",
-        \opendir($path, $this->getContext())
-      );
+      $dir = ErrorAssert::isResource("opendir", \opendir($path, $ctx));
       for (; $p = \readdir($dir); $p !== false) {
         if (($p === ".") || ($p === "..")) {
           continue;
@@ -182,15 +158,14 @@ namespace HackUtils {
       return $ret;
     }
     public final function mkdir($path, $mode = 0777) {
+      $ctx = $this->getContext();
       $path = $this->wrapPath($path);
-      ErrorAssert::isTrue(
-        "mkdir",
-        \mkdir($path, $mode, false, $this->getContext())
-      );
+      ErrorAssert::isTrue("mkdir", \mkdir($path, $mode, false, $ctx));
     }
     public final function unlink($path) {
+      $ctx = $this->getContext();
       $path = $this->wrapPath($path);
-      ErrorAssert::isTrue("unlink", \unlink($path, $this->getContext()));
+      ErrorAssert::isTrue("unlink", \unlink($path, $ctx));
     }
     public final function lstat($path) {
       $path = $this->wrapPath($path);
@@ -201,8 +176,9 @@ namespace HackUtils {
       return new ArrayStat(ErrorAssert::isArray("lstat", \lstat($path)));
     }
     public final function rmdir($path) {
+      $ctx = $this->getContext();
       $path = $this->wrapPath($path);
-      ErrorAssert::isTrue("rmdir", \rmdir($path, $this->getContext()));
+      ErrorAssert::isTrue("rmdir", \rmdir($path, $ctx));
     }
     public final function chmod($path, $mode) {
       $path = $this->wrapPath($path);
@@ -220,43 +196,23 @@ namespace HackUtils {
       $path = $this->wrapPath($path);
       ErrorAssert::isTrue("touch", \touch($path, $mtime, $atime));
     }
-    public final function readFile($path) {
-      $path = $this->wrapPath($path);
-      return ErrorAssert::isString(
-        "file_get_contents",
-        \file_get_contents($path, false, $this->getContext())
-      );
+    public final function wrapPath($path) {
+      return $this->wrapper->wrapPath($path);
     }
-    public final function writeFile($path, $contents) {
-      $path = $this->wrapPath($path);
-      return ErrorAssert::isInt(
-        "file_put_contents",
-        \file_put_contents($path, $contents, 0, $this->getContext())
-      );
+    public final function getContext() {
+      return $this->wrapper->getContext();
     }
-    public final function appendFile($path, $contents) {
-      $path = $this->wrapPath($path);
-      return ErrorAssert::isInt(
-        "file_put_contents",
-        \file_put_contents(
-          $path,
-          $contents,
-          \FILE_APPEND,
-          $this->getContext()
-        )
-      );
+    public final function join($path1, $path2) {
+      return $this->wrapper->join($path1, $path2);
     }
-    public final function toStreamWrapper() {
-      return $this;
-    }
-    public abstract function wrapPath($path);
-    public function getContext() {
-      return \stream_context_get_default();
+    public final function split($path, $i) {
+      return $this->wrapper->split($path, $i);
     }
   }
-  final class LocalFileSystem extends StreamWrapper {
-    public static function create() {
-      return new self();
+  final class LocalFileSystem extends StreamWrapperFileSystem
+    implements SymlinkFileSystemInterface {
+    public function __construct() {
+      parent::__construct(new LocalStreamWrapper());
     }
     public final function symlink($path, $target) {
       $path = $this->wrapPath($path);
@@ -278,26 +234,6 @@ namespace HackUtils {
     public final function lchgrp($path, $gid) {
       $path = $this->wrapPath($path);
       ErrorAssert::isTrue("lchgrp", \lchgrp($path, (int) $gid));
-    }
-    public final function pwd() {
-      return ErrorAssert::isString("getcwd", \getcwd());
-    }
-    public function path($path) {
-      return Path::parse($path);
-    }
-    public function sep() {
-      return \DIRECTORY_SEPARATOR;
-    }
-    public function wrapPath($path) {
-      $regex =
-        "\n      ^(\n          [a-zA-Z0-9+\\-.]{2,}\n          ://\n        |\n          data:\n        |\n          zlib:\n      )\n    ";
-      if (self::regex($regex)->matches($path)) {
-        return ".".$this->sep().$path;
-      }
-      return $path;
-    }
-    private static function regex($regex) {
-      return PCRE\Pattern::create($regex, "xDsS");
     }
   }
 }

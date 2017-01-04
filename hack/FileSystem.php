@@ -2,17 +2,33 @@
 
 namespace HackUtils;
 
-abstract class FileSystem {
-  protected function __construct() {}
-  public function __destruct() {}
+final class LocalStreamWrapper implements StreamWrapperInterface {
+  public function wrapPath(string $path): string {
+    // Passing an empty path is supported to refer to the current directory.
+    if ($path === '')
+      $path = '.';
+    return make_path_local($path);
+  }
+  public function getContext(): resource {
+    return \stream_context_get_default();
+  }
+  public function join(string $path1, string $path2): string {
+    return Path::parse($path1)->join(Path::parse($path2))->format();
+  }
+  public function split(string $path, int $i): (string, string) {
+    list($a, $b) = Path::parse($path)->split($i);
+    return tuple($a->format(), $b->format());
+  }
+}
 
-  public abstract function mkdir(string $path, int $mode = 0777): void;
-  public abstract function readdir(string $path): array<string>;
-  public abstract function rmdir(string $path): void;
+abstract class FileSystem implements FileSystemInterface {
+  public abstract function open(string $path, string $mode): Stream;
+  public abstract function stat(string $path): ?Stat;
+  public abstract function lstat(string $path): ?Stat;
 
-  public abstract function rename(string $oldpath, string $newpath): void;
-  public abstract function unlink(string $path): void;
-
+  /**
+   * Remvoe a file or directory (unlink/rmdir).
+   */
   public final function remove(string $path): void {
     $stat = $this->lstat($path);
     if ($stat && $stat->isDir())
@@ -20,158 +36,129 @@ abstract class FileSystem {
       $this->unlink($path);
   }
 
-  public final function readdir_rec(string $path): array<string> {
+  /**
+   * Same as readdir() but returns complete file paths instead of just names.
+   * If the given path is relative, the returned paths will also be relative.
+   */
+  public final function readdirPaths(string $path): array<string> {
     $ret = [];
     foreach ($this->readdir($path) as $p) {
+      $ret[] = $this->join($path, $p);
+    }
+    return $ret;
+  }
+
+  public final function readdirPathsRec(string $path): array<string> {
+    $ret = [];
+    foreach ($this->readdirPaths($path) as $p) {
       $ret[] = $p;
-      $full = $path.$this->sep().$p;
-      $stat = $this->stat($full);
+      $stat = $this->stat($p);
       if ($stat && $stat->isDir()) {
-        foreach ($this->readdir_rec($full) as $p2) {
-          $ret[] = $p.$this->sep().$p2;
+        foreach ($this->readdirPathsRec($p) as $p2) {
+          $ret[] = $p2;
         }
       }
     }
     return $ret;
   }
 
-  public final function remove_rec(string $path): int {
+  /**
+   * All of the non-directory descendants of the given directory, relative to
+   * the directory.
+   */
+  public final function readdirRec(string $path): array<string> {
+    $ret = [];
+    foreach ($this->readdir($path) as $p) {
+      foreach ($this->expandDirs($this->join($path, $p)) as $p2) {
+        $ret[] = $this->join($p, $p2);
+      }
+    }
+    return $ret;
+  }
+
+  /**
+   * Same as readdirRec(), except if the input is not a directory, returns
+   * an empty relative path (the empty string).
+   * This is useful if your program takes input that can either be a directory
+   * (to be scanned recursively) or a single file.
+   */
+  public final function expandDirs(string $path): array<string> {
+    $stat = $this->stat($path);
+    if ($stat && $stat->isDir())
+      return $this->readdirRec($path);
+    return [''];
+  }
+
+  public final function removeRec(string $path): int {
     $stat = $this->lstat($path);
     if ($stat && $stat->isDir()) {
-      return $this->rmdir_rec($path);
+      return $this->rmdirRec($path);
     }
     $this->unlink($path);
     return 1;
   }
 
-  public final function rmdir_rec(string $path): int {
+  public final function rmdirRec(string $path): int {
     $ret = 0;
-    foreach ($this->readdir($path) as $p) {
-      $ret += $this->remove_rec($path.$this->sep().$p);
+    foreach ($this->readdirPaths($path) as $p) {
+      $ret += $this->removeRec($p);
     }
     $this->rmdir($path);
     $ret++;
     return $ret;
   }
 
-  public final function mkdir_rec(string $path, int $mode = 0777): void {
-    $dir = $this->path($path)->dir()?->format();
-    if ($dir !== null && !$this->lstat($dir)) {
-      $this->mkdir_rec($dir, $mode);
+  public final function createDirs(string $path, int $mode = 0777): void {
+    list($dir, $child) = $this->split($path, -1);
+    if ($child !== '' && !$this->lexists($dir)) {
+      $this->mkdirRec($dir, $mode);
     }
-    $this->mkdir($path, $mode);
   }
 
   public final function exists(string $path): bool {
     return $this->stat($path) ? true : false;
   }
+
   public final function lexists(string $path): bool {
     return $this->lstat($path) ? true : false;
   }
 
-  public abstract function stat(string $path): ?Stat;
-  public abstract function chmod(string $path, int $mode): void;
-  public abstract function chown(string $path, int $uid): void;
-  public abstract function chgrp(string $path, int $gid): void;
-  public abstract function utime(string $path, int $atime, int $mtime): void;
-
-  public abstract function open(string $path, string $mode): Stream;
-
-  public abstract function symlink(string $path, string $contents): void;
-  public abstract function readlink(string $path): string;
-
-  public abstract function lstat(string $path): ?Stat;
-  public abstract function lchown(string $path, int $uid): void;
-  public abstract function lchgrp(string $path, int $gid): void;
-
-  public abstract function realpath(string $path): string;
-
-  public abstract function pwd(): string;
-
-  public function path(string $path): Path {
-    return PosixPath::parse($path);
-  }
-
-  public function sep(): string {
-    return '/';
-  }
-
-  public function readFile(string $path): string {
+  public final function readFile(string $path): string {
     return $this->open($path, 'rb')->getContents();
   }
 
-  public function writeFile(string $path, string $contents): int {
+  public final function writeFile(string $path, string $contents): int {
     return $this->open($path, 'wb')->write($contents);
   }
 
-  public function appendFile(string $path, string $contents): int {
+  public final function appendFile(string $path, string $contents): int {
     return $this->open($path, 'ab')->write($contents);
   }
 
-  public function toStreamWrapper(): StreamWrapper {
-    print __METHOD__."\n";
-    return new FileSystemStreamWrapper($this);
+  public final function writeFileRec(string $path, string $contents): int {
+    $this->createDirs($path);
+    return $this->writeFile($path, $contents);
+  }
+
+  public final function appendFileRec(string $path, string $contents): int {
+    $this->createDirs($path);
+    return $this->appendFile($path, $contents);
+  }
+
+  public final function mkdirRec(string $path, int $mode = 0777): void {
+    $this->createDirs($path, $mode);
+    $this->mkdir($path, $mode);
   }
 }
 
-class ErrorAssert extends \RuntimeException {
-  public final static function isZero(string $name, mixed $ret): void {
-    if ($ret !== 0)
-      throw self::create($name);
-  }
+class StreamWrapperFileSystem extends FileSystem
+  implements StreamWrapperInterface {
+  public function __construct(private StreamWrapperInterface $wrapper) {}
 
-  public final static function isArray<T>(string $name, T $ret): T {
-    if (!\is_array($ret))
-      throw self::create($name);
-    return $ret;
-  }
-
-  public final static function isString(string $name, mixed $ret): string {
-    if (!\is_string($ret))
-      throw self::create($name);
-    return $ret;
-  }
-
-  public final static function isInt(string $name, mixed $ret): int {
-    if (!\is_int($ret))
-      throw self::create($name);
-    return $ret;
-  }
-
-  public final static function isTrue(string $name, mixed $ret): void {
-    if ($ret !== true)
-      throw self::create($name);
-  }
-
-  public final static function isResource(string $name, mixed $ret): resource {
-    if (!\is_resource($ret))
-      throw self::create($name);
-    return $ret;
-  }
-
-  public final static function isBool(string $name, mixed $ret): bool {
-    if (!\is_bool($ret))
-      throw self::create($name);
-    return $ret;
-  }
-
-  private static function create(string $name): ErrorAssert {
-    $error = \error_get_last();
-    $msg = $name.'() failed';
-    if ($error) {
-      $e = new self($msg.': '.$error['message']);
-      $e->file = $error['file'];
-      $e->line = $error['line'];
-      return $e;
-    }
-    return new self($msg);
-  }
-}
-
-abstract class StreamWrapper extends FileSystem {
   public final function open(string $path, string $mode): Stream {
+    $ctx = $this->getContext();
     $path = $this->wrapPath($path);
-    return new FOpenStream($path, $mode, $this->getContext());
+    return new FOpenStream($path, $mode, $ctx);
   }
 
   public final function stat(string $path): ?Stat {
@@ -187,19 +174,19 @@ abstract class StreamWrapper extends FileSystem {
   }
 
   public final function rename(string $from, string $to): void {
+    $ctx = $this->getContext();
     $from = $this->wrapPath($from);
     $to = $this->wrapPath($to);
-    ErrorAssert::isTrue('rename', \rename($from, $to, $this->getContext()));
+    ErrorAssert::isTrue('rename', \rename($from, $to, $ctx));
   }
 
   public final function readdir(string $path): array<string> {
+    $ctx = $this->getContext();
     $path = $this->wrapPath($path);
     $ret = [];
-    $dir = ErrorAssert::isResource(
-      'opendir',
-      \opendir($path, $this->getContext()),
-    );
+    $dir = ErrorAssert::isResource('opendir', \opendir($path, $ctx));
     for (; $p = \readdir($dir); $p !== false) {
+      // Skip dots
       if ($p === '.' || $p === '..')
         continue;
       $ret[] = $p;
@@ -209,16 +196,15 @@ abstract class StreamWrapper extends FileSystem {
   }
 
   public final function mkdir(string $path, int $mode = 0777): void {
+    $ctx = $this->getContext();
     $path = $this->wrapPath($path);
-    ErrorAssert::isTrue(
-      'mkdir',
-      \mkdir($path, $mode, false, $this->getContext()),
-    );
+    ErrorAssert::isTrue('mkdir', \mkdir($path, $mode, false, $ctx));
   }
 
   public final function unlink(string $path): void {
+    $ctx = $this->getContext();
     $path = $this->wrapPath($path);
-    ErrorAssert::isTrue('unlink', \unlink($path, $this->getContext()));
+    ErrorAssert::isTrue('unlink', \unlink($path, $ctx));
   }
 
   public final function lstat(string $path): ?Stat {
@@ -236,8 +222,9 @@ abstract class StreamWrapper extends FileSystem {
   }
 
   public final function rmdir(string $path): void {
+    $ctx = $this->getContext();
     $path = $this->wrapPath($path);
-    ErrorAssert::isTrue('rmdir', \rmdir($path, $this->getContext()));
+    ErrorAssert::isTrue('rmdir', \rmdir($path, $ctx));
   }
 
   public final function chmod(string $path, int $mode): void {
@@ -260,49 +247,28 @@ abstract class StreamWrapper extends FileSystem {
     ErrorAssert::isTrue('touch', \touch($path, $mtime, $atime));
   }
 
-  public final function readFile(string $path): string {
-    $path = $this->wrapPath($path);
-    return ErrorAssert::isString(
-      'file_get_contents',
-      \file_get_contents($path, false, $this->getContext()),
-    );
+  public final function wrapPath(string $path): string {
+    return $this->wrapper->wrapPath($path);
   }
 
-  public final function writeFile(string $path, string $contents): int {
-    $path = $this->wrapPath($path);
-    return ErrorAssert::isInt(
-      'file_put_contents',
-      \file_put_contents($path, $contents, 0, $this->getContext()),
-    );
+  public final function getContext(): resource {
+    return $this->wrapper->getContext();
   }
 
-  public final function appendFile(string $path, string $contents): int {
-    $path = $this->wrapPath($path);
-    return ErrorAssert::isInt(
-      'file_put_contents',
-      \file_put_contents(
-        $path,
-        $contents,
-        \FILE_APPEND,
-        $this->getContext(),
-      ),
-    );
+  public final function join(string $path1, string $path2): string {
+    return $this->wrapper->join($path1, $path2);
   }
 
-  public final function toStreamWrapper(): StreamWrapper {
-    return $this;
-  }
-
-  public abstract function wrapPath(string $path): string;
-
-  public function getContext(): resource {
-    return \stream_context_get_default();
+  public final function split(string $path, int $i): (string, string) {
+    return $this->wrapper->split($path, $i);
   }
 }
 
-final class LocalFileSystem extends StreamWrapper {
-  public static function create(): FileSystem {
-    return new self();
+final class LocalFileSystem extends StreamWrapperFileSystem
+  implements SymlinkFileSystemInterface {
+
+  public function __construct() {
+    parent::__construct(new LocalStreamWrapper());
   }
 
   public final function symlink(string $path, string $target): void {
@@ -329,50 +295,5 @@ final class LocalFileSystem extends StreamWrapper {
   public final function lchgrp(string $path, int $gid): void {
     $path = $this->wrapPath($path);
     ErrorAssert::isTrue('lchgrp', \lchgrp($path, (int) $gid));
-  }
-
-  public final function pwd(): string {
-    return ErrorAssert::isString('getcwd', \getcwd());
-  }
-
-  public function path(string $path): Path {
-    return Path::parse($path);
-  }
-
-  public function sep(): string {
-    return \DIRECTORY_SEPARATOR;
-  }
-
-  public function wrapPath(string $path): string {
-    // Look at php_stream_locate_url_wrapper() in PHP source
-    // or Stream::getWrapperProtocol() in HHVM
-    //
-    // Basically, any path that matches this regex is likely to be considered a
-    // URL for another stream wrapper.
-    //
-    // Handily, a path that matches this regex is guaranteed not to be an
-    // absolute path on POSIX or Windows, so if it matches we can safely
-    // force it not to match by prefixing it with ./ on POSIX and .\ on
-    // Windows.
-    $regex = '
-      ^(
-          [a-zA-Z0-9+\\-.]{2,}
-          ://
-        |
-          data:
-        |
-          zlib:
-      )
-    ';
-
-    if (self::regex($regex)->matches($path)) {
-      return '.'.$this->sep().$path;
-    }
-
-    return $path;
-  }
-
-  private static function regex(string $regex): PCRE\Pattern {
-    return PCRE\Pattern::create($regex, 'xDsS');
   }
 }
