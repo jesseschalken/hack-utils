@@ -34,15 +34,18 @@ namespace HackUtils {
     public function mkdir($path, $mode, $options) {
       list($fs, $path) = $this->unwrap($path);
       if ($options & \STREAM_MKDIR_RECURSIVE) {
-        if ($fs instanceof FileSystem) {
-          $fs->mkdirRec($path, $mode);
-        } else {
-          throw new \RuntimeException("Recursive mkdir() is not supported");
-        }
+        $this->mkdirRecursive($fs, $path, $mode);
       } else {
         $fs->mkdir($path, $mode);
       }
       return true;
+    }
+    private function mkdirRecursive($fs, $path, $mode = 0777) {
+      list($parent, $child) = $fs->split($path, -1);
+      if (($child !== "") && (!$fs->trylstat($parent))) {
+        $this->mkdirRecursive($fs, $parent, $mode);
+      }
+      $fs->mkdir($path, $mode);
     }
     public function rename($path_from, $path_to) {
       list($fs, $path_from) = $this->unwrap($path_from);
@@ -157,18 +160,21 @@ namespace HackUtils {
     }
     public function url_stat($path, $flags) {
       list($fs, $path) = $this->unwrap($path);
-      if ($flags & \STREAM_URL_STAT_LINK) {
-        $stat = $fs->lstat($path);
-      } else {
-        $stat = $fs->stat($path);
-      }
-      if (!$stat) {
-        if ($flags & \STREAM_URL_STAT_QUIET) {
+      if ($flags & \STREAM_URL_STAT_QUIET) {
+        if ($flags & \STREAM_URL_STAT_LINK) {
+          $stat = $fs->trylstat($path);
+        } else {
+          $stat = $fs->trystat($path);
+        }
+        if ($stat === null) {
           return false;
         }
-        throw new \RuntimeException(
-          "Cannot stat '".$path."', path does not exist"
-        );
+      } else {
+        if ($flags & \STREAM_URL_STAT_LINK) {
+          $stat = $fs->lstat($path);
+        } else {
+          $stat = $fs->stat($path);
+        }
       }
       return $this->stat2array($stat);
     }

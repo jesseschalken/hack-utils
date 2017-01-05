@@ -13,6 +13,8 @@ namespace HackUtils {
     public function unlink($path);
     public function stat($path);
     public function lstat($path);
+    public function trystat($path);
+    public function trylstat($path);
     public function chmod($path, $mode);
     public function chown($path, $uid);
     public function chgrp($path, $gid);

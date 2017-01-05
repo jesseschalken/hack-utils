@@ -41,15 +41,23 @@ final class _streamWrapper {
   public function mkdir(string $path, int $mode, int $options): bool {
     list($fs, $path) = $this->unwrap($path);
     if ($options & \STREAM_MKDIR_RECURSIVE) {
-      if ($fs instanceof FileSystem) {
-        $fs->mkdirRec($path, $mode);
-      } else {
-        throw new \RuntimeException('Recursive mkdir() is not supported');
-      }
+      $this->mkdirRecursive($fs, $path, $mode);
     } else {
       $fs->mkdir($path, $mode);
     }
     return true;
+  }
+
+  private function mkdirRecursive(
+    FileSystemInterface $fs,
+    string $path,
+    int $mode = 0777,
+  ): void {
+    list($parent, $child) = $fs->split($path, -1);
+    if ($child !== '' && !$fs->trylstat($parent)) {
+      $this->mkdirRecursive($fs, $parent, $mode);
+    }
+    $fs->mkdir($path, $mode);
   }
 
   public function rename(string $path_from, string $path_to): bool {
@@ -201,15 +209,17 @@ final class _streamWrapper {
   ): mixed /*stat_array|false*/ {
     list($fs, $path) = $this->unwrap($path);
 
-    if ($flags & \STREAM_URL_STAT_LINK)
-      $stat = $fs->lstat($path); else
-      $stat = $fs->stat($path);
+    if ($flags & \STREAM_URL_STAT_QUIET) {
+      if ($flags & \STREAM_URL_STAT_LINK)
+        $stat = $fs->trylstat($path); else
+        $stat = $fs->trystat($path);
 
-    if (!$stat) {
-      // For file_exists(), is_file() etc
-      if ($flags & \STREAM_URL_STAT_QUIET)
+      if ($stat === null)
         return false;
-      throw new \RuntimeException("Cannot stat '$path', path does not exist");
+    } else {
+      if ($flags & \STREAM_URL_STAT_LINK)
+        $stat = $fs->lstat($path); else
+        $stat = $fs->stat($path);
     }
 
     return $this->stat2array($stat);

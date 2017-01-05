@@ -633,12 +633,9 @@ namespace HackUtils {
       self::assertEqual($a->end(), "plane");
     }
     private static function testFilesystem($fs, $base) {
-      self::assertEqual($fs->stat($base), NULL_INT);
+      self::assertEqual($fs->trystat($base), NULL_INT);
       $fs->mkdir($base);
-      self::assertEqual(
-        \hacklib_nullsafe($fs->stat($base))->modeSymbolic(),
-        "drwxr-xr-x"
-      );
+      self::assertEqual($fs->stat($base)->modeSymbolic(), "drwxr-xr-x");
       $file = $fs->join($base, "foo");
       $fs->writeFile($file, "contents");
       self::assertEqual($fs->readFile($file), "contents");

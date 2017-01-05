@@ -726,9 +726,9 @@ final class _Tests {
   }
 
   private static function testFilesystem(FileSystem $fs, string $base): void {
-    self::assertEqual($fs->stat($base), NULL_INT);
+    self::assertEqual($fs->trystat($base), NULL_INT);
     $fs->mkdir($base);
-    self::assertEqual($fs->stat($base)?->modeSymbolic(), 'drwxr-xr-x');
+    self::assertEqual($fs->stat($base)->modeSymbolic(), 'drwxr-xr-x');
 
     $file = $fs->join($base, 'foo');
     $fs->writeFile($file, 'contents');

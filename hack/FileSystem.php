@@ -23,8 +23,10 @@ final class LocalStreamWrapper implements StreamWrapperInterface {
 
 abstract class FileSystem implements FileSystemInterface {
   public abstract function open(string $path, string $mode): Stream;
-  public abstract function stat(string $path): ?Stat;
-  public abstract function lstat(string $path): ?Stat;
+  public abstract function stat(string $path): Stat;
+  public abstract function lstat(string $path): Stat;
+  public abstract function trystat(string $path): ?Stat;
+  public abstract function trylstat(string $path): ?Stat;
 
   /**
    * Remvoe a file or directory (unlink/rmdir).
@@ -161,15 +163,21 @@ class StreamWrapperFileSystem extends FileSystem
     return new FOpenStream($path, $mode, $ctx);
   }
 
-  public final function stat(string $path): ?Stat {
+  public final function stat(string $path): Stat {
+    $path = $this->wrapPath($path);
+    \clearstatcache();
+    return new ArrayStat(ErrorAssert::isArray('stat', \stat($path)));
+  }
+
+  public final function trystat(string $path): ?Stat {
     $path = $this->wrapPath($path);
     \clearstatcache();
     // We have to avoid calling stat() if the file doesn't exist so we
     // can return null without throwing an exception or triggering a PHP error.
-    // PHP's stat cache should ensure only one stat call is actually made
-    // to the underlying stream wrapper if the file does exist.
+    // This is racey because the filesystem could change between the
+    // file_exists() and stat() calls, but it's the best we can do.
     if (!\file_exists($path))
-      return null;
+      return new_null();
     return new ArrayStat(ErrorAssert::isArray('stat', \stat($path)));
   }
 
@@ -207,15 +215,20 @@ class StreamWrapperFileSystem extends FileSystem
     ErrorAssert::isTrue('unlink', \unlink($path, $ctx));
   }
 
-  public final function lstat(string $path): ?Stat {
+  public final function lstat(string $path): Stat {
+    $path = $this->wrapPath($path);
+    \clearstatcache();
+    return new ArrayStat(ErrorAssert::isArray('lstat', \lstat($path)));
+  }
+
+  public final function trylstat(string $path): ?Stat {
     $path = $this->wrapPath($path);
     \clearstatcache();
     // We have to avoid calling lstat() if the file doesn't exist
     // so we can return null without throwing an Exception
     // or raising a PHP error.
-    // PHP's stat cache should ensure only one stat is actually done
-    // on the underlying stream wrapper...or maybe not because file_exists()
-    // does a stat() not an lstat().
+    // This is racey because the filesystem could change between these
+    // three system calls, but it's the best we can do.
     if (!\file_exists($path) && !\is_link($path))
       return new_null();
     return new ArrayStat(ErrorAssert::isArray('lstat', \lstat($path)));

@@ -24,13 +24,20 @@ interface FileSystemInterface extends FileSystemPathInterface {
   public function mkdir(string $path, int $mode = 0777): void;
   public function readdir(string $path): array<string>;
   public function rmdir(string $path): void;
+
   public function rename(string $oldpath, string $newpath): void;
   public function unlink(string $path): void;
-  public function stat(string $path): ?StatInterface;
-  public function lstat(string $path): ?StatInterface;
+
+  public function stat(string $path): StatInterface;
+  public function lstat(string $path): StatInterface;
+
+  public function trystat(string $path): ?StatInterface;
+  public function trylstat(string $path): ?StatInterface;
+
   public function chmod(string $path, int $mode): void;
   public function chown(string $path, int $uid): void;
   public function chgrp(string $path, int $gid): void;
+
   public function utime(string $path, int $atime, int $mtime): void;
   public function open(string $path, string $mode): StreamInterface;
 }

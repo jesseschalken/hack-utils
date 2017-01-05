@@ -23,6 +23,8 @@ namespace HackUtils {
     public abstract function open($path, $mode);
     public abstract function stat($path);
     public abstract function lstat($path);
+    public abstract function trystat($path);
+    public abstract function trylstat($path);
     public final function remove($path) {
       $stat = $this->lstat($path);
       if ($stat && $stat->isDir()) {
@@ -132,8 +134,13 @@ namespace HackUtils {
     public final function stat($path) {
       $path = $this->wrapPath($path);
       \clearstatcache();
+      return new ArrayStat(ErrorAssert::isArray("stat", \stat($path)));
+    }
+    public final function trystat($path) {
+      $path = $this->wrapPath($path);
+      \clearstatcache();
       if (!\file_exists($path)) {
-        return null;
+        return new_null();
       }
       return new ArrayStat(ErrorAssert::isArray("stat", \stat($path)));
     }
@@ -168,6 +175,11 @@ namespace HackUtils {
       ErrorAssert::isTrue("unlink", \unlink($path, $ctx));
     }
     public final function lstat($path) {
+      $path = $this->wrapPath($path);
+      \clearstatcache();
+      return new ArrayStat(ErrorAssert::isArray("lstat", \lstat($path)));
+    }
+    public final function trylstat($path) {
       $path = $this->wrapPath($path);
       \clearstatcache();
       if ((!\file_exists($path)) && (!\is_link($path))) {
