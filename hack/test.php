@@ -3,7 +3,7 @@
 namespace HackUtils;
 
 final class _Tests {
-  public static function Testgets(): array<classname<Test>> {
+  public static function getTests(): array<classname<Test>> {
     return [
       TestTests::class_(),
       TestToHex::class_(),
@@ -40,11 +40,12 @@ final class _Tests {
       TestArrayIterator::class_(),
       TestDateTime::class_(),
       TestException::class_(),
+      PCRE\Test::class_(),
     ];
   }
 
   public static function main(): void {
-    foreach (self::Testgets() as $test) {
+    foreach (self::getTests() as $test) {
       print '  '.$test::name()."\n";
       $test::runStatic();
     }

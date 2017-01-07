@@ -2,7 +2,7 @@
 namespace HackUtils {
   require_once ($GLOBALS["HACKLIB_ROOT"]);
   final class _Tests {
-    public static function Testgets() {
+    public static function getTests() {
       return array(
         TestTests::class_(),
         TestToHex::class_(),
@@ -38,11 +38,12 @@ namespace HackUtils {
         TestFileSystem::class_(),
         TestArrayIterator::class_(),
         TestDateTime::class_(),
-        TestException::class_()
+        TestException::class_(),
+        PCRE\Test::class_()
       );
     }
     public static function main() {
-      foreach (self::Testgets() as $test) {
+      foreach (self::getTests() as $test) {
         echo ("  ".$test::name()."\n");
         $test::runStatic();
       }

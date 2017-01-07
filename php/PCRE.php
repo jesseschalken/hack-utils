@@ -2,6 +2,116 @@
 namespace HackUtils\PCRE {
   require_once ($GLOBALS["HACKLIB_ROOT"]);
   use \HackUtils as HU;
+  use \HackUtils\StrictErrors;
+  class Test extends HU\Test {
+    public function run() {
+      self::assertEqual(Pattern::quote("/a/"), "/a/");
+      self::assertEqual(
+        Pattern::quote("\\^\044.|?*+()[]{}"),
+        "\\\\\\^\\\044\\.\\|\\?\\*\\+\\(\\)\\[\\]\\{\\}"
+      );
+      self::assertEqual(
+        Pattern::create("^a|bb\044")->matchOrThrow("woeijdwefbbb")->unwrap(),
+        array(array("bb", 10))
+      );
+      self::assertException(
+        function() {
+          Pattern::create("<?\044(")->match("");
+        },
+        "preg_match(): Compilation failed: missing ) at offset 4"
+      );
+      self::assertException(
+        function() {
+          Pattern::create("b.*b")
+            ->match("baab".HU\repeat_string("a", 10002400));
+        },
+        "Backtrack limit (pcre.backtrack_limit) was exhausted",
+        \PREG_BACKTRACK_LIMIT_ERROR
+      );
+      self::assertException(
+        function() {
+          Pattern::create("foo bar")->matchOrThrow("baz");
+        },
+        "Failed to match /foo bar/ against string 'baz'"
+      );
+      $matches =
+        Pattern::create("\\w+")
+          ->matchAll("iuh iuh lij b   jhvbhgvhgv u yguyguyg uy iuh");
+      self::assertEqual(
+        HU\map(
+          $matches,
+          function($match) {
+            return $match->unwrap();
+          }
+        ),
+        array(
+          array(array("iuh", 0)),
+          array(array("iuh", 4)),
+          array(array("lij", 8)),
+          array(array("b", 12)),
+          array(array("jhvbhgvhgv", 16)),
+          array(array("u", 27)),
+          array(array("yguyguyg", 29)),
+          array(array("uy", 38)),
+          array(array("iuh", 41))
+        )
+      );
+      self::assertEqual($matches[4]->start(), 16);
+      self::assertEqual($matches[4]->end(), 26);
+      self::assertEqual($matches[4]->range(), array(16, 26));
+      self::assertEqual($matches[4]->length(), 10);
+      self::assertEqual(
+        Pattern::create("\\w(\\w+)")->replace(
+          "iuh iuh lij b   jhvbhgvhgv u yguyguyg uy iuh",
+          "\\\044\0441"
+        ),
+        "\044uh \044uh \044ij b   \044hvbhgvhgv u \044guyguyg \044y \044uh"
+      );
+      self::assertEqual(
+        Pattern::create("\\s+")
+          ->split("iuh iuh lij b   jhvbhgvhgv u yguyguyg uy iuh"),
+        array(
+          "iuh",
+          "iuh",
+          "lij",
+          "b",
+          "jhvbhgvhgv",
+          "u",
+          "yguyguyg",
+          "uy",
+          "iuh"
+        )
+      );
+      $a = Pattern::create("(a)(lol)?b")->matchOrThrow("ab");
+      $b = Pattern::create("(a)(lol)?(b)")->matchOrThrow("ab");
+      self::assertEqual($a->unwrap(), array(array("ab", 0), array("a", 0)));
+      self::assertEqual(
+        $b->unwrap(),
+        array(0 => array("ab", 0), 1 => array("a", 0), 3 => array("b", 1))
+      );
+      self::assertEqual($b->toArray(), array(0 => "ab", 1 => "a", 3 => "b"));
+      self::assertEqual($b->get(), "ab");
+      self::assertEqual($b->get(1), "a");
+      self::assertEqual($b->get(3), "b");
+      self::assertEqual($b->getOrNull(), "ab");
+      self::assertEqual($b->getOrNull(1), "a");
+      self::assertEqual($b->getOrNull(2), HU\NULL_STRING);
+      self::assertEqual($b->getOrNull(3), "b");
+      self::assertEqual($b->getOrEmpty(), "ab");
+      self::assertEqual($b->getOrEmpty(1), "a");
+      self::assertEqual($b->getOrEmpty(2), "");
+      self::assertEqual($b->getOrEmpty(3), "b");
+      self::assertEqual($b->has(0), true);
+      self::assertEqual($b->has(1), true);
+      self::assertEqual($b->has(2), false);
+      self::assertEqual($b->has(3), true);
+      self::assertEqual((string) $b, "ab");
+      self::assertEqual($b->toString(), "ab");
+      for ($i = 0; $i < 10002; $i++) {
+        Pattern::create(Pattern::quote((string) $i));
+      }
+    }
+  }
   final class Pattern {
     public static function quote($text) {
       return \preg_quote($text);
@@ -66,7 +176,9 @@ namespace HackUtils\PCRE {
       $this->composed = "/".self::escape($regex)."/".$options;
     }
     public function matches($subject) {
-      $ret = \preg_match($this->composed, $subject);
+      $ret =
+        StrictErrors::start()
+          ->finishAny(\preg_match($this->composed, $subject));
       self::checkLastError();
       return (bool) \hacklib_cast_as_boolean($ret);
     }
@@ -74,7 +186,9 @@ namespace HackUtils\PCRE {
       $match = array();
       $flags = \PREG_OFFSET_CAPTURE;
       $count =
-        \preg_match($this->composed, $subject, $match, $flags, $offset);
+        StrictErrors::start()->finishAny(
+          \preg_match($this->composed, $subject, $match, $flags, $offset)
+        );
       self::checkLastError();
       return
         \hacklib_cast_as_boolean($count)
@@ -97,7 +211,15 @@ namespace HackUtils\PCRE {
     public function matchAll($subject, $offset = 0) {
       $matches = array();
       $flags = \PREG_SET_ORDER | \PREG_OFFSET_CAPTURE;
-      \preg_match_all($this->composed, $subject, $matches, $flags, $offset);
+      StrictErrors::start()->finishAny(
+        \preg_match_all(
+          $this->composed,
+          $subject,
+          $matches,
+          $flags,
+          $offset
+        )
+      );
       return HU\map(
         $matches,
         function($match) {
@@ -106,29 +228,29 @@ namespace HackUtils\PCRE {
       );
     }
     public function replace($subject, $replacement, $limit = null) {
-      $result = \preg_replace(
-        $this->composed,
-        $replacement,
-        $subject,
-        ($limit === null) ? (-1) : HU\max(0, $limit)
-      );
+      $result =
+        StrictErrors::start()->finishAny(
+          \preg_replace(
+            $this->composed,
+            $replacement,
+            $subject,
+            ($limit === null) ? (-1) : HU\max(0, $limit)
+          )
+        );
       self::checkLastError();
-      if (!\hacklib_cast_as_boolean(\is_string($result))) {
-        throw new Exception("preg_replace() failed");
-      }
-      return $result;
+      return Exception::assertString($result);
     }
     public function split($subject, $limit = null) {
-      $pieces = \preg_split(
-        $this->composed,
-        $subject,
-        ($limit === null) ? (-1) : max(1, $limit)
-      );
+      $pieces =
+        StrictErrors::start()->finishAny(
+          \preg_split(
+            $this->composed,
+            $subject,
+            ($limit === null) ? (-1) : max(1, $limit)
+          )
+        );
       self::checkLastError();
-      if (!\hacklib_cast_as_boolean(\is_array($pieces))) {
-        throw new Exception("preg_split() failed");
-      }
-      return $pieces;
+      return Exception::assertArray($pieces);
     }
   }
   final class Match {
@@ -183,7 +305,10 @@ namespace HackUtils\PCRE {
         }
       );
     }
+    public function unwrap() {
+      return $this->match;
+    }
   }
-  class Exception extends \Exception {}
+  class Exception extends HU\Exception {}
   class NoMatchException extends Exception {}
 }
