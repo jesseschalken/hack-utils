@@ -712,20 +712,4 @@ namespace HackUtils {
         ? (slice($string, -$length) === $suffix)
         : true;
   }
-  function is_windows() {
-    return \DIRECTORY_SEPARATOR === "\\";
-  }
-  function is_path_local($path) {
-    $regex =
-      "\n    ^(\n        [a-zA-Z0-9+\\-.]{2,}\n        ://\n      |\n        data:\n      |\n        zlib:\n    )\n  ";
-    return !\hacklib_cast_as_boolean(
-      PCRE\Pattern::create($regex, "xDsS")->matches($path)
-    );
-  }
-  function make_path_local($path) {
-    if (\hacklib_cast_as_boolean(is_path_local($path))) {
-      return $path;
-    }
-    return ".".\DIRECTORY_SEPARATOR.$path;
-  }
 }

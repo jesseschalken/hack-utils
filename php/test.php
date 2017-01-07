@@ -460,7 +460,7 @@ namespace HackUtils {
       $fs = new LocalFileSystem();
       $path = "/tmp/hufs-test-".\mt_rand();
       self::testFilesystem($fs, $path);
-      $fs = new StreamWrapperFileSystem(new FileSystemStreamWrapper($fs));
+      $fs = new FileSystemStreamWrapper($fs);
       self::testFilesystem($fs, $path);
       self::log("ArrayIterator");
       self::testArrayIterator();

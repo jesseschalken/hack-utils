@@ -1,12 +1,33 @@
 <?php
 namespace HackUtils {
   require_once ($GLOBALS["HACKLIB_ROOT"]);
-  abstract class FileSystem implements FileSystemInterface {
+  interface FileSystemPathInterface {
+    public function split($path, $i);
+    public function join($path1, $path2);
+  }
+  interface SymlinkFileSystemInterface {
+    public function symlink($path, $target);
+    public function readlink($path);
+    public function realpath($path);
+    public function lchown($path, $uid);
+    public function lchgrp($path, $gid);
+  }
+  class StatFailed extends Exception {}
+  abstract class FileSystem implements FileSystemPathInterface {
+    public abstract function mkdir($path, $mode = 0777);
+    public abstract function readdir($path);
+    public abstract function rmdir($path);
     public abstract function open($path, $mode);
+    public abstract function rename($oldpath, $newpath);
+    public abstract function unlink($path);
     public abstract function stat($path);
     public abstract function lstat($path);
     public abstract function trystat($path);
     public abstract function trylstat($path);
+    public abstract function chmod($path, $mode);
+    public abstract function chown($path, $uid);
+    public abstract function chgrp($path, $gid);
+    public abstract function utime($path, $atime, $mtime);
     public final function remove($path) {
       $stat = $this->lstat($path);
       if (\hacklib_cast_as_boolean($stat) &&

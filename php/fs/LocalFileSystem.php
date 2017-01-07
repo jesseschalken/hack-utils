@@ -1,12 +1,20 @@
 <?php
 namespace HackUtils {
   require_once ($GLOBALS["HACKLIB_ROOT"]);
-  final class LocalStreamWrapper implements StreamWrapperInterface {
+  final class LocalFileSystem extends StreamWrapper
+    implements SymlinkFileSystemInterface {
     public function wrapPath($path) {
       if ($path === "") {
         $path = ".";
       }
-      return make_path_local($path);
+      $regex =
+        "\n        ^(\n            [a-zA-Z0-9+\\-.]{2,}\n            ://\n          |\n            data:\n          |\n            zlib:\n        )\n      ";
+      if (!\hacklib_cast_as_boolean(
+            PCRE\Pattern::create($regex, "xDsS")->matches($path)
+          )) {
+        return $path;
+      }
+      return ".".\DIRECTORY_SEPARATOR.$path;
     }
     public function getContext() {
       return \stream_context_get_default();
@@ -18,30 +26,24 @@ namespace HackUtils {
       list($a, $b) = Path::parse($path)->split($i);
       return array($a->format(), $b->format());
     }
-  }
-  final class LocalFileSystem extends StreamWrapperFileSystem
-    implements SymlinkFileSystemInterface {
-    public function __construct() {
-      parent::__construct(new LocalStreamWrapper());
-    }
-    public final function symlink($path, $target) {
+    public function symlink($path, $target) {
       $path = $this->wrapPath($path);
       StrictErrors::start()->finishTrue(\symlink($target, $path));
     }
-    public final function readlink($path) {
+    public function readlink($path) {
       $path = $this->wrapPath($path);
       return StrictErrors::start()->finishString(\readlink($path));
     }
-    public final function realpath($path) {
+    public function realpath($path) {
       $path = $this->wrapPath($path);
       \clearstatcache(true);
       return StrictErrors::start()->finishString(\realpath($path));
     }
-    public final function lchown($path, $uid) {
+    public function lchown($path, $uid) {
       $path = $this->wrapPath($path);
       StrictErrors::start()->finishTrue(\lchown($path, (int) $uid));
     }
-    public final function lchgrp($path, $gid) {
+    public function lchgrp($path, $gid) {
       $path = $this->wrapPath($path);
       StrictErrors::start()->finishTrue(\lchgrp($path, (int) $gid));
     }

@@ -2,6 +2,7 @@
 
 namespace HackUtils;
 
+/** @internal */
 final class _streamWrapper {
   public static function classname(): classname<_streamWrapper> {
     return \get_called_class();
@@ -10,7 +11,7 @@ final class _streamWrapper {
   public ?resource $context;
   private array<string> $readdir = [];
   private int $readdir_i = 0;
-  private ?StreamInterface $stream;
+  private ?Stream $stream;
 
   public function __construct() {}
   public function __destruct() {}
@@ -40,24 +41,10 @@ final class _streamWrapper {
 
   public function mkdir(string $path, int $mode, int $options): bool {
     list($fs, $path) = $this->unwrap($path);
-    if ($options & \STREAM_MKDIR_RECURSIVE) {
-      $this->mkdirRecursive($fs, $path, $mode);
-    } else {
+    if ($options & \STREAM_MKDIR_RECURSIVE)
+      $fs->mkdirRec($path, $mode); else
       $fs->mkdir($path, $mode);
-    }
     return true;
-  }
-
-  private function mkdirRecursive(
-    FileSystemInterface $fs,
-    string $path,
-    int $mode = 0777,
-  ): void {
-    list($parent, $child) = $fs->split($path, -1);
-    if ($child !== '' && !$fs->trylstat($parent)) {
-      $this->mkdirRecursive($fs, $parent, $mode);
-    }
-    $fs->mkdir($path, $mode);
   }
 
   public function rename(string $path_from, string $path_to): bool {
@@ -181,7 +168,7 @@ final class _streamWrapper {
   }
 
   public function stream_stat(): stat_array {
-    return $this->stat2array($this->stream()->stat());
+    return $this->stream()->stat()->toArray();
   }
 
   public function stream_tell(): int {
@@ -222,50 +209,28 @@ final class _streamWrapper {
         $stat = $fs->stat($path);
     }
 
-    return $this->stat2array($stat);
+    return $stat->toArray();
   }
 
-  private function stat2array(StatInterface $stat): stat_array {
-    if ($stat instanceof ArrayStat)
-      return $stat->toArray();
-    return shape(
-      'dev' => 0,
-      'ino' => 0,
-      'mode' => $stat->mode(),
-      'nlink' => 1,
-      'uid' => $stat->uid(),
-      'gid' => $stat->gid(),
-      'rdev' => -1,
-      'size' => $stat->size(),
-      'atime' => $stat->atime(),
-      'mtime' => $stat->mtime(),
-      'ctime' => $stat->ctime(),
-      'blksize' => -1,
-      'blocks' => -1,
-    );
-  }
-
-  private function unwrap(string $path): (FileSystemInterface, string) {
+  private function unwrap(string $path): (FileSystem, string) {
     return FileSystemStreamWrapper::unwrapPath($path);
   }
 
-  private function stream(): StreamInterface {
+  private function stream(): Stream {
     if (!$this->stream)
       throw new \Exception('No stream is open');
     return $this->stream;
   }
 }
 
-final class FileSystemStreamWrapper implements StreamWrapperInterface {
+final class FileSystemStreamWrapper extends StreamWrapper {
   const string PROTOCOL = 'hu-fs';
 
   private static int $next = 1;
-  private static array<int, FileSystemInterface> $fileSystems = [];
+  private static array<int, FileSystem> $fileSystems = [];
   private static bool $registered = false;
 
-  public static function unwrapPath(
-    string $path,
-  ): (FileSystemInterface, string) {
+  public static function unwrapPath(string $path): (FileSystem, string) {
     list($protocol, $path) = split($path, '://', 2);
     if ($protocol !== self::PROTOCOL) {
       throw new \Exception(
@@ -278,7 +243,7 @@ final class FileSystemStreamWrapper implements StreamWrapperInterface {
 
   private int $id;
 
-  public function __construct(private FileSystemInterface $fs) {
+  public function __construct(private FileSystem $fs) {
     if (!self::$registered) {
       \stream_wrapper_register(self::PROTOCOL, _streamWrapper::classname());
       self::$registered = true;
@@ -299,7 +264,7 @@ final class FileSystemStreamWrapper implements StreamWrapperInterface {
     return \stream_context_get_default();
   }
 
-  public function unwrap(): FileSystemInterface {
+  public function unwrap(): FileSystem {
     return $this->fs;
   }
 

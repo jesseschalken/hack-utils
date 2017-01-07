@@ -1,12 +1,9 @@
 <?php
 namespace HackUtils {
   require_once ($GLOBALS["HACKLIB_ROOT"]);
-  class StreamWrapperFileSystem extends FileSystem
-    implements StreamWrapperInterface {
-    private $wrapper;
-    public function __construct($wrapper) {
-      $this->wrapper = $wrapper;
-    }
+  abstract class StreamWrapper extends FileSystem {
+    public abstract function wrapPath($path);
+    public abstract function getContext();
     public final function open($path, $mode) {
       $ctx = $this->getContext();
       $path = $this->wrapPath($path);
@@ -54,24 +51,6 @@ namespace HackUtils {
     public final function trylstat($path) {
       return $this->_trystat($path, true);
     }
-    private function _stat($path, $lstat) {
-      $path = $this->wrapPath($path);
-      \clearstatcache();
-      $errors = StrictErrors::start();
-      $stat = \hacklib_cast_as_boolean($lstat) ? \lstat($path) : \stat($path);
-      $stat = StatFailed::assertArray($stat);
-      $errors->finish();
-      return new ArrayStat($stat);
-    }
-    private function _trystat($path, $lstat) {
-      try {
-        return $this->_stat($path, $lstat);
-      } catch (\ErrorException $e) {
-        return new_null();
-      } catch (StatFailed $e) {
-        return new_null();
-      }
-    }
     public final function rmdir($path) {
       $ctx = $this->getContext();
       $path = $this->wrapPath($path);
@@ -93,17 +72,23 @@ namespace HackUtils {
       $path = $this->wrapPath($path);
       StrictErrors::start()->finishTrue(\touch($path, $mtime, $atime));
     }
-    public final function wrapPath($path) {
-      return $this->wrapper->wrapPath($path);
+    private function _stat($path, $lstat) {
+      $path = $this->wrapPath($path);
+      \clearstatcache();
+      $errors = StrictErrors::start();
+      $stat = \hacklib_cast_as_boolean($lstat) ? \lstat($path) : \stat($path);
+      $stat = StatFailed::assertArray($stat);
+      $errors->finish();
+      return new ArrayStat($stat);
     }
-    public final function getContext() {
-      return $this->wrapper->getContext();
-    }
-    public final function join($path1, $path2) {
-      return $this->wrapper->join($path1, $path2);
-    }
-    public final function split($path, $i) {
-      return $this->wrapper->split($path, $i);
+    private function _trystat($path, $lstat) {
+      try {
+        return $this->_stat($path, $lstat);
+      } catch (\ErrorException $e) {
+        return new_null();
+      } catch (StatFailed $e) {
+        return new_null();
+      }
     }
   }
 }

@@ -34,19 +34,11 @@ namespace HackUtils {
     public function mkdir($path, $mode, $options) {
       list($fs, $path) = $this->unwrap($path);
       if ($options & \STREAM_MKDIR_RECURSIVE) {
-        $this->mkdirRecursive($fs, $path, $mode);
+        $fs->mkdirRec($path, $mode);
       } else {
         $fs->mkdir($path, $mode);
       }
       return true;
-    }
-    private function mkdirRecursive($fs, $path, $mode = 0777) {
-      list($parent, $child) = $fs->split($path, -1);
-      if (($child !== "") &&
-          (!\hacklib_cast_as_boolean($fs->trylstat($parent)))) {
-        $this->mkdirRecursive($fs, $parent, $mode);
-      }
-      $fs->mkdir($path, $mode);
     }
     public function rename($path_from, $path_to) {
       list($fs, $path_from) = $this->unwrap($path_from);
@@ -143,7 +135,7 @@ namespace HackUtils {
       }
     }
     public function stream_stat() {
-      return $this->stat2array($this->stream()->stat());
+      return $this->stream()->stat()->toArray();
     }
     public function stream_tell() {
       return $this->stream()->tell();
@@ -178,27 +170,7 @@ namespace HackUtils {
           $stat = $fs->stat($path);
         }
       }
-      return $this->stat2array($stat);
-    }
-    private function stat2array($stat) {
-      if ($stat instanceof ArrayStat) {
-        return $stat->toArray();
-      }
-      return array(
-        "dev" => 0,
-        "ino" => 0,
-        "mode" => $stat->mode(),
-        "nlink" => 1,
-        "uid" => $stat->uid(),
-        "gid" => $stat->gid(),
-        "rdev" => -1,
-        "size" => $stat->size(),
-        "atime" => $stat->atime(),
-        "mtime" => $stat->mtime(),
-        "ctime" => $stat->ctime(),
-        "blksize" => -1,
-        "blocks" => -1
-      );
+      return $stat->toArray();
     }
     private function unwrap($path) {
       return FileSystemStreamWrapper::unwrapPath($path);
@@ -210,7 +182,7 @@ namespace HackUtils {
       return $this->stream;
     }
   }
-  final class FileSystemStreamWrapper implements StreamWrapperInterface {
+  final class FileSystemStreamWrapper extends StreamWrapper {
     const PROTOCOL = "hu-fs";
     private static $next = 1;
     private static $fileSystems = array();
