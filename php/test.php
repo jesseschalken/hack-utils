@@ -3,7 +3,7 @@ namespace HackUtils {
   require_once ($GLOBALS["HACKLIB_ROOT"]);
   final class _Tests {
     private static function assertEqual($actual, $expected) {
-      if (!self::isEqual($actual, $expected)) {
+      if (!\hacklib_cast_as_boolean(self::isEqual($actual, $expected))) {
         throw new \Exception(
           \sprintf(
             "Expected %s, got %s",
@@ -14,15 +14,18 @@ namespace HackUtils {
       }
     }
     private static function isEqual($a, $b) {
-      if (\is_float($a) && \is_float($b)) {
-        if (\is_nan($a) && \is_nan($b)) {
+      if (\hacklib_cast_as_boolean(\is_float($a)) &&
+          \hacklib_cast_as_boolean(\is_float($b))) {
+        if (\hacklib_cast_as_boolean(\is_nan($a)) &&
+            \hacklib_cast_as_boolean(\is_nan($b))) {
           return true;
         }
-        if (signbit($a) != signbit($b)) {
+        if (\hacklib_not_equals(signbit($a), signbit($b))) {
           return false;
         }
       }
-      if (\is_array($a) && \is_array($b)) {
+      if (\hacklib_cast_as_boolean(\is_array($a)) &&
+          \hacklib_cast_as_boolean(\is_array($b))) {
         if (\count($a) !== \count($b)) {
           return false;
         }
@@ -30,11 +33,16 @@ namespace HackUtils {
         $iterB = new ArrayIterator($b);
         for (
           $iterA->reset(), $iterB->reset();
-          $iterA->valid() || $iterB->valid();
+          \hacklib_cast_as_boolean($iterA->valid()) ||
+          \hacklib_cast_as_boolean($iterB->valid());
           $iterA->next(), $iterB->next()
         ) {
-          if ((!self::isEqual($iterA->key(), $iterB->key())) ||
-              (!self::isEqual($iterA->current(), $iterB->current()))) {
+          if ((!\hacklib_cast_as_boolean(
+                 self::isEqual($iterA->key(), $iterB->key())
+               )) ||
+              (!\hacklib_cast_as_boolean(
+                 self::isEqual($iterA->current(), $iterB->current())
+               ))) {
             return false;
           }
         }
@@ -335,37 +343,52 @@ namespace HackUtils {
       self::assertEqual(days_in_month(2015, 2), 28);
       self::assertEqual(days_in_month(2012, 2), 29);
       self::log("overflow_date");
-      self::assertEqual(overflow_date(2015, 1, 0), array(2014, 12, 31));
-      self::assertEqual(overflow_date(2015, 1, 365), array(2015, 12, 31));
-      self::assertEqual(overflow_date(2015, 2, 29), array(2015, 3, 1));
-      self::assertEqual(overflow_date(2016, 1, 366), array(2016, 12, 31));
-      self::assertEqual(overflow_date(2015, 13, 366), array(2016, 12, 31));
       self::assertEqual(
-        overflow_date(2016, 16, ((-31) - 28) - 31),
+        overflow_date(array(2015, 1, 0)),
+        array(2014, 12, 31)
+      );
+      self::assertEqual(
+        overflow_date(array(2015, 1, 365)),
+        array(2015, 12, 31)
+      );
+      self::assertEqual(overflow_date(array(2015, 2, 29)), array(2015, 3, 1));
+      self::assertEqual(
+        overflow_date(array(2016, 1, 366)),
         array(2016, 12, 31)
       );
       self::assertEqual(
-        overflow_date(2016, -3, 30 + 31 + 30 + 31 + 17),
+        overflow_date(array(2015, 13, 366)),
+        array(2016, 12, 31)
+      );
+      self::assertEqual(
+        overflow_date(array(2016, 16, ((-31) - 28) - 31)),
+        array(2016, 12, 31)
+      );
+      self::assertEqual(
+        overflow_date(array(2016, -3, 30 + 31 + 30 + 31 + 17)),
         array(2016, 1, 17)
       );
-      self::assertEqual(overflow_date(2016, -3, -8), array(2015, 8, 23));
+      self::assertEqual(
+        overflow_date(array(2016, -3, -8)),
+        array(2015, 8, 23)
+      );
       self::log("is_valid_date");
-      self::assertEqual(is_valid_date(2016, 2, 29), true);
-      self::assertEqual(is_valid_date(2015, 2, 29), false);
-      self::assertEqual(is_valid_date(2016, 11, 23), true);
-      self::assertEqual(is_valid_date(2016, 11, 30), true);
-      self::assertEqual(is_valid_date(2016, 11, 31), false);
-      self::assertEqual(is_valid_date(2016, 12, 31), true);
-      self::assertEqual(is_valid_date(2016, 12, 32), false);
-      self::assertEqual(is_valid_date(2016, 13, 31), false);
-      self::assertEqual(is_valid_date(2016, 0, 31), false);
-      self::assertEqual(is_valid_date(2016, -1, 31), false);
-      self::assertEqual(is_valid_date(2016, 1, 30), true);
-      self::assertEqual(is_valid_date(2016, 1, 0), false);
-      self::assertEqual(is_valid_date(2016, 1, -1), false);
-      self::assertEqual(is_valid_date(0, 1, 1), true);
-      self::assertEqual(is_valid_date(INT_MAX, 1, 1), true);
-      self::assertEqual(is_valid_date(INT_MIN, 1, 1), true);
+      self::assertEqual(is_valid_date(array(2016, 2, 29)), true);
+      self::assertEqual(is_valid_date(array(2015, 2, 29)), false);
+      self::assertEqual(is_valid_date(array(2016, 11, 23)), true);
+      self::assertEqual(is_valid_date(array(2016, 11, 30)), true);
+      self::assertEqual(is_valid_date(array(2016, 11, 31)), false);
+      self::assertEqual(is_valid_date(array(2016, 12, 31)), true);
+      self::assertEqual(is_valid_date(array(2016, 12, 32)), false);
+      self::assertEqual(is_valid_date(array(2016, 13, 31)), false);
+      self::assertEqual(is_valid_date(array(2016, 0, 31)), false);
+      self::assertEqual(is_valid_date(array(2016, -1, 31)), false);
+      self::assertEqual(is_valid_date(array(2016, 1, 30)), true);
+      self::assertEqual(is_valid_date(array(2016, 1, 0)), false);
+      self::assertEqual(is_valid_date(array(2016, 1, -1)), false);
+      self::assertEqual(is_valid_date(array(0, 1, 1)), true);
+      self::assertEqual(is_valid_date(array(INT_MAX, 1, 1)), true);
+      self::assertEqual(is_valid_date(array(INT_MIN, 1, 1)), true);
       self::log("quot/rem/div/mod");
       self::assertEqual(quot(-20, 3), -6);
       self::assertEqual(rem(-20, 3), -2);
@@ -541,7 +564,7 @@ namespace HackUtils {
         if ($count > 10) {
           throw new \Exception("Cant get current time with micrseconds :(");
         }
-      } while (!$nowWithUsec->getMicrosecond());
+      } while (!\hacklib_cast_as_boolean($nowWithUsec->getMicrosecond()));
       self::assertEqual($nowNoUsec->getMicrosecond(), 0);
       self::assertEqual(
         $nowWithUsec->withMicrosecond(0)->format($format),

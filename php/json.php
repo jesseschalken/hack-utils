@@ -4,19 +4,20 @@ namespace HackUtils {
   final class JSON {
     public static function encode($value, $binary = false, $pretty = false) {
       $flags = 0;
-      if (\defined("JSON_PRETTY_PRINT") && $pretty) {
+      if (\hacklib_cast_as_boolean(\defined("JSON_PRETTY_PRINT")) &&
+          \hacklib_cast_as_boolean($pretty)) {
         $flags |= \JSON_PRETTY_PRINT;
       }
-      if (\defined("JSON_UNESCAPED_SLASHES")) {
+      if (\hacklib_cast_as_boolean(\defined("JSON_UNESCAPED_SLASHES"))) {
         $flags |= \JSON_UNESCAPED_SLASHES;
       }
-      if (\defined("JSON_UNESCAPED_UNICODE")) {
+      if (\hacklib_cast_as_boolean(\defined("JSON_UNESCAPED_UNICODE"))) {
         $flags |= \JSON_UNESCAPED_UNICODE;
       }
-      if (\defined("JSON_PRESERVE_ZERO_FRACTION")) {
+      if (\hacklib_cast_as_boolean(\defined("JSON_PRESERVE_ZERO_FRACTION"))) {
         $flags |= \JSON_PRESERVE_ZERO_FRACTION;
       }
-      if ($binary) {
+      if (\hacklib_cast_as_boolean($binary)) {
         $value = self::mapStrings(
           $value,
           function($x) {
@@ -32,7 +33,7 @@ namespace HackUtils {
     public static function decode($json, $binary = false) {
       $value = \json_decode($json, true);
       self::checkError();
-      if ($binary) {
+      if (\hacklib_cast_as_boolean($binary)) {
         $value = self::mapStrings(
           $value,
           function($x) {
@@ -43,23 +44,23 @@ namespace HackUtils {
       return $value;
     }
     private static function checkValue($x) {
-      if (\is_object($x)) {
+      if (\hacklib_cast_as_boolean(\is_object($x))) {
         throw new JSONException(
           "Objects are not supported. Use an associative array.",
           \JSON_ERROR_UNSUPPORTED_TYPE
         );
       }
-      if (\is_array($x)) {
+      if (\hacklib_cast_as_boolean(\is_array($x))) {
         foreach ($x as $v) {
           self::checkValue($v);
         }
       }
     }
     private static function mapStrings($x, $f) {
-      if (\is_string($x)) {
+      if (\hacklib_cast_as_boolean(\is_string($x))) {
         return $f($x);
       }
-      if (\is_array($x)) {
+      if (\hacklib_cast_as_boolean(\is_array($x))) {
         $r = array();
         foreach ($x as $k => $v) {
           $k = self::mapStrings($k, $f);

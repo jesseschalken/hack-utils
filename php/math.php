@@ -25,16 +25,23 @@ namespace HackUtils {
     return ((int) ($x > 0)) - ((int) ($x < 0));
   }
   function is_finite($x) {
-    return \is_int($x) || \is_finite($x);
+    return
+      \hacklib_cast_as_boolean(\is_int($x)) ||
+      \hacklib_cast_as_boolean(\is_finite($x));
   }
   function is_infinite($x) {
-    return \is_float($x) && \is_infinite($x);
+    return
+      \hacklib_cast_as_boolean(\is_float($x)) &&
+      \hacklib_cast_as_boolean(\is_infinite($x));
   }
   function is_nan($x) {
-    return \is_float($x) && \is_nan($x);
+    return
+      \hacklib_cast_as_boolean(\is_float($x)) &&
+      \hacklib_cast_as_boolean(\is_nan($x));
   }
   function signbit($x) {
-    return ($x < 0.0) || (($x == 0.0) && ("-0" === ((string) $x)));
+    return
+      ($x < 0.0) || (\hacklib_equals($x, 0.0) && ("-0" === ((string) $x)));
   }
   function ceil($x) {
     return \ceil($x);
@@ -151,15 +158,15 @@ namespace HackUtils {
   }
   final class ToIntException extends Exception {}
   function to_int($x) {
-    if (\is_int($x)) {
+    if (\hacklib_cast_as_boolean(\is_int($x))) {
       return $x;
     }
-    if (\is_float($x)) {
+    if (\hacklib_cast_as_boolean(\is_float($x))) {
       $int = (int) $x;
-      if ($int == $x) {
+      if (\hacklib_equals($int, $x)) {
         return $int;
       }
-      if ($x == \PHP_INT_MAX) {
+      if (\hacklib_equals($x, \PHP_INT_MAX)) {
         return \PHP_INT_MAX;
       }
       throw new ToIntException("Cannot convert float ".$x." to int");
@@ -177,7 +184,7 @@ namespace HackUtils {
   }
   function mod($n, $d) {
     $r = $n % $d;
-    if ($r && (($r < 0) != ($d < 0))) {
+    if (\hacklib_cast_as_boolean($r) && (($r < 0) != ($d < 0))) {
       $r += $d;
     }
     return $r;
@@ -199,7 +206,7 @@ namespace HackUtils {
     return (bool) ((1 << $offset) & $int);
   }
   function set_bit($int, $offset, $value) {
-    if ($value) {
+    if (\hacklib_cast_as_boolean($value)) {
       $int |= 1 << $offset;
     } else {
       $int &= ~(1 << $offset);

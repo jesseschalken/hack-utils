@@ -56,4 +56,5 @@ namespace HackUtils {
     public function mtime();
     public function ctime();
   }
+  class StatFailed extends Exception {}
 }

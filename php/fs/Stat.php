@@ -87,25 +87,25 @@ namespace HackUtils {
       $this->stat = $stat;
     }
     public function mtime() {
-      return $this->stat["mtime"];
+      return $this->stat[\hacklib_id("mtime")];
     }
     public function atime() {
-      return $this->stat["atime"];
+      return $this->stat[\hacklib_id("atime")];
     }
     public function ctime() {
-      return $this->stat["ctime"];
+      return $this->stat[\hacklib_id("ctime")];
     }
     public function size() {
-      return $this->stat["size"];
+      return $this->stat[\hacklib_id("size")];
     }
     public function mode() {
-      return $this->stat["mode"];
+      return $this->stat[\hacklib_id("mode")];
     }
     public function uid() {
-      return $this->stat["uid"];
+      return $this->stat[\hacklib_id("uid")];
     }
     public function gid() {
-      return $this->stat["gid"];
+      return $this->stat[\hacklib_id("gid")];
     }
     public function toArray() {
       return $this->stat;
@@ -114,34 +114,34 @@ namespace HackUtils {
   function symbolic_mode($mode) {
     $s = "";
     $type = $mode & S_IFMT;
-    if ($type == S_IFWHT) {
+    if (\hacklib_equals($type, S_IFWHT)) {
       $s .= "w";
     } else {
-      if ($type == S_IFDOOR) {
+      if (\hacklib_equals($type, S_IFDOOR)) {
         $s .= "D";
       } else {
-        if ($type == S_IFSOCK) {
+        if (\hacklib_equals($type, S_IFSOCK)) {
           $s .= "s";
         } else {
-          if ($type == S_IFLNK) {
+          if (\hacklib_equals($type, S_IFLNK)) {
             $s .= "l";
           } else {
-            if ($type == S_IFNWK) {
+            if (\hacklib_equals($type, S_IFNWK)) {
               $s .= "n";
             } else {
-              if ($type == S_IFREG) {
+              if (\hacklib_equals($type, S_IFREG)) {
                 $s .= "-";
               } else {
-                if ($type == S_IFBLK) {
+                if (\hacklib_equals($type, S_IFBLK)) {
                   $s .= "b";
                 } else {
-                  if ($type == S_IFDIR) {
+                  if (\hacklib_equals($type, S_IFDIR)) {
                     $s .= "d";
                   } else {
-                    if ($type == S_IFCHR) {
+                    if (\hacklib_equals($type, S_IFCHR)) {
                       $s .= "c";
                     } else {
-                      if ($type == S_IFIFO) {
+                      if (\hacklib_equals($type, S_IFIFO)) {
                         $s .= "p";
                       } else {
                         $s .= "?";

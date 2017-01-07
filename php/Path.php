@@ -4,10 +4,12 @@ namespace HackUtils {
   abstract class Path {
     public static function parse($path) {
       return
-        is_windows() ? WindowsPath::parse($path) : PosixPath::parse($path);
+        \hacklib_cast_as_boolean(is_windows())
+          ? WindowsPath::parse($path)
+          : PosixPath::parse($path);
     }
     public final function relativeTo($base) {
-      if (!$this->hasSameRoot($base)) {
+      if (!\hacklib_cast_as_boolean($this->hasSameRoot($base))) {
         return $this;
       }
       $l = min($this->len(), $base->len());
@@ -33,7 +35,7 @@ namespace HackUtils {
         if (($name === "") || ($name === ".")) {
           continue;
         }
-        if (($name === "..") && $names) {
+        if (($name === "..") && \hacklib_cast_as_boolean($names)) {
           list($rest, $last) = pop($names);
           if ($last !== "..") {
             $names = $rest;
@@ -49,7 +51,7 @@ namespace HackUtils {
       return array($this->withNames($left), $this->withNames($right, true));
     }
     public final function join($path) {
-      if ($path->isAbsolute()) {
+      if (\hacklib_cast_as_boolean($path->isAbsolute())) {
         return $path;
       }
       return $this->withNames(concat($this->names(), $path->names()));
@@ -82,13 +84,13 @@ namespace HackUtils {
     private function __construct() {}
     public function normalize() {
       $ret = parent::normalize();
-      if ($ret->absolute) {
+      if (\hacklib_cast_as_boolean($ret->absolute)) {
         $i = 0;
         $l = \count($ret->names);
         while (($i < $l) && ($ret->names[$i] === "..")) {
           $i++;
         }
-        if ($i) {
+        if (\hacklib_cast_as_boolean($i)) {
           $ret->names = slice_array($this->names, $i);
         }
       }
@@ -96,7 +98,7 @@ namespace HackUtils {
     }
     public function format() {
       $ret = join($this->names, "/");
-      if ($this->absolute) {
+      if (\hacklib_cast_as_boolean($this->absolute)) {
         $ret = "/".$ret;
       }
       return $ret;
@@ -107,7 +109,7 @@ namespace HackUtils {
     public function withNames($names, $relative = false) {
       $clone = clone $this;
       $clone->names = $names;
-      if ($relative) {
+      if (\hacklib_cast_as_boolean($relative)) {
         $clone->absolute = false;
       }
       return $clone;
@@ -152,7 +154,7 @@ namespace HackUtils {
     public function withNames($names, $relative = false) {
       $clone = clone $this;
       $clone->names = $names;
-      if ($relative) {
+      if (\hacklib_cast_as_boolean($relative)) {
         $clone->root = "";
       }
       return $clone;

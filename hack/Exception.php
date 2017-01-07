@@ -4,9 +4,14 @@ namespace HackUtils;
 
 <<__ConsistentConstruct>>
 class Exception extends \Exception {
-  public final static function assertZero(mixed $x): void {
-    if ($x !== 0)
-      throw static::create(\var_export($x, true), '0');
+  public final static function assertEqual<T>(mixed $a, T $b): T {
+    if ($a !== $b)
+      throw static::create(dump($a), dump($b));
+    return $b;
+  }
+
+  public final static function assertZero(mixed $x): int {
+    return self::assertEqual($x, 0);
   }
 
   public final static function assertArray<T>(T $x): T {
@@ -27,9 +32,8 @@ class Exception extends \Exception {
     return $x;
   }
 
-  public final static function assertTrue(mixed $x): void {
-    if ($x !== true)
-      throw static::create(\var_export($x, true), 'true');
+  public final static function assertTrue(mixed $x): bool {
+    return self::assertEqual($x, true);
   }
 
   public final static function assertResource(mixed $x): resource {
@@ -44,7 +48,10 @@ class Exception extends \Exception {
     return $x;
   }
 
-  public static function create(string $actual, string $expected): \Exception {
+  public final static function create(
+    string $actual,
+    string $expected,
+  ): \Exception {
     throw new static('Expected '.$expected.', got '.$actual.'.');
   }
 }

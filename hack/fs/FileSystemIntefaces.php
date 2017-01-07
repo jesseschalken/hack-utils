@@ -29,7 +29,9 @@ interface FileSystemInterface extends FileSystemPathInterface {
   public function rename(string $oldpath, string $newpath): void;
   public function unlink(string $path): void;
 
+  /** Must throw a StatFailed in the case of failure. */
   public function stat(string $path): StatInterface;
+  /** Must throw a StatFailed in the case of failure. */
   public function lstat(string $path): StatInterface;
 
   public function trystat(string $path): ?StatInterface;
@@ -87,3 +89,5 @@ interface StatInterface {
   // public function blksize(): int;
   // public function blocks(): int;
 }
+
+class StatFailed extends Exception {}

@@ -6,7 +6,7 @@ namespace HackUtils {
     public abstract function stat();
     public function getContents() {
       $ret = "";
-      while (!$this->eof()) {
+      while (!\hacklib_cast_as_boolean($this->eof())) {
         $ret .= $this->read(8192);
       }
       return $ret;
@@ -31,93 +31,81 @@ namespace HackUtils {
   final class FOpenStream extends Stream {
     private $handle;
     public function __construct($url, $mode, $ctx = NULL_RESOURCE) {
-      FileSystemException::prepare();
       $this->handle =
-        FileSystemException::assertResource(\fopen($url, $mode, false, $ctx));
+        StrictErrors::start()
+          ->finishResource(\fopen($url, $mode, false, $ctx));
     }
     public function read($length) {
-      FileSystemException::prepare();
       return
-        FileSystemException::assertString(\fread($this->handle, $length));
+        StrictErrors::start()->finishString(\fread($this->handle, $length));
     }
     public function write($data) {
-      FileSystemException::prepare();
-      return FileSystemException::assertInt(\fwrite($this->handle, $data));
+      return StrictErrors::start()->finishInt(\fwrite($this->handle, $data));
     }
     public function eof() {
-      FileSystemException::prepare();
-      return FileSystemException::assertBool(\feof($this->handle));
+      return StrictErrors::start()->finishBool(\feof($this->handle));
     }
     public function seek($offset, $whence = \SEEK_SET) {
-      FileSystemException::prepare();
-      FileSystemException::assertZero(
-        \fseek($this->handle, $offset, $whence)
-      );
+      StrictErrors::start()
+        ->finishZero(\fseek($this->handle, $offset, $whence));
     }
     public function tell() {
-      FileSystemException::prepare();
-      return FileSystemException::assertInt(\ftell($this->handle));
+      return StrictErrors::start()->finishInt(\ftell($this->handle));
     }
     public function close() {
-      FileSystemException::prepare();
-      FileSystemException::assertTrue(\fclose($this->handle));
+      StrictErrors::start()->finishTrue(\fclose($this->handle));
     }
     public function flush() {
-      FileSystemException::prepare();
-      FileSystemException::assertTrue(\fflush($this->handle));
+      StrictErrors::start()->finishTrue(\fflush($this->handle));
     }
     public function lock($flags) {
       $wb = false;
-      $ret = \flock($this->handle, $flags, $wb);
-      if ($wb) {
+      $ret =
+        StrictErrors::start()->finishBool(\flock($this->handle, $flags, $wb));
+      if (\hacklib_cast_as_boolean($wb)) {
         return false;
       }
-      FileSystemException::prepare();
-      FileSystemException::assertTrue($ret);
+      Exception::assertTrue($ret);
       return true;
     }
     public function rewind() {
-      FileSystemException::prepare();
-      FileSystemException::assertTrue(\rewind($this->handle));
+      StrictErrors::start()->finishTrue(\rewind($this->handle));
     }
     public function truncate($length) {
-      FileSystemException::prepare();
-      FileSystemException::assertTrue(\ftruncate($this->handle, $length));
+      StrictErrors::start()->finishTrue(\ftruncate($this->handle, $length));
     }
     public function stat() {
-      FileSystemException::prepare();
       return new ArrayStat(
-        FileSystemException::assertArray(\fstat($this->handle))
+        StrictErrors::start()->finishArray(\fstat($this->handle))
       );
     }
     public function setbuf($size) {
-      FileSystemException::prepare();
-      FileSystemException::assertZero(
-        \stream_set_write_buffer($this->handle, $size)
-      );
+      StrictErrors::start()
+        ->finishZero(\stream_set_write_buffer($this->handle, $size));
     }
     public function getContents() {
-      FileSystemException::prepare();
-      return FileSystemException::assertString(
-        \stream_get_contents($this->handle)
-      );
+      return
+        StrictErrors::start()
+          ->finishString(\stream_get_contents($this->handle));
     }
     public function isReadable() {
       $mode = $this->getMode();
-      return \strstr($mode, "r") || \strstr($mode, "+");
+      return
+        \hacklib_cast_as_boolean(\strstr($mode, "r")) ||
+        \hacklib_cast_as_boolean(\strstr($mode, "+"));
     }
     public function isWritable() {
       $mode = $this->getMode();
       return
-        \strstr($mode, "x") ||
-        \strstr($mode, "w") ||
-        \strstr($mode, "c") ||
-        \strstr($mode, "a") ||
-        \strstr($mode, "+");
+        \hacklib_cast_as_boolean(\strstr($mode, "x")) ||
+        \hacklib_cast_as_boolean(\strstr($mode, "w")) ||
+        \hacklib_cast_as_boolean(\strstr($mode, "c")) ||
+        \hacklib_cast_as_boolean(\strstr($mode, "a")) ||
+        \hacklib_cast_as_boolean(\strstr($mode, "+"));
     }
     public function isSeekable() {
       $ret = $this->getMetadata_();
-      return $ret["seekable"];
+      return $ret[\hacklib_id("seekable")];
     }
     public function getMetadata($key = null) {
       $ret = $this->getMetadata_();
@@ -132,14 +120,13 @@ namespace HackUtils {
       return $handle;
     }
     private function getMetadata_() {
-      FileSystemException::prepare();
-      return FileSystemException::assertArray(
-        \stream_get_meta_data($this->handle)
-      );
+      return
+        StrictErrors::start()
+          ->finishArray(\stream_get_meta_data($this->handle));
     }
     private function getMode() {
       $meta = $this->getMetadata_();
-      return $meta["mode"];
+      return $meta[\hacklib_id("mode")];
     }
   }
 }

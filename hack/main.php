@@ -7,6 +7,7 @@ const ?int NULL_INT = null;
 const ?float NULL_FLOAT = null;
 const ?resource NULL_RESOURCE = null;
 const ?bool NULL_BOOL = null;
+const mixed NULL_MIXED = null;
 
 /**
  * The Hack typechecker reports "null" as "Partially type checked code.

@@ -42,7 +42,8 @@ namespace HackUtils {
     }
     private function mkdirRecursive($fs, $path, $mode = 0777) {
       list($parent, $child) = $fs->split($path, -1);
-      if (($child !== "") && (!$fs->trylstat($parent))) {
+      if (($child !== "") &&
+          (!\hacklib_cast_as_boolean($fs->trylstat($parent)))) {
         $this->mkdirRecursive($fs, $parent, $mode);
       }
       $fs->mkdir($path, $mode);
@@ -75,7 +76,8 @@ namespace HackUtils {
       list($fs, $path) = $this->unwrap($path);
       switch ($option) {
         case \STREAM_META_TOUCH:
-          list($mtime, $atime) = \is_array($value) ? $value : array();
+          list($mtime, $atime) =
+            \hacklib_cast_as_boolean(\is_array($value)) ? $value : array();
           $fs->utime($path, $atime, $mtime);
           return true;
         case \STREAM_META_OWNER_NAME:
@@ -99,17 +101,17 @@ namespace HackUtils {
     }
     private function name2gid($name) {
       $data = \posix_getgrnam($name);
-      if (!$data) {
+      if (!\hacklib_cast_as_boolean($data)) {
         throw new \RuntimeException(\posix_strerror(\posix_get_last_error()));
       }
-      return $data["gid"];
+      return $data[\hacklib_id("gid")];
     }
     private function name2uid($name) {
       $data = \posix_getpwnam($name);
-      if (!$data) {
+      if (!\hacklib_cast_as_boolean($data)) {
         throw new \RuntimeException(\posix_strerror(\posix_get_last_error()));
       }
-      return $data["uid"];
+      return $data[\hacklib_id("uid")];
     }
     public function stream_open($path, $mode, $options, $opened_path) {
       if ($options & \STREAM_USE_PATH) {
@@ -202,7 +204,7 @@ namespace HackUtils {
       return FileSystemStreamWrapper::unwrapPath($path);
     }
     private function stream() {
-      if (!$this->stream) {
+      if (!\hacklib_cast_as_boolean($this->stream)) {
         throw new \Exception("No stream is open");
       }
       return $this->stream;
@@ -227,7 +229,7 @@ namespace HackUtils {
     private $fs;
     public function __construct($fs) {
       $this->fs = $fs;
-      if (!self::$registered) {
+      if (!\hacklib_cast_as_boolean(self::$registered)) {
         \stream_wrapper_register(self::PROTOCOL, _streamWrapper::classname());
         self::$registered = true;
       }

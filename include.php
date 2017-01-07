@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__.'/error_clear_last.php';
+require_once __DIR__.'/zend_compat.php';
 
 if (\defined('HHVM_VERSION')) {
   require_once __DIR__.'/hack/include.php';

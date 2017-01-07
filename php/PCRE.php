@@ -26,7 +26,7 @@ namespace HackUtils\PCRE {
       $escape = false;
       for ($i = 0; $i < $length; $i++) {
         $char = $regex[$i];
-        if ($escape) {
+        if (\hacklib_cast_as_boolean($escape)) {
           $escape = false;
         } else {
           if ($char === "/") {
@@ -68,7 +68,7 @@ namespace HackUtils\PCRE {
     public function matches($subject) {
       $ret = \preg_match($this->composed, $subject);
       self::checkLastError();
-      return (bool) $ret;
+      return (bool) \hacklib_cast_as_boolean($ret);
     }
     public function match($subject, $offset = 0) {
       $match = array();
@@ -76,11 +76,14 @@ namespace HackUtils\PCRE {
       $count =
         \preg_match($this->composed, $subject, $match, $flags, $offset);
       self::checkLastError();
-      return $count ? (new Match($match)) : HU\new_null();
+      return
+        \hacklib_cast_as_boolean($count)
+          ? (new Match($match))
+          : HU\new_null();
     }
     public function matchOrThrow($subject, $offset = 0) {
       $match = $this->match($subject, $offset);
-      if (!$match) {
+      if (!\hacklib_cast_as_boolean($match)) {
         throw new NoMatchException(
           "Failed to match ".
           $this->composed.
@@ -110,7 +113,7 @@ namespace HackUtils\PCRE {
         ($limit === null) ? (-1) : HU\max(0, $limit)
       );
       self::checkLastError();
-      if (!\is_string($result)) {
+      if (!\hacklib_cast_as_boolean(\is_string($result))) {
         throw new Exception("preg_replace() failed");
       }
       return $result;
@@ -122,7 +125,7 @@ namespace HackUtils\PCRE {
         ($limit === null) ? (-1) : max(1, $limit)
       );
       self::checkLastError();
-      if (!\is_array($pieces)) {
+      if (!\hacklib_cast_as_boolean(\is_array($pieces))) {
         throw new Exception("preg_split() failed");
       }
       return $pieces;
@@ -133,7 +136,7 @@ namespace HackUtils\PCRE {
     public function __construct($match) {
       $this->match = $match;
       foreach ($this->match as $k => $v) {
-        if ($v[1] == (-1)) {
+        if (\hacklib_equals($v[1], -1)) {
           unset($this->match[$k]);
         }
       }
@@ -143,11 +146,11 @@ namespace HackUtils\PCRE {
     }
     public function getOrNull($group = 0) {
       $match = HU\get_or_null($this->match, $group);
-      return $match ? $match[0] : HU\NULL_STRING;
+      return \hacklib_cast_as_boolean($match) ? $match[0] : HU\NULL_STRING;
     }
     public function getOrEmpty($group = 0) {
       $match = HU\get_or_null($this->match, $group);
-      return $match ? $match[0] : "";
+      return \hacklib_cast_as_boolean($match) ? $match[0] : "";
     }
     public function start($group = 0) {
       return $this->match[$group][1];

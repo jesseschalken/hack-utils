@@ -7,7 +7,8 @@ namespace HackUtils {
   final class TimeZone {
     private static $UTC;
     public static function UTC() {
-      return self::$UTC ?: (self::$UTC = self::create("UTC"));
+      return \hacklib_cast_as_boolean(self::$UTC) ?: (self::$UTC =
+                                                        self::create("UTC"));
     }
     public static function create($tz) {
       return new self(new \DateTimeZone($tz));
@@ -35,9 +36,13 @@ namespace HackUtils {
     const PART_SECOND = 5;
     const PART_MICROSECOND = 6;
     public static function now($tz, $withMicrosecond = false) {
-      if ($withMicrosecond) {
+      if (\hacklib_cast_as_boolean($withMicrosecond)) {
         $time = \gettimeofday();
-        return self::fromTimestamp($time["sec"], $tz, $time["usec"]);
+        return self::fromTimestamp(
+          $time[\hacklib_id("sec")],
+          $tz,
+          $time[\hacklib_id("usec")]
+        );
       } else {
         return new self(new \DateTimeImmutable("now", $tz->_unwrap()));
       }
@@ -58,12 +63,13 @@ namespace HackUtils {
     }
     private static function checkErrors($string, $format) {
       $errors = \DateTimeImmutable::getLastErrors();
-      if ($errors["warning_count"] || $errors["error_count"]) {
+      if (\hacklib_cast_as_boolean($errors[\hacklib_id("warning_count")]) ||
+          \hacklib_cast_as_boolean($errors[\hacklib_id("error_count")])) {
         $message = array();
-        foreach ($errors["errors"] as $offset => $m) {
+        foreach ($errors[\hacklib_id("errors")] as $offset => $m) {
           $message[] = $m." at offset ".$offset;
         }
-        foreach ($errors["warnings"] as $offset => $m) {
+        foreach ($errors[\hacklib_id("warnings")] as $offset => $m) {
           $message[] = $m." at offset ".$offset;
         }
         $message = join($message, ", ");
@@ -82,10 +88,10 @@ namespace HackUtils {
       }
     }
     public static function fromTimestamp($sec, $tz, $usec = 0) {
-      if ($usec) {
+      if (\hacklib_cast_as_boolean($usec)) {
         list($sec, $usec) = div_mod2($sec, $usec, 1000000);
       }
-      if (!$usec) {
+      if (!\hacklib_cast_as_boolean($usec)) {
         $ret = new self(new \DateTimeImmutable("@".$sec, $tz->_unwrap()));
       } else {
         $utc = TimeZone::UTC();
@@ -226,7 +232,7 @@ namespace HackUtils {
       return new self($this->dt->setTime($hour, $minute, $second));
     }
     public function withMicrosecond($usec) {
-      if ($this->getMicrosecond() != $usec) {
+      if (\hacklib_not_equals($this->getMicrosecond(), $usec)) {
         return self::fromTimestamp(
           $this->getTimestamp(),
           $this->getTimezone(),
@@ -236,7 +242,7 @@ namespace HackUtils {
       return $this;
     }
     public function withTimestamp($sec, $usec = 0) {
-      if ($usec) {
+      if (\hacklib_cast_as_boolean($usec)) {
         list($sec, $usec) = div_mod2($sec, $usec, 1000000);
       }
       return

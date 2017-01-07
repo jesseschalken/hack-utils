@@ -13,7 +13,7 @@ namespace HackUtils {
       $this->flags = $flags;
     }
     protected function _set($flag, $val) {
-      if ($val) {
+      if (\hacklib_cast_as_boolean($val)) {
         $this->flags |= $flag;
       } else {
         $this->flags &= ~$flag;
@@ -25,7 +25,7 @@ namespace HackUtils {
       return $this;
     }
     public function sort($array) {
-      if ($this->reverse) {
+      if (\hacklib_cast_as_boolean($this->reverse)) {
         Exception::assertTrue(\rsort($array, $this->flags));
       } else {
         Exception::assertTrue(\sort($array, $this->flags));
@@ -33,7 +33,7 @@ namespace HackUtils {
       return $array;
     }
     public function sortValues($array) {
-      if ($this->reverse) {
+      if (\hacklib_cast_as_boolean($this->reverse)) {
         Exception::assertTrue(\arsort($array, $this->flags));
       } else {
         Exception::assertTrue(\asort($array, $this->flags));
@@ -41,7 +41,7 @@ namespace HackUtils {
       return $array;
     }
     public function sortKeys($array) {
-      if ($this->reverse) {
+      if (\hacklib_cast_as_boolean($this->reverse)) {
         Exception::assertTrue(\krsort($array, $this->flags));
       } else {
         Exception::assertTrue(\ksort($array, $this->flags));

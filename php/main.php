@@ -6,6 +6,7 @@ namespace HackUtils {
   const NULL_FLOAT = null;
   const NULL_RESOURCE = null;
   const NULL_BOOL = null;
+  const NULL_MIXED = null;
   function new_null() {
     return null;
   }
@@ -59,14 +60,16 @@ namespace HackUtils {
   }
   function concat_all($vectors) {
     return
-      $vectors ? \call_user_func_array("array_merge", $vectors) : array();
+      \hacklib_cast_as_boolean($vectors)
+        ? \call_user_func_array("array_merge", $vectors)
+        : array();
   }
   function push($v, $x) {
     \array_push($v, $x);
     return $v;
   }
   function pop($v) {
-    if (!$v) {
+    if (!\hacklib_cast_as_boolean($v)) {
       throw new Exception("Cannot pop last element: Array is empty");
     }
     $x = \array_pop($v);
@@ -77,7 +80,7 @@ namespace HackUtils {
     return $v;
   }
   function shift($v) {
-    if (!$v) {
+    if (!\hacklib_cast_as_boolean($v)) {
       throw new Exception("Cannot shift first element: Array is empty");
     }
     $x = \array_shift($v);
@@ -88,7 +91,8 @@ namespace HackUtils {
   }
   function filter($array, $f) {
     $ret = filter_assoc($array, $f);
-    return (count($ret) != count($array)) ? values($ret) : $array;
+    return
+      \hacklib_not_equals(count($ret), count($array)) ? values($ret) : $array;
   }
   function filter_assoc($array, $f) {
     return \array_filter($array, $f);
@@ -120,7 +124,11 @@ namespace HackUtils {
   }
   function reduce_right($array, $f, $value) {
     $iter = new ArrayIterator($array);
-    for ($iter->end(); $iter->valid(); $iter->prev()) {
+    for (
+      $iter->end();
+      \hacklib_cast_as_boolean($iter->valid());
+      $iter->prev()
+    ) {
       $value = $f($value, $iter->current());
     }
     return $value;
@@ -134,7 +142,7 @@ namespace HackUtils {
   }
   function any($a, $f) {
     foreach ($a as $x) {
-      if ($f($x)) {
+      if (\hacklib_cast_as_boolean($f($x))) {
         return true;
       }
     }
@@ -142,7 +150,7 @@ namespace HackUtils {
   }
   function all($a, $f) {
     foreach ($a as $x) {
-      if (!$f($x)) {
+      if (!\hacklib_cast_as_boolean($f($x))) {
         return false;
       }
     }
@@ -170,7 +178,8 @@ namespace HackUtils {
   }
   function get($array, $key) {
     $res = $array[$key];
-    if (($res === null) && (!key_exists($array, $key))) {
+    if (($res === null) &&
+        (!\hacklib_cast_as_boolean(key_exists($array, $key)))) {
       throw new Exception("Key '".$key."' does not exist in array");
     }
     return $res;
@@ -280,7 +289,9 @@ namespace HackUtils {
   }
   function union_keys_all($arrays) {
     return
-      $arrays ? \call_user_func_array("array_replace", $arrays) : array();
+      \hacklib_cast_as_boolean($arrays)
+        ? \call_user_func_array("array_replace", $arrays)
+        : array();
   }
   function intersect($a, $b) {
     return \array_intersect($a, $b);
@@ -327,7 +338,7 @@ namespace HackUtils {
   function zip_assoc($a, $b) {
     $ret = array();
     foreach ($a as $k => $v) {
-      if (key_exists($b, $k)) {
+      if (\hacklib_cast_as_boolean(key_exists($b, $k))) {
         $ret[$k] = array($v, $b[$k]);
       }
     }
@@ -430,7 +441,7 @@ namespace HackUtils {
     return Exception::assertArray(\str_split($string, $size));
   }
   function repeat($value, $count) {
-    if (!$count) {
+    if (!\hacklib_cast_as_boolean($count)) {
       return array();
     }
     return \array_fill(0, $count, $value);
@@ -470,7 +481,7 @@ namespace HackUtils {
       $offset += length($haystack);
     }
     $ret =
-      $caseInsensitive
+      \hacklib_cast_as_boolean($caseInsensitive)
         ? \stripos($haystack, $needle, $offset)
         : \strpos($haystack, $needle, $offset);
     return ($ret === false) ? null : $ret;
@@ -482,7 +493,7 @@ namespace HackUtils {
     $caseInsensitive = false
   ) {
     $ret =
-      $caseInsensitive
+      \hacklib_cast_as_boolean($caseInsensitive)
         ? \strripos($haystack, $needle, $offset)
         : \strrpos($haystack, $needle, $offset);
     return ($ret === false) ? null : $ret;
@@ -514,7 +525,11 @@ namespace HackUtils {
   }
   function find_last_key($array, $value) {
     $iter = new ArrayIterator($array);
-    for ($iter->end(); $iter->valid(); $iter->prev()) {
+    for (
+      $iter->end();
+      \hacklib_cast_as_boolean($iter->valid());
+      $iter->prev()
+    ) {
       if ($iter->current() === $value) {
         return $iter->key();
       }
@@ -554,7 +569,7 @@ namespace HackUtils {
     return \utf8_encode($s);
   }
   function is_utf8($s) {
-    return (bool) \preg_match("//u", $s);
+    return (bool) \hacklib_cast_as_boolean(\preg_match("//u", $s));
   }
   function add_slashes($s) {
     return \addslashes($s);
@@ -569,10 +584,10 @@ namespace HackUtils {
     }
     if ($delimiter === "") {
       $length = length($string);
-      if ($length == 0) {
+      if (\hacklib_equals($length, 0)) {
         return array();
       }
-      if ($limit == 1) {
+      if (\hacklib_equals($limit, 1)) {
         return array($string);
       }
       if ($length > $limit) {
@@ -592,7 +607,7 @@ namespace HackUtils {
         $lines[$i] = slice($line, 0, -1);
       }
     }
-    if ($lines && (get_offset($lines, -1) === "")) {
+    if (\hacklib_cast_as_boolean($lines) && (get_offset($lines, -1) === "")) {
       $lines = slice_array($lines, 0, -1);
     }
     return $lines;
@@ -610,11 +625,11 @@ namespace HackUtils {
     return \implode($delimiter, $strings);
   }
   function join_lines($lines, $nl = "\n") {
-    return $lines ? (join($lines, $nl).$nl) : "";
+    return \hacklib_cast_as_boolean($lines) ? (join($lines, $nl).$nl) : "";
   }
   function replace($subject, $search, $replace, $caseInsensitive = false) {
     return Exception::assertString(
-      $caseInsensitive
+      \hacklib_cast_as_boolean($caseInsensitive)
         ? \str_ireplace($search, $replace, $subject)
         : \str_replace($search, $replace, $subject)
     );
@@ -627,7 +642,7 @@ namespace HackUtils {
   ) {
     $count = 0;
     $result = Exception::assertString(
-      $caseInsensitive
+      \hacklib_cast_as_boolean($caseInsensitive)
         ? \str_ireplace($search, $replace, $subject, $count)
         : \str_replace($search, $replace, $subject, $count)
     );
@@ -675,20 +690,27 @@ namespace HackUtils {
   }
   function str_cmp($a, $b, $caseInsensitive = false, $natural = false) {
     $ret =
-      $caseInsensitive
-        ? ($natural ? \strnatcasecmp($a, $b) : \strcasecmp($a, $b))
-        : ($natural ? \strnatcmp($a, $b) : \strcmp($a, $b));
+      \hacklib_cast_as_boolean($caseInsensitive)
+        ? (\hacklib_cast_as_boolean($natural)
+             ? \strnatcasecmp($a, $b)
+             : \strcasecmp($a, $b))
+        : (\hacklib_cast_as_boolean($natural)
+             ? \strnatcmp($a, $b)
+             : \strcmp($a, $b));
     return sign($ret);
   }
   function str_eq($a, $b, $caseInsensitive = false, $natural = false) {
-    return str_cmp($a, $b, $caseInsensitive, $natural) == 0;
+    return \hacklib_equals(str_cmp($a, $b, $caseInsensitive, $natural), 0);
   }
   function starts_with($string, $prefix) {
     return slice($string, 0, length($prefix)) === $prefix;
   }
   function ends_with($string, $suffix) {
     $length = length($suffix);
-    return $length ? (slice($string, -$length) === $suffix) : true;
+    return
+      \hacklib_cast_as_boolean($length)
+        ? (slice($string, -$length) === $suffix)
+        : true;
   }
   function is_windows() {
     return \DIRECTORY_SEPARATOR === "\\";
@@ -696,10 +718,12 @@ namespace HackUtils {
   function is_path_local($path) {
     $regex =
       "\n    ^(\n        [a-zA-Z0-9+\\-.]{2,}\n        ://\n      |\n        data:\n      |\n        zlib:\n    )\n  ";
-    return !PCRE\Pattern::create($regex, "xDsS")->matches($path);
+    return !\hacklib_cast_as_boolean(
+      PCRE\Pattern::create($regex, "xDsS")->matches($path)
+    );
   }
   function make_path_local($path) {
-    if (is_path_local($path)) {
+    if (\hacklib_cast_as_boolean(is_path_local($path))) {
       return $path;
     }
     return ".".\DIRECTORY_SEPARATOR.$path;

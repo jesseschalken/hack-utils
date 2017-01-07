@@ -15,7 +15,7 @@ namespace HackUtils {
     }
     public function current() {
       $ret = \current($this->array);
-      if (($ret === false) && (!$this->valid())) {
+      if (($ret === false) && (!\hacklib_cast_as_boolean($this->valid()))) {
         throw new \Exception(
           "Cannot get value: Array is beyond last element"
         );
@@ -34,28 +34,28 @@ namespace HackUtils {
     }
     public function next() {
       $ret = \next($this->array);
-      if (($ret === false) && (!$this->valid())) {
+      if (($ret === false) && (!\hacklib_cast_as_boolean($this->valid()))) {
         return null;
       }
       return $ret;
     }
     public function prev() {
       $ret = \prev($this->array);
-      if (($ret === false) && (!$this->valid())) {
+      if (($ret === false) && (!\hacklib_cast_as_boolean($this->valid()))) {
         return null;
       }
       return $ret;
     }
     public function reset() {
       $ret = \reset($this->array);
-      if (($ret === false) && (!$this->valid())) {
+      if (($ret === false) && (!\hacklib_cast_as_boolean($this->valid()))) {
         return null;
       }
       return $ret;
     }
     public function end() {
       $ret = \end($this->array);
-      if (($ret === false) && (!$this->valid())) {
+      if (($ret === false) && (!\hacklib_cast_as_boolean($this->valid()))) {
         return null;
       }
       return $ret;

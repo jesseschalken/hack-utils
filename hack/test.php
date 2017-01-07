@@ -47,7 +47,7 @@ final class _Tests {
     return $a === $b;
   }
 
-  private static function getException((function(): void) $f): \Exception {
+  private static function getException(fn0<void> $f): \Exception {
     try {
       $f();
     } catch (\Exception $e) {
@@ -387,38 +387,47 @@ final class _Tests {
     self::assertEqual(days_in_month(2012, 2), 29);
 
     self::log('overflow_date');
-    self::assertEqual(overflow_date(2015, 1, 0), tuple(2014, 12, 31));
-    self::assertEqual(overflow_date(2015, 1, 365), tuple(2015, 12, 31));
-    self::assertEqual(overflow_date(2015, 2, 29), tuple(2015, 3, 1));
-    self::assertEqual(overflow_date(2016, 1, 366), tuple(2016, 12, 31));
-    self::assertEqual(overflow_date(2015, 13, 366), tuple(2016, 12, 31));
+    self::assertEqual(overflow_date(tuple(2015, 1, 0)), tuple(2014, 12, 31));
     self::assertEqual(
-      overflow_date(2016, 16, -31 - 28 - 31),
+      overflow_date(tuple(2015, 1, 365)),
+      tuple(2015, 12, 31),
+    );
+    self::assertEqual(overflow_date(tuple(2015, 2, 29)), tuple(2015, 3, 1));
+    self::assertEqual(
+      overflow_date(tuple(2016, 1, 366)),
       tuple(2016, 12, 31),
     );
     self::assertEqual(
-      overflow_date(2016, -3, 30 + 31 + 30 + 31 + 17),
+      overflow_date(tuple(2015, 13, 366)),
+      tuple(2016, 12, 31),
+    );
+    self::assertEqual(
+      overflow_date(tuple(2016, 16, -31 - 28 - 31)),
+      tuple(2016, 12, 31),
+    );
+    self::assertEqual(
+      overflow_date(tuple(2016, -3, 30 + 31 + 30 + 31 + 17)),
       tuple(2016, 1, 17),
     );
-    self::assertEqual(overflow_date(2016, -3, -8), tuple(2015, 8, 23));
+    self::assertEqual(overflow_date(tuple(2016, -3, -8)), tuple(2015, 8, 23));
 
     self::log('is_valid_date');
-    self::assertEqual(is_valid_date(2016, 2, 29), true);
-    self::assertEqual(is_valid_date(2015, 2, 29), false);
-    self::assertEqual(is_valid_date(2016, 11, 23), true);
-    self::assertEqual(is_valid_date(2016, 11, 30), true);
-    self::assertEqual(is_valid_date(2016, 11, 31), false);
-    self::assertEqual(is_valid_date(2016, 12, 31), true);
-    self::assertEqual(is_valid_date(2016, 12, 32), false);
-    self::assertEqual(is_valid_date(2016, 13, 31), false);
-    self::assertEqual(is_valid_date(2016, 0, 31), false);
-    self::assertEqual(is_valid_date(2016, -1, 31), false);
-    self::assertEqual(is_valid_date(2016, 1, 30), true);
-    self::assertEqual(is_valid_date(2016, 1, 0), false);
-    self::assertEqual(is_valid_date(2016, 1, -1), false);
-    self::assertEqual(is_valid_date(0, 1, 1), true);
-    self::assertEqual(is_valid_date(INT_MAX, 1, 1), true);
-    self::assertEqual(is_valid_date(INT_MIN, 1, 1), true);
+    self::assertEqual(is_valid_date(tuple(2016, 2, 29)), true);
+    self::assertEqual(is_valid_date(tuple(2015, 2, 29)), false);
+    self::assertEqual(is_valid_date(tuple(2016, 11, 23)), true);
+    self::assertEqual(is_valid_date(tuple(2016, 11, 30)), true);
+    self::assertEqual(is_valid_date(tuple(2016, 11, 31)), false);
+    self::assertEqual(is_valid_date(tuple(2016, 12, 31)), true);
+    self::assertEqual(is_valid_date(tuple(2016, 12, 32)), false);
+    self::assertEqual(is_valid_date(tuple(2016, 13, 31)), false);
+    self::assertEqual(is_valid_date(tuple(2016, 0, 31)), false);
+    self::assertEqual(is_valid_date(tuple(2016, -1, 31)), false);
+    self::assertEqual(is_valid_date(tuple(2016, 1, 30)), true);
+    self::assertEqual(is_valid_date(tuple(2016, 1, 0)), false);
+    self::assertEqual(is_valid_date(tuple(2016, 1, -1)), false);
+    self::assertEqual(is_valid_date(tuple(0, 1, 1)), true);
+    self::assertEqual(is_valid_date(tuple(INT_MAX, 1, 1)), true);
+    self::assertEqual(is_valid_date(tuple(INT_MIN, 1, 1)), true);
 
     self::log('quot/rem/div/mod');
     self::assertEqual(quot(-20, 3), -6);

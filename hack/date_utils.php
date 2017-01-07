@@ -13,21 +13,31 @@ function days_in_month(int $y, int $m): int {
   return $l[$m - 1];
 }
 
+type date_parts = (int, int, int);
+type time_parts = (int, int, int, int);
 type datetime_parts = (int, int, int, int, int, int, int);
 
-function overflow_datetime(datetime_parts $parts): datetime_parts {
-  list($y, $m, $d, $h, $i, $s, $u) = $parts;
+function overflow_datetime(datetime_parts $datetime): datetime_parts {
+  list($y, $m, $d, $h, $i, $s, $u) = $datetime;
 
-  list($s, $u) = div_mod2($s, $u, 1000000); // usecs to secs
-  list($i, $s) = div_mod2($i, $s, 60); // secs to mins
-  list($h, $i) = div_mod2($h, $i, 60); // mins to hours
+  list($h, $i, $s, $u) = overflow_time(tuple($h, $i, $s, $u));
   list($d, $h) = div_mod2($d, $h, 24); // hours to days
-  list($y, $m, $d) = overflow_date($y, $m, $d);
+  list($y, $m, $d) = overflow_date(tuple($y, $m, $d));
 
   return tuple($y, $m, $d, $h, $i, $s, $u);
 }
 
-function overflow_date(int $y, int $m, int $d): (int, int, int) {
+function overflow_time(time_parts $time): time_parts {
+  list($h, $i, $s, $u) = $time;
+  list($s, $u) = div_mod2($s, $u, 1000000); // usecs to secs
+  list($i, $s) = div_mod2($i, $s, 60); // secs to mins
+  list($h, $i) = div_mod2($h, $i, 60); // mins to hours
+  return tuple($h, $i, $s, $u);
+}
+
+function overflow_date(date_parts $date): date_parts {
+  list($y, $m, $d) = $date;
+
   $m--;
   $d--;
 
@@ -50,6 +60,7 @@ function overflow_date(int $y, int $m, int $d): (int, int, int) {
   return tuple($y, $m, $d);
 }
 
-function is_valid_date(int $y, int $m, int $d): bool {
+function is_valid_date(date_parts $date): bool {
+  list($y, $m, $d) = $date;
   return $m >= 1 && $m <= 12 && $d >= 1 && $d <= days_in_month($y, $m);
 }
