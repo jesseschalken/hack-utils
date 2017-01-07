@@ -31,29 +31,40 @@ namespace HackUtils {
   final class FOpenStream extends Stream {
     private $handle;
     public function __construct($url, $mode, $ctx = NULL_RESOURCE) {
+      FileSystemException::prepare();
       $this->handle =
-        ErrorAssert::isResource("fopen", \fopen($url, $mode, false, $ctx));
+        FileSystemException::assertResource(\fopen($url, $mode, false, $ctx));
     }
     public function read($length) {
-      return ErrorAssert::isString("fread", \fread($this->handle, $length));
+      FileSystemException::prepare();
+      return
+        FileSystemException::assertString(\fread($this->handle, $length));
     }
     public function write($data) {
-      return ErrorAssert::isInt("fwrite", \fwrite($this->handle, $data));
+      FileSystemException::prepare();
+      return FileSystemException::assertInt(\fwrite($this->handle, $data));
     }
     public function eof() {
-      return ErrorAssert::isBool("feof", \feof($this->handle));
+      FileSystemException::prepare();
+      return FileSystemException::assertBool(\feof($this->handle));
     }
     public function seek($offset, $whence = \SEEK_SET) {
-      ErrorAssert::isZero("fseek", \fseek($this->handle, $offset, $whence));
+      FileSystemException::prepare();
+      FileSystemException::assertZero(
+        \fseek($this->handle, $offset, $whence)
+      );
     }
     public function tell() {
-      return ErrorAssert::isInt("ftell", \ftell($this->handle));
+      FileSystemException::prepare();
+      return FileSystemException::assertInt(\ftell($this->handle));
     }
     public function close() {
-      ErrorAssert::isTrue("fclose", \fclose($this->handle));
+      FileSystemException::prepare();
+      FileSystemException::assertTrue(\fclose($this->handle));
     }
     public function flush() {
-      ErrorAssert::isTrue("fflush", \fflush($this->handle));
+      FileSystemException::prepare();
+      FileSystemException::assertTrue(\fflush($this->handle));
     }
     public function lock($flags) {
       $wb = false;
@@ -61,28 +72,33 @@ namespace HackUtils {
       if ($wb) {
         return false;
       }
-      ErrorAssert::isTrue("flock", $ret);
+      FileSystemException::prepare();
+      FileSystemException::assertTrue($ret);
       return true;
     }
     public function rewind() {
-      ErrorAssert::isTrue("rewind", \rewind($this->handle));
+      FileSystemException::prepare();
+      FileSystemException::assertTrue(\rewind($this->handle));
     }
     public function truncate($length) {
-      ErrorAssert::isTrue("ftruncate", \ftruncate($this->handle, $length));
+      FileSystemException::prepare();
+      FileSystemException::assertTrue(\ftruncate($this->handle, $length));
     }
     public function stat() {
-      return
-        new ArrayStat(ErrorAssert::isArray("fstat", \fstat($this->handle)));
+      FileSystemException::prepare();
+      return new ArrayStat(
+        FileSystemException::assertArray(\fstat($this->handle))
+      );
     }
     public function setbuf($size) {
-      ErrorAssert::isZero(
-        "stream_set_write_buffer",
+      FileSystemException::prepare();
+      FileSystemException::assertZero(
         \stream_set_write_buffer($this->handle, $size)
       );
     }
     public function getContents() {
-      return ErrorAssert::isString(
-        "stream_get_contents",
+      FileSystemException::prepare();
+      return FileSystemException::assertString(
         \stream_get_contents($this->handle)
       );
     }
@@ -116,8 +132,8 @@ namespace HackUtils {
       return $handle;
     }
     private function getMetadata_() {
-      return ErrorAssert::isArray(
-        "stream_get_meta_data",
+      FileSystemException::prepare();
+      return FileSystemException::assertArray(
         \stream_get_meta_data($this->handle)
       );
     }

@@ -149,7 +149,7 @@ namespace HackUtils {
   function cmp($x, $y) {
     return sign($x - $y);
   }
-  final class ToIntException extends \Exception {}
+  final class ToIntException extends Exception {}
   function to_int($x) {
     if (\is_int($x)) {
       return $x;

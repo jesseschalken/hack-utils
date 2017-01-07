@@ -9,6 +9,7 @@ namespace HackUtils {
     public function mkdir($path, $mode = 0777);
     public function readdir($path);
     public function rmdir($path);
+    public function open($path, $mode);
     public function rename($oldpath, $newpath);
     public function unlink($path);
     public function stat($path);
@@ -19,7 +20,6 @@ namespace HackUtils {
     public function chown($path, $uid);
     public function chgrp($path, $gid);
     public function utime($path, $atime, $mtime);
-    public function open($path, $mode);
   }
   interface SymlinkFileSystemInterface extends FileSystemInterface {
     public function symlink($path, $target);

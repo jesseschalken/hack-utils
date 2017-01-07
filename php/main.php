@@ -67,7 +67,7 @@ namespace HackUtils {
   }
   function pop($v) {
     if (!$v) {
-      throw new \Exception("Cannot pop last element: Array is empty");
+      throw new Exception("Cannot pop last element: Array is empty");
     }
     $x = \array_pop($v);
     return array($v, $x);
@@ -78,7 +78,7 @@ namespace HackUtils {
   }
   function shift($v) {
     if (!$v) {
-      throw new \Exception("Cannot shift first element: Array is empty");
+      throw new Exception("Cannot shift first element: Array is empty");
     }
     $x = \array_shift($v);
     return array($x, $v);
@@ -171,7 +171,7 @@ namespace HackUtils {
   function get($array, $key) {
     $res = $array[$key];
     if (($res === null) && (!key_exists($array, $key))) {
-      throw new \Exception("Key '".$key."' does not exist in array");
+      throw new Exception("Key '".$key."' does not exist in array");
     }
     return $res;
   }
@@ -179,7 +179,7 @@ namespace HackUtils {
     foreach (slice_assoc($array, $offset, 1) as $k => $v) {
       return array($k, $v);
     }
-    throw new \Exception(
+    throw new Exception(
       "Offset ".$offset." is out of bounds in array of size ".size($array)
     );
   }
@@ -208,7 +208,7 @@ namespace HackUtils {
       $i += $l;
     }
     if (($i < 0) || ($i >= $l)) {
-      throw new \Exception(
+      throw new Exception(
         "Index ".$i." out of bounds in array of length ".$l
       );
     }
@@ -220,7 +220,7 @@ namespace HackUtils {
       $i += $l;
     }
     if (($i < 0) || ($i >= $l)) {
-      throw new \Exception(
+      throw new Exception(
         "Index ".$i." out of bounds in array of length ".$l
       );
     }
@@ -413,13 +413,13 @@ namespace HackUtils {
   }
   function chunk($array, $size) {
     if ($size < 1) {
-      throw new \Exception("Chunk size must be >= 1");
+      throw new Exception("Chunk size must be >= 1");
     }
     return \array_chunk($array, $size, false);
   }
   function chunk_assoc($array, $size) {
     if ($size < 1) {
-      throw new \Exception("Chunk size must be >= 1");
+      throw new Exception("Chunk size must be >= 1");
     }
     return \array_chunk($array, $size, true);
   }
@@ -427,11 +427,7 @@ namespace HackUtils {
     if ($size < 1) {
       throw new \Exception("Chunk size must be >= 1");
     }
-    $ret = \str_split($string, $size);
-    if (!\is_array($ret)) {
-      throw new \Exception("str_split() failed");
-    }
-    return $ret;
+    return Exception::assertArray(\str_split($string, $size));
   }
   function repeat($value, $count) {
     if (!$count) {
@@ -532,11 +528,7 @@ namespace HackUtils {
     return \bin2hex($string);
   }
   function from_hex($string) {
-    $ret = \hex2bin($string);
-    if (!\is_string($ret)) {
-      throw new \Exception("Invalid hex string: ".$string);
-    }
-    return $ret;
+    return Exception::assertString(\hex2bin($string));
   }
   function to_lower($string) {
     return \strtolower($string);
@@ -573,7 +565,7 @@ namespace HackUtils {
   function split($string, $delimiter = "", $limit = NULL_INT) {
     $limit = if_null($limit, 0x7FFFFFFF);
     if ($limit < 1) {
-      throw new \Exception("Limit must be >= 1, ".$limit." given");
+      throw new Exception("Limit must be >= 1, ".$limit." given");
     }
     if ($delimiter === "") {
       $length = length($string);
@@ -621,15 +613,11 @@ namespace HackUtils {
     return $lines ? (join($lines, $nl).$nl) : "";
   }
   function replace($subject, $search, $replace, $caseInsensitive = false) {
-    $count = 0;
-    $result =
+    return Exception::assertString(
       $caseInsensitive
         ? \str_ireplace($search, $replace, $subject)
-        : \str_replace($search, $replace, $subject);
-    if (!\is_string($result)) {
-      throw new \Exception("str_i?replace() failed");
-    }
-    return $result;
+        : \str_replace($search, $replace, $subject)
+    );
   }
   function replace_count(
     $subject,
@@ -638,13 +626,11 @@ namespace HackUtils {
     $caseInsensitive = false
   ) {
     $count = 0;
-    $result =
+    $result = Exception::assertString(
       $caseInsensitive
         ? \str_ireplace($search, $replace, $subject, $count)
-        : \str_replace($search, $replace, $subject, $count);
-    if (!\is_string($result)) {
-      throw new \Exception("str_i?replace() failed");
-    }
+        : \str_replace($search, $replace, $subject, $count)
+    );
     return array($result, $count);
   }
   function pad($string, $length, $pad = " ") {
@@ -666,7 +652,7 @@ namespace HackUtils {
   }
   function from_char_code($ascii) {
     if (($ascii < 0) || ($ascii >= 256)) {
-      throw new \Exception(
+      throw new Exception(
         "ASCII character code must be >= 0 and < 256: ".$ascii
       );
     }
@@ -678,7 +664,7 @@ namespace HackUtils {
       $i += $l;
     }
     if (($i < 0) || ($i >= $l)) {
-      throw new \Exception(
+      throw new Exception(
         "String offset ".$i." out of bounds in string of length ".$l
       );
     }

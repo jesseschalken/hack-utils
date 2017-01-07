@@ -34,8 +34,8 @@ abstract class _BuiltinSorter<T> extends Sorter<T> {
   <<__Override>>
   public function sort<Tv as T>(array<Tv> $array): array<Tv> {
     if ($this->reverse)
-      ErrorAssert::isTrue('rsort', \rsort($array, $this->flags)); else
-      ErrorAssert::isTrue('sort', \sort($array, $this->flags));
+      Exception::assertTrue(\rsort($array, $this->flags)); else
+      Exception::assertTrue(\sort($array, $this->flags));
     return $array;
   }
 
@@ -44,16 +44,16 @@ abstract class _BuiltinSorter<T> extends Sorter<T> {
     array<Tk, Tv> $array,
   ): array<Tk, Tv> {
     if ($this->reverse)
-      ErrorAssert::isTrue('arsort', \arsort($array, $this->flags)); else
-      ErrorAssert::isTrue('asort', \asort($array, $this->flags));
+      Exception::assertTrue(\arsort($array, $this->flags)); else
+      Exception::assertTrue(\asort($array, $this->flags));
     return $array;
   }
 
   <<__Override>>
   public function sortKeys<Tk as T, Tv>(array<Tk, Tv> $array): array<Tk, Tv> {
     if ($this->reverse)
-      ErrorAssert::isTrue('krsort', \krsort($array, $this->flags)); else
-      ErrorAssert::isTrue('ksort', \ksort($array, $this->flags));
+      Exception::assertTrue(\krsort($array, $this->flags)); else
+      Exception::assertTrue(\ksort($array, $this->flags));
     return $array;
   }
 }
@@ -63,7 +63,7 @@ final class CallbackSorter<T> extends Sorter<T> {
 
   <<__Override>>
   public function sort<Tv as T>(array<Tv> $array): array<Tv> {
-    ErrorAssert::isTrue('usort', \usort($array, $this->cmp));
+    Exception::assertTrue(\usort($array, $this->cmp));
     return $array;
   }
 
@@ -71,13 +71,13 @@ final class CallbackSorter<T> extends Sorter<T> {
   public function sortValues<Tk, Tv as T>(
     array<Tk, Tv> $array,
   ): array<Tk, Tv> {
-    ErrorAssert::isTrue('uasort', \uasort($array, $this->cmp));
+    Exception::assertTrue(\uasort($array, $this->cmp));
     return $array;
   }
 
   <<__Override>>
   public function sortKeys<Tk as T, Tv>(array<Tk, Tv> $array): array<Tk, Tv> {
-    ErrorAssert::isTrue('uksort', \uksort($array, $this->cmp));
+    Exception::assertTrue(\uksort($array, $this->cmp));
     return $array;
   }
 }

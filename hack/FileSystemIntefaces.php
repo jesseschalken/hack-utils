@@ -25,6 +25,7 @@ interface FileSystemInterface extends FileSystemPathInterface {
   public function readdir(string $path): array<string>;
   public function rmdir(string $path): void;
 
+  public function open(string $path, string $mode): StreamInterface;
   public function rename(string $oldpath, string $newpath): void;
   public function unlink(string $path): void;
 
@@ -37,9 +38,7 @@ interface FileSystemInterface extends FileSystemPathInterface {
   public function chmod(string $path, int $mode): void;
   public function chown(string $path, int $uid): void;
   public function chgrp(string $path, int $gid): void;
-
   public function utime(string $path, int $atime, int $mtime): void;
-  public function open(string $path, string $mode): StreamInterface;
 }
 
 interface SymlinkFileSystemInterface extends FileSystemInterface {

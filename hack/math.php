@@ -204,7 +204,7 @@ function cmp(num $x, num $y): int {
   return sign($x - $y);
 }
 
-final class ToIntException extends \Exception {}
+final class ToIntException extends Exception {}
 
 /**
  * Converts intish floats to ints. Useful for numeric operations that may

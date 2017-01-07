@@ -132,29 +132,24 @@ namespace HackUtils {
       return new FOpenStream($path, $mode, $ctx);
     }
     public final function stat($path) {
-      $path = $this->wrapPath($path);
-      \clearstatcache();
-      return new ArrayStat(ErrorAssert::isArray("stat", \stat($path)));
+      return $this->_stat($path, false);
     }
     public final function trystat($path) {
-      $path = $this->wrapPath($path);
-      \clearstatcache();
-      if (!\file_exists($path)) {
-        return new_null();
-      }
-      return new ArrayStat(ErrorAssert::isArray("stat", \stat($path)));
+      return $this->_trystat($path, false);
     }
     public final function rename($from, $to) {
       $ctx = $this->getContext();
       $from = $this->wrapPath($from);
       $to = $this->wrapPath($to);
-      ErrorAssert::isTrue("rename", \rename($from, $to, $ctx));
+      FileSystemException::prepare();
+      FileSystemException::assertTrue(\rename($from, $to, $ctx));
     }
     public final function readdir($path) {
       $ctx = $this->getContext();
       $path = $this->wrapPath($path);
       $ret = array();
-      $dir = ErrorAssert::isResource("opendir", \opendir($path, $ctx));
+      FileSystemException::prepare();
+      $dir = FileSystemException::assertResource(\opendir($path, $ctx));
       for (; $p = \readdir($dir); $p !== false) {
         if (($p === ".") || ($p === "..")) {
           continue;
@@ -167,46 +162,75 @@ namespace HackUtils {
     public final function mkdir($path, $mode = 0777) {
       $ctx = $this->getContext();
       $path = $this->wrapPath($path);
-      ErrorAssert::isTrue("mkdir", \mkdir($path, $mode, false, $ctx));
+      FileSystemException::prepare();
+      FileSystemException::assertTrue(\mkdir($path, $mode, false, $ctx));
     }
     public final function unlink($path) {
       $ctx = $this->getContext();
       $path = $this->wrapPath($path);
-      ErrorAssert::isTrue("unlink", \unlink($path, $ctx));
+      FileSystemException::prepare();
+      FileSystemException::assertTrue(\unlink($path, $ctx));
     }
     public final function lstat($path) {
-      $path = $this->wrapPath($path);
-      \clearstatcache();
-      return new ArrayStat(ErrorAssert::isArray("lstat", \lstat($path)));
+      return $this->_stat($path, true);
     }
     public final function trylstat($path) {
+      return $this->_trystat($path, true);
+    }
+    private function _stat($path, $lstat) {
       $path = $this->wrapPath($path);
       \clearstatcache();
-      if ((!\file_exists($path)) && (!\is_link($path))) {
+      FileSystemException::prepare();
+      $stat = FileSystemException::assertArray(
+        $lstat ? \lstat($path) : \stat($path)
+      );
+      return new ArrayStat($stat);
+    }
+    private function _statThrowPhpErrors($path, $lstat) {
+      ErrorException::setErrorHandler();
+      try {
+        $stat = $this->_stat($path, $lstat);
+      } catch (\Exception $e) {
+        ErrorException::restoreErrorHandler();
+        throw $e;
+      }
+      ErrorException::restoreErrorHandler();
+      return $stat;
+    }
+    private function _trystat($path, $lstat) {
+      try {
+        return $this->_statThrowPhpErrors($path, $lstat);
+      } catch (\ErrorException $e) {
+        return new_null();
+      } catch (FileSystemException $e) {
         return new_null();
       }
-      return new ArrayStat(ErrorAssert::isArray("lstat", \lstat($path)));
     }
     public final function rmdir($path) {
       $ctx = $this->getContext();
       $path = $this->wrapPath($path);
-      ErrorAssert::isTrue("rmdir", \rmdir($path, $ctx));
+      FileSystemException::prepare();
+      FileSystemException::assertTrue(\rmdir($path, $ctx));
     }
     public final function chmod($path, $mode) {
       $path = $this->wrapPath($path);
-      ErrorAssert::isTrue("chmod", \chmod($path, $mode));
+      FileSystemException::prepare();
+      FileSystemException::assertTrue(\chmod($path, $mode));
     }
     public final function chown($path, $uid) {
       $path = $this->wrapPath($path);
-      ErrorAssert::isTrue("chown", \chown($path, (int) $uid));
+      FileSystemException::prepare();
+      FileSystemException::assertTrue(\chown($path, (int) $uid));
     }
     public final function chgrp($path, $gid) {
       $path = $this->wrapPath($path);
-      ErrorAssert::isTrue("chgrp", \chgrp($path, (int) $gid));
+      FileSystemException::prepare();
+      FileSystemException::assertTrue(\chgrp($path, (int) $gid));
     }
     public final function utime($path, $atime, $mtime) {
       $path = $this->wrapPath($path);
-      ErrorAssert::isTrue("touch", \touch($path, $mtime, $atime));
+      FileSystemException::prepare();
+      FileSystemException::assertTrue(\touch($path, $mtime, $atime));
     }
     public final function wrapPath($path) {
       return $this->wrapper->wrapPath($path);
@@ -228,24 +252,37 @@ namespace HackUtils {
     }
     public final function symlink($path, $target) {
       $path = $this->wrapPath($path);
-      ErrorAssert::isTrue("symlink", \symlink($target, $path));
+      FileSystemException::prepare();
+      FileSystemException::assertTrue(\symlink($target, $path));
     }
     public final function readlink($path) {
       $path = $this->wrapPath($path);
-      return ErrorAssert::isString("readlink", \readlink($path));
+      FileSystemException::prepare();
+      return FileSystemException::assertString(\readlink($path));
     }
     public final function realpath($path) {
       $path = $this->wrapPath($path);
       \clearstatcache();
-      return ErrorAssert::isString("realpath", \realpath($path));
+      FileSystemException::prepare();
+      return FileSystemException::assertString(\realpath($path));
     }
     public final function lchown($path, $uid) {
       $path = $this->wrapPath($path);
-      ErrorAssert::isTrue("lchown", \lchown($path, (int) $uid));
+      FileSystemException::prepare();
+      FileSystemException::assertTrue(\lchown($path, (int) $uid));
     }
     public final function lchgrp($path, $gid) {
       $path = $this->wrapPath($path);
-      ErrorAssert::isTrue("lchgrp", \lchgrp($path, (int) $gid));
+      FileSystemException::prepare();
+      FileSystemException::assertTrue(\lchgrp($path, (int) $gid));
+    }
+  }
+  class FileSystemException extends Exception {
+    public final static function prepare() {
+      ErrorException::clearLast();
+    }
+    public final static function create($actual, $expected) {
+      return ErrorException::getLast() ?: parent::create($actual, $expected);
     }
   }
 }

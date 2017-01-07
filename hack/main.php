@@ -105,7 +105,7 @@ function push<T>(array<T> $v, T $x): array<T> {
 
 function pop<T>(array<T> $v): (array<T>, T) {
   if (!$v) {
-    throw new \Exception('Cannot pop last element: Array is empty');
+    throw new Exception('Cannot pop last element: Array is empty');
   }
   $x = \array_pop($v);
   return tuple($v, $x);
@@ -118,7 +118,7 @@ function unshift<T>(T $x, array<T> $v): array<T> {
 
 function shift<T>(array<T> $v): (T, array<T>) {
   if (!$v) {
-    throw new \Exception('Cannot shift first element: Array is empty');
+    throw new Exception('Cannot shift first element: Array is empty');
   }
   $x = \array_shift($v);
   return tuple($x, $v);
@@ -261,7 +261,7 @@ function from_pairs<Tk as arraykey, Tv>(
 function get<Tk as arraykey, Tv>(array<Tk, Tv> $array, Tk $key): Tv {
   $res = $array[$key];
   if ($res === null && !key_exists($array, $key)) {
-    throw new \Exception("Key '$key' does not exist in array");
+    throw new Exception("Key '$key' does not exist in array");
   }
   return $res;
 }
@@ -279,7 +279,7 @@ function get_pair<Tk, Tv>(array<Tk, Tv> $array, int $offset): (Tk, Tv) {
   foreach (slice_assoc($array, $offset, 1) as $k => $v) {
     return tuple($k, $v);
   }
-  throw new \Exception(
+  throw new Exception(
     "Offset $offset is out of bounds in array of size ".size($array),
   );
 }
@@ -329,7 +329,7 @@ function get_offset<T>(array<T> $v, int $i): T {
     $i += $l;
   }
   if ($i < 0 || $i >= $l) {
-    throw new \Exception("Index $i out of bounds in array of length $l");
+    throw new Exception("Index $i out of bounds in array of length $l");
   }
   return $v[$i];
 }
@@ -340,7 +340,7 @@ function set_offset<T>(array<T> $v, int $i, T $x): array<T> {
     $i += $l;
   }
   if ($i < 0 || $i >= $l) {
-    throw new \Exception("Index $i out of bounds in array of length $l");
+    throw new Exception("Index $i out of bounds in array of length $l");
   }
   $v[$i] = $x;
   return $v;
@@ -652,7 +652,7 @@ function reverse_string(string $string): string {
 
 function chunk<T>(array<T> $array, int $size): array<array<T>> {
   if ($size < 1) {
-    throw new \Exception("Chunk size must be >= 1");
+    throw new Exception("Chunk size must be >= 1");
   }
   return \array_chunk($array, $size, false);
 }
@@ -662,7 +662,7 @@ function chunk_assoc<Tk, Tv>(
   int $size,
 ): array<array<Tk, Tv>> {
   if ($size < 1) {
-    throw new \Exception("Chunk size must be >= 1");
+    throw new Exception("Chunk size must be >= 1");
   }
   return \array_chunk($array, $size, true);
 }
@@ -671,11 +671,7 @@ function chunk_string(string $string, int $size): array<string> {
   if ($size < 1) {
     throw new \Exception("Chunk size must be >= 1");
   }
-  $ret = \str_split($string, $size);
-  if (!\is_array($ret)) {
-    throw new \Exception('str_split() failed');
-  }
-  return $ret;
+  return Exception::assertArray(\str_split($string, $size));
 }
 
 function repeat<T>(T $value, int $count): array<T> {
@@ -821,11 +817,7 @@ function to_hex(string $string): string {
 }
 
 function from_hex(string $string): string {
-  $ret = \hex2bin($string);
-  if (!\is_string($ret)) {
-    throw new \Exception("Invalid hex string: $string");
-  }
-  return $ret;
+  return Exception::assertString(\hex2bin($string));
 }
 
 function to_lower(string $string): string {
@@ -910,7 +902,7 @@ function split(
   $limit = if_null($limit, 0x7FFFFFFF);
   // TODO Add support for negative limits with the same semantics as explode().
   if ($limit < 1) {
-    throw new \Exception("Limit must be >= 1, $limit given");
+    throw new Exception("Limit must be >= 1, $limit given");
   }
   // \explode() doesn't accept an empty delimiter
   if ($delimiter === '') {
@@ -991,15 +983,11 @@ function replace(
   string $replace,
   bool $caseInsensitive = false,
 ): string {
-  $count = 0;
-  $result =
+  return Exception::assertString(
     $caseInsensitive
       ? \str_ireplace($search, $replace, $subject)
-      : \str_replace($search, $replace, $subject);
-  if (!\is_string($result)) {
-    throw new \Exception('str_i?replace() failed');
-  }
-  return $result;
+      : \str_replace($search, $replace, $subject),
+  );
 }
 
 function replace_count(
@@ -1009,13 +997,11 @@ function replace_count(
   bool $caseInsensitive = false,
 ): (string, int) {
   $count = 0;
-  $result =
+  $result = Exception::assertString(
     $caseInsensitive
       ? \str_ireplace($search, $replace, $subject, $count)
-      : \str_replace($search, $replace, $subject, $count);
-  if (!\is_string($result)) {
-    throw new \Exception('str_i?replace() failed');
-  }
+      : \str_replace($search, $replace, $subject, $count),
+  );
   return tuple($result, $count);
 }
 
@@ -1048,7 +1034,7 @@ function set_length(string $string, int $length, string $pad = ' '): string {
 
 function from_char_code(int $ascii): string {
   if ($ascii < 0 || $ascii >= 256) {
-    throw new \Exception(
+    throw new Exception(
       'ASCII character code must be >= 0 and < 256: '.$ascii,
     );
   }
@@ -1064,7 +1050,7 @@ function char_at(string $s, int $i = 0): string {
     $i += $l;
   }
   if ($i < 0 || $i >= $l) {
-    throw new \Exception(
+    throw new Exception(
       "String offset $i out of bounds in string of length $l",
     );
   }

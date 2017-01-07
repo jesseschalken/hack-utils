@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__.'/error_clear_last.php';
+
 if (\defined('HHVM_VERSION')) {
   require_once __DIR__.'/hack/include.php';
 } else {

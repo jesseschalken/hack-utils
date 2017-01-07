@@ -7,3 +7,5 @@ const int STREAM_URL_STAT_LINK = 1;
 const int STREAM_URL_STAT_QUIET = 1;
 
 const int SCANDIR_SORT_NONE = 1;
+
+function error_clear_last() {}

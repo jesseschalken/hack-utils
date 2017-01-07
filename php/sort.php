@@ -26,25 +26,25 @@ namespace HackUtils {
     }
     public function sort($array) {
       if ($this->reverse) {
-        ErrorAssert::isTrue("rsort", \rsort($array, $this->flags));
+        Exception::assertTrue(\rsort($array, $this->flags));
       } else {
-        ErrorAssert::isTrue("sort", \sort($array, $this->flags));
+        Exception::assertTrue(\sort($array, $this->flags));
       }
       return $array;
     }
     public function sortValues($array) {
       if ($this->reverse) {
-        ErrorAssert::isTrue("arsort", \arsort($array, $this->flags));
+        Exception::assertTrue(\arsort($array, $this->flags));
       } else {
-        ErrorAssert::isTrue("asort", \asort($array, $this->flags));
+        Exception::assertTrue(\asort($array, $this->flags));
       }
       return $array;
     }
     public function sortKeys($array) {
       if ($this->reverse) {
-        ErrorAssert::isTrue("krsort", \krsort($array, $this->flags));
+        Exception::assertTrue(\krsort($array, $this->flags));
       } else {
-        ErrorAssert::isTrue("ksort", \ksort($array, $this->flags));
+        Exception::assertTrue(\ksort($array, $this->flags));
       }
       return $array;
     }
@@ -55,15 +55,15 @@ namespace HackUtils {
       $this->cmp = $cmp;
     }
     public function sort($array) {
-      ErrorAssert::isTrue("usort", \usort($array, $this->cmp));
+      Exception::assertTrue(\usort($array, $this->cmp));
       return $array;
     }
     public function sortValues($array) {
-      ErrorAssert::isTrue("uasort", \uasort($array, $this->cmp));
+      Exception::assertTrue(\uasort($array, $this->cmp));
       return $array;
     }
     public function sortKeys($array) {
-      ErrorAssert::isTrue("uksort", \uksort($array, $this->cmp));
+      Exception::assertTrue(\uksort($array, $this->cmp));
       return $array;
     }
   }

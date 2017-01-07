@@ -36,29 +36,37 @@ final class FOpenStream extends Stream {
     string $mode,
     ?resource $ctx = NULL_RESOURCE,
   ) {
+    FileSystemException::prepare();
     $this->handle =
-      ErrorAssert::isResource('fopen', \fopen($url, $mode, false, $ctx));
+      FileSystemException::assertResource(\fopen($url, $mode, false, $ctx));
   }
   public function read(int $length): string {
-    return ErrorAssert::isString('fread', \fread($this->handle, $length));
+    FileSystemException::prepare();
+    return FileSystemException::assertString(\fread($this->handle, $length));
   }
   public function write(string $data): int {
-    return ErrorAssert::isInt('fwrite', \fwrite($this->handle, $data));
+    FileSystemException::prepare();
+    return FileSystemException::assertInt(\fwrite($this->handle, $data));
   }
   public function eof(): bool {
-    return ErrorAssert::isBool('feof', \feof($this->handle));
+    FileSystemException::prepare();
+    return FileSystemException::assertBool(\feof($this->handle));
   }
   public function seek(int $offset, int $whence = \SEEK_SET): void {
-    ErrorAssert::isZero('fseek', \fseek($this->handle, $offset, $whence));
+    FileSystemException::prepare();
+    FileSystemException::assertZero(\fseek($this->handle, $offset, $whence));
   }
   public function tell(): int {
-    return ErrorAssert::isInt('ftell', \ftell($this->handle));
+    FileSystemException::prepare();
+    return FileSystemException::assertInt(\ftell($this->handle));
   }
   public function close(): void {
-    ErrorAssert::isTrue('fclose', \fclose($this->handle));
+    FileSystemException::prepare();
+    FileSystemException::assertTrue(\fclose($this->handle));
   }
   public function flush(): void {
-    ErrorAssert::isTrue('fflush', \fflush($this->handle));
+    FileSystemException::prepare();
+    FileSystemException::assertTrue(\fflush($this->handle));
   }
   public function lock(int $flags): bool {
     $wb = false;
@@ -66,30 +74,33 @@ final class FOpenStream extends Stream {
     // An EWOULDBLOCK should quietly return false
     if ($wb)
       return false;
-    ErrorAssert::isTrue('flock', $ret);
+    FileSystemException::prepare();
+    FileSystemException::assertTrue($ret);
     return true;
   }
   public function rewind(): void {
-    ErrorAssert::isTrue('rewind', \rewind($this->handle));
+    FileSystemException::prepare();
+    FileSystemException::assertTrue(\rewind($this->handle));
   }
   public function truncate(int $length): void {
-    ErrorAssert::isTrue('ftruncate', \ftruncate($this->handle, $length));
+    FileSystemException::prepare();
+    FileSystemException::assertTrue(\ftruncate($this->handle, $length));
   }
   public function stat(): Stat {
+    FileSystemException::prepare();
     return
-      new ArrayStat(ErrorAssert::isArray('fstat', \fstat($this->handle)));
+      new ArrayStat(FileSystemException::assertArray(\fstat($this->handle)));
   }
   public function setbuf(int $size): void {
-    ErrorAssert::isZero(
-      'stream_set_write_buffer',
+    FileSystemException::prepare();
+    FileSystemException::assertZero(
       \stream_set_write_buffer($this->handle, $size),
     );
   }
   public function getContents(): string {
-    return ErrorAssert::isString(
-      'stream_get_contents',
-      \stream_get_contents($this->handle),
-    );
+    FileSystemException::prepare();
+    return
+      FileSystemException::assertString(\stream_get_contents($this->handle));
   }
   public function isReadable(): bool {
     $mode = $this->getMode();
@@ -121,10 +132,9 @@ final class FOpenStream extends Stream {
     return $handle;
   }
   private function getMetadata_(): stream_meta_data {
-    return ErrorAssert::isArray(
-      'stream_get_meta_data',
-      \stream_get_meta_data($this->handle),
-    );
+    FileSystemException::prepare();
+    return
+      FileSystemException::assertArray(\stream_get_meta_data($this->handle));
   }
   private function getMode(): string {
     $meta = $this->getMetadata_();

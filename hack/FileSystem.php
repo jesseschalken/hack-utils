@@ -164,35 +164,27 @@ class StreamWrapperFileSystem extends FileSystem
   }
 
   public final function stat(string $path): Stat {
-    $path = $this->wrapPath($path);
-    \clearstatcache();
-    return new ArrayStat(ErrorAssert::isArray('stat', \stat($path)));
+    return $this->_stat($path, false);
   }
 
   public final function trystat(string $path): ?Stat {
-    $path = $this->wrapPath($path);
-    \clearstatcache();
-    // We have to avoid calling stat() if the file doesn't exist so we
-    // can return null without throwing an exception or triggering a PHP error.
-    // This is racey because the filesystem could change between the
-    // file_exists() and stat() calls, but it's the best we can do.
-    if (!\file_exists($path))
-      return new_null();
-    return new ArrayStat(ErrorAssert::isArray('stat', \stat($path)));
+    return $this->_trystat($path, false);
   }
 
   public final function rename(string $from, string $to): void {
     $ctx = $this->getContext();
     $from = $this->wrapPath($from);
     $to = $this->wrapPath($to);
-    ErrorAssert::isTrue('rename', \rename($from, $to, $ctx));
+    FileSystemException::prepare();
+    FileSystemException::assertTrue(\rename($from, $to, $ctx));
   }
 
   public final function readdir(string $path): array<string> {
     $ctx = $this->getContext();
     $path = $this->wrapPath($path);
     $ret = [];
-    $dir = ErrorAssert::isResource('opendir', \opendir($path, $ctx));
+    FileSystemException::prepare();
+    $dir = FileSystemException::assertResource(\opendir($path, $ctx));
     for (; $p = \readdir($dir); $p !== false) {
       // Skip dots
       if ($p === '.' || $p === '..')
@@ -206,58 +198,86 @@ class StreamWrapperFileSystem extends FileSystem
   public final function mkdir(string $path, int $mode = 0777): void {
     $ctx = $this->getContext();
     $path = $this->wrapPath($path);
-    ErrorAssert::isTrue('mkdir', \mkdir($path, $mode, false, $ctx));
+    FileSystemException::prepare();
+    FileSystemException::assertTrue(\mkdir($path, $mode, false, $ctx));
   }
 
   public final function unlink(string $path): void {
     $ctx = $this->getContext();
     $path = $this->wrapPath($path);
-    ErrorAssert::isTrue('unlink', \unlink($path, $ctx));
+    FileSystemException::prepare();
+    FileSystemException::assertTrue(\unlink($path, $ctx));
   }
 
   public final function lstat(string $path): Stat {
-    $path = $this->wrapPath($path);
-    \clearstatcache();
-    return new ArrayStat(ErrorAssert::isArray('lstat', \lstat($path)));
+    return $this->_stat($path, true);
   }
 
   public final function trylstat(string $path): ?Stat {
+    return $this->_trystat($path, true);
+  }
+
+  private function _stat(string $path, bool $lstat): Stat {
     $path = $this->wrapPath($path);
     \clearstatcache();
-    // We have to avoid calling lstat() if the file doesn't exist
-    // so we can return null without throwing an Exception
-    // or raising a PHP error.
-    // This is racey because the filesystem could change between these
-    // three system calls, but it's the best we can do.
-    if (!\file_exists($path) && !\is_link($path))
+    FileSystemException::prepare();
+    $stat =
+      FileSystemException::assertArray($lstat ? \lstat($path) : \stat($path));
+    return new ArrayStat($stat);
+  }
+
+  private function _statThrowPhpErrors(string $path, bool $lstat): Stat {
+    ErrorException::setErrorHandler();
+    try {
+      $stat = $this->_stat($path, $lstat);
+    } catch (\Exception $e) {
+      // "finally" is only supported on PHP >= 5.5
+      ErrorException::restoreErrorHandler();
+      throw $e;
+    }
+    ErrorException::restoreErrorHandler();
+    return $stat;
+  }
+
+  private function _trystat(string $path, bool $lstat): ?Stat {
+    try {
+      return $this->_statThrowPhpErrors($path, $lstat);
+    } catch (\ErrorException $e) {
       return new_null();
-    return new ArrayStat(ErrorAssert::isArray('lstat', \lstat($path)));
+    } catch (FileSystemException $e) {
+      return new_null();
+    }
   }
 
   public final function rmdir(string $path): void {
     $ctx = $this->getContext();
     $path = $this->wrapPath($path);
-    ErrorAssert::isTrue('rmdir', \rmdir($path, $ctx));
+    FileSystemException::prepare();
+    FileSystemException::assertTrue(\rmdir($path, $ctx));
   }
 
   public final function chmod(string $path, int $mode): void {
     $path = $this->wrapPath($path);
-    ErrorAssert::isTrue('chmod', \chmod($path, $mode));
+    FileSystemException::prepare();
+    FileSystemException::assertTrue(\chmod($path, $mode));
   }
 
   public final function chown(string $path, int $uid): void {
     $path = $this->wrapPath($path);
-    ErrorAssert::isTrue('chown', \chown($path, (int) $uid));
+    FileSystemException::prepare();
+    FileSystemException::assertTrue(\chown($path, (int) $uid));
   }
 
   public final function chgrp(string $path, int $gid): void {
     $path = $this->wrapPath($path);
-    ErrorAssert::isTrue('chgrp', \chgrp($path, (int) $gid));
+    FileSystemException::prepare();
+    FileSystemException::assertTrue(\chgrp($path, (int) $gid));
   }
 
   public final function utime(string $path, int $atime, int $mtime): void {
     $path = $this->wrapPath($path);
-    ErrorAssert::isTrue('touch', \touch($path, $mtime, $atime));
+    FileSystemException::prepare();
+    FileSystemException::assertTrue(\touch($path, $mtime, $atime));
   }
 
   public final function wrapPath(string $path): string {
@@ -286,27 +306,44 @@ final class LocalFileSystem extends StreamWrapperFileSystem
 
   public final function symlink(string $path, string $target): void {
     $path = $this->wrapPath($path);
-    ErrorAssert::isTrue('symlink', \symlink($target, $path));
+    FileSystemException::prepare();
+    FileSystemException::assertTrue(\symlink($target, $path));
   }
 
   public final function readlink(string $path): string {
     $path = $this->wrapPath($path);
-    return ErrorAssert::isString('readlink', \readlink($path));
+    FileSystemException::prepare();
+    return FileSystemException::assertString(\readlink($path));
   }
 
   public final function realpath(string $path): string {
     $path = $this->wrapPath($path);
     \clearstatcache();
-    return ErrorAssert::isString('realpath', \realpath($path));
+    FileSystemException::prepare();
+    return FileSystemException::assertString(\realpath($path));
   }
 
   public final function lchown(string $path, int $uid): void {
     $path = $this->wrapPath($path);
-    ErrorAssert::isTrue('lchown', \lchown($path, (int) $uid));
+    FileSystemException::prepare();
+    FileSystemException::assertTrue(\lchown($path, (int) $uid));
   }
 
   public final function lchgrp(string $path, int $gid): void {
     $path = $this->wrapPath($path);
-    ErrorAssert::isTrue('lchgrp', \lchgrp($path, (int) $gid));
+    FileSystemException::prepare();
+    FileSystemException::assertTrue(\lchgrp($path, (int) $gid));
+  }
+}
+
+class FileSystemException extends Exception {
+  public final static function prepare(): void {
+    ErrorException::clearLast();
+  }
+  public final static function create(
+    string $actual,
+    string $expected,
+  ): \Exception {
+    return ErrorException::getLast() ?: parent::create($actual, $expected);
   }
 }
