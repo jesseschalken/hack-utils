@@ -43,6 +43,7 @@
   'HackUtils\\Test' => 'test.php',
   'HackUtils\\TestArrayIterator' => 'ArrayIterator.php',
   'HackUtils\\TestConcatMap' => 'main.php',
+  'HackUtils\\TestCtype' => 'ctype.php',
   'HackUtils\\TestDateTime' => 'DateTime.php',
   'HackUtils\\TestDaysInMonth' => 'date_utils.php',
   'HackUtils\\TestException' => 'Exception.php',

@@ -39,7 +39,8 @@ namespace HackUtils {
         TestArrayIterator::class_(),
         TestDateTime::class_(),
         TestException::class_(),
-        PCRE\Test::class_()
+        PCRE\Test::class_(),
+        TestCtype::class_()
       );
     }
     public static function main() {

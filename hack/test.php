@@ -41,6 +41,7 @@ final class _Tests {
       TestDateTime::class_(),
       TestException::class_(),
       PCRE\Test::class_(),
+      TestCtype::class_(),
     ];
   }
 

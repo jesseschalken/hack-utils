@@ -38,8 +38,8 @@ function tests_main() {
     _Tests::main();
   } finally {
     $coverage->stop();
+    $coverage->write();
   }
-  $coverage->write();
 }
 
 tests_main();
