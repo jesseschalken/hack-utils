@@ -41,11 +41,11 @@ function dump(mixed $x): string {
   if (\is_resource($x))
     return \get_resource_type($x).' resource';
   if (\is_object($x))
-    return \get_class($x);
+    return \get_class($x).'#'.\spl_object_hash($x);
 
   if (\is_string($x)) {
     $s = '';
-    $l = min(\strlen($x), 100);
+    $l = \strlen($x);
     for ($i = 0; $i < $l; $i++) {
       $c = $x[$i];
       $o = \ord($c);
@@ -59,13 +59,13 @@ function dump(mixed $x): string {
         $s .= '\x'.pad_left(\dechex($o), 2, '0'); else
         $s .= $c;
     }
-    $s = "\"$s\"";
-    if ($l < \strlen($s))
-      $s .= '...';
-    return $s;
+    return "\"$s\"";
   }
 
   if (\is_float($x)) {
+    if ($x == 0.0) {
+      return signbit($x) ? '-0.0' : '0.0';
+    }
     $s = (string) $x;
     // Make sure there is a decimal point or it is in scientific format
     // otherwise it will look like an int.
@@ -101,14 +101,10 @@ function dump_iterable_contents(
 ): string {
   $p = [];
   foreach ($x as $k => $v) {
-    if (\count($p) >= 3) {
-      $p[] = '...';
-      break;
-    }
     $s = '';
     if ($assoc)
       $s .= dump($k).' => ';
-    $s .= dump($k);
+    $s .= dump($v);
     $p[] = $s;
   }
   return join($p, ', ');

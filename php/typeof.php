@@ -51,11 +51,11 @@ namespace HackUtils {
       return \get_resource_type($x)." resource";
     }
     if (\hacklib_cast_as_boolean(\is_object($x))) {
-      return \get_class($x);
+      return \get_class($x)."#".\spl_object_hash($x);
     }
     if (\hacklib_cast_as_boolean(\is_string($x))) {
       $s = "";
-      $l = min(\strlen($x), 100);
+      $l = \strlen($x);
       for ($i = 0; $i < $l; $i++) {
         $c = $x[$i];
         $o = \ord($c);
@@ -89,13 +89,12 @@ namespace HackUtils {
           }
         }
       }
-      $s = "\"".$s."\"";
-      if ($l < \strlen($s)) {
-        $s .= "...";
-      }
-      return $s;
+      return "\"".$s."\"";
     }
     if (\hacklib_cast_as_boolean(\is_float($x))) {
+      if (\hacklib_equals($x, 0.0)) {
+        return \hacklib_cast_as_boolean(signbit($x)) ? "-0.0" : "0.0";
+      }
       $s = (string) $x;
       if ((find($s, ".") === null) &&
           (find($s, "e") === null) &&
@@ -130,15 +129,11 @@ namespace HackUtils {
   function dump_iterable_contents($x, $assoc) {
     $p = array();
     foreach ($x as $k => $v) {
-      if (\count($p) >= 3) {
-        $p[] = "...";
-        break;
-      }
       $s = "";
       if (\hacklib_cast_as_boolean($assoc)) {
         $s .= dump($k)." => ";
       }
-      $s .= dump($k);
+      $s .= dump($v);
       $p[] = $s;
     }
     return join($p, ", ");

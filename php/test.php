@@ -2,18 +2,68 @@
 namespace HackUtils {
   require_once ($GLOBALS["HACKLIB_ROOT"]);
   final class _Tests {
-    private static function assertEqual($actual, $expected) {
+    public static function Testgets() {
+      return array(
+        TestTests::class_(),
+        TestToHex::class_(),
+        TestFromHex::class_(),
+        TestStringShuffle::class_(),
+        TestReverseString::class_(),
+        TestToLower::class_(),
+        TestToUpper::class_(),
+        TestStringSplit::class_(),
+        TestStringChunk::class_(),
+        TestStringJoin::class_(),
+        TestStringReplace::class_(),
+        TestStringSplice::class_(),
+        TestStringSlice::class_(),
+        TestStringPad::class_(),
+        TestStringRepeat::class_(),
+        TestStringCharCode::class_(),
+        TestStringCompare::class_(),
+        TestStringSearch::class_(),
+        TestStringEndsWith::class_(),
+        TestStringStartsWith::class_(),
+        TestFloatRounding::class_(),
+        TestStringSetLength::class_(),
+        TestStringSplitAt::class_(),
+        TestLeapYear::class_(),
+        TestDaysInMonth::class_(),
+        TestOverflowDate::class_(),
+        TestValidDate::class_(),
+        TestQuotRemDivMod::class_(),
+        TestConcatMap::class_(),
+        TestFrac::class_(),
+        TestTypeof::class_(),
+        TestFileSystem::class_(),
+        TestArrayIterator::class_(),
+        TestDateTime::class_()
+      );
+    }
+    public static function main() {
+      foreach (self::Testgets() as $test) {
+        echo ("  ".$test::name()."\n");
+        $test::runStatic();
+      }
+      echo ("done\n");
+    }
+  }
+  abstract class Test {
+    public final static function runStatic() {
+      $self = new static();
+      $self->run();
+    }
+    public final static function class_() {
+      return \get_called_class();
+    }
+    public final static function assertEqual($actual, $expected) {
       if (!\hacklib_cast_as_boolean(self::isEqual($actual, $expected))) {
         throw new \Exception(
-          \sprintf(
-            "Expected %s, got %s",
-            \var_export($expected, true),
-            \var_export($actual, true)
-          )
+          "Expected ".dump($expected).", got ".dump($actual)
         );
       }
     }
-    private static function isEqual($a, $b) {
+    public final static function isEqual($a, $b) {
       if (\hacklib_cast_as_boolean(\is_float($a)) &&
           \hacklib_cast_as_boolean(\is_float($b))) {
         if (\hacklib_cast_as_boolean(\is_nan($a)) &&
@@ -50,7 +100,7 @@ namespace HackUtils {
       }
       return $a === $b;
     }
-    private static function getException($f) {
+    public final static function getException($f) {
       try {
         $f();
       } catch (\Exception $e) {
@@ -58,35 +108,44 @@ namespace HackUtils {
       }
       throw new \Exception("Code was supposed to throw but didnt");
     }
-    private static function testAssertions() {
+    public static function name() {
+      return self::class_();
+    }
+    public static function description() {
+      return "";
+    }
+    public abstract function run();
+  }
+  class TestTests extends Test {
+    public function run() {
       self::assertEqual(
         self::getException(
           function() {
-            _Tests::assertEqual(array(), array(1));
+            Test::assertEqual(array(), array(1));
           }
         )->getMessage(),
-        "Expected array (\n  0 => 1,\n), got array (\n)"
+        "Expected [1], got []"
       );
       self::assertEqual(
         self::getException(
           function() {
-            _Tests::assertEqual(array(2), array(1));
+            Test::assertEqual(array(2), array(1));
           }
         )->getMessage(),
-        "Expected array (\n  0 => 1,\n), got array (\n  0 => 2,\n)"
+        "Expected [1], got [2]"
       );
       self::assertEqual(
         self::getException(
           function() {
-            _Tests::assertEqual(array(0.0), array(0.0 * (-1.0)));
+            Test::assertEqual(array(0.0), array(0.0 * (-1.0)));
           }
         )->getMessage(),
-        "Expected array (\n  0 => -0.0,\n), got array (\n  0 => 0.0,\n)"
+        "Expected [-0.0], got [0.0]"
       );
       self::assertEqual(
         self::getException(
           function() {
-            _Tests::assertEqual(0.0, 0.0 * (-1.0));
+            Test::assertEqual(0.0, 0.0 * (-1.0));
           }
         )->getMessage(),
         "Expected -0.0, got 0.0"
@@ -94,29 +153,47 @@ namespace HackUtils {
       self::assertEqual(
         self::getException(
           function() {
-            _Tests::getException(function() {});
+            Test::getException(function() {});
           }
         )->getMessage(),
         "Code was supposed to throw but didnt"
       );
     }
-    public static function main() {
-      self::testAssertions();
-      self::log("to_hex");
+  }
+  class TestToHex extends Test {
+    public function run() {
       self::assertEqual(to_hex("\000\377 "), "00ff20");
-      self::log("from_hex");
+    }
+  }
+  class TestFromHex extends Test {
+    public function run() {
       self::assertEqual(from_hex("00ff20"), "\000\377 ");
       self::assertEqual(from_hex("00Ff20"), "\000\377 ");
-      self::log("shuffle_string");
+    }
+  }
+  class TestStringShuffle extends Test {
+    public function run() {
       self::assertEqual(length(shuffle_string("abc")), 3);
-      self::log("reverse_string");
+    }
+  }
+  class TestReverseString extends Test {
+    public function run() {
       self::assertEqual(reverse_string("abc"), "cba");
       self::assertEqual(reverse_string(""), "");
-      self::log("to_lower");
+    }
+  }
+  class TestToLower extends Test {
+    public function run() {
       self::assertEqual(to_lower("ABC.1.2.3"), "abc.1.2.3");
-      self::log("to_upper");
+    }
+  }
+  class TestToUpper extends Test {
+    public function run() {
       self::assertEqual(to_upper("abc.1.2.3"), "ABC.1.2.3");
-      self::log("split");
+    }
+  }
+  class TestStringSplit extends Test {
+    public function run() {
       self::assertEqual(split(""), array());
       self::assertEqual(split("a"), array("a"));
       self::assertEqual(split("abc"), array("a", "b", "c"));
@@ -129,64 +206,88 @@ namespace HackUtils {
       self::assertEqual(split("abc", "b"), array("a", "c"));
       self::assertEqual(split("abc", "b", 1), array("abc"));
       self::assertEqual(split("abc", "b", 2), array("a", "c"));
-      self::log("chunk_string");
+    }
+  }
+  class TestStringChunk extends Test {
+    public function run() {
       self::assertEqual(chunk_string("abc", 1), array("a", "b", "c"));
       self::assertEqual(chunk_string("abc", 2), array("ab", "c"));
       self::assertEqual(chunk_string("abc", 3), array("abc"));
-      self::log("join");
+    }
+  }
+  class TestStringJoin extends Test {
+    public function run() {
       self::assertEqual(join(array()), "");
       self::assertEqual(join(array("abc")), "abc");
       self::assertEqual(join(array("a", "bc")), "abc");
       self::assertEqual(join(array(), ","), "");
       self::assertEqual(join(array("abc"), ","), "abc");
       self::assertEqual(join(array("a", "bc"), ","), "a,bc");
-      self::log("replace_count");
+    }
+  }
+  class TestStringReplace extends Test {
+    public function run() {
       self::assertEqual(replace_count("abc", "b", "lol"), array("alolc", 1));
       self::assertEqual(replace_count("abc", "B", "lol"), array("abc", 0));
       self::assertEqual(
         replace_count("abc", "B", "lol", true),
         array("alolc", 1)
       );
-      self::log("splice");
+    }
+  }
+  class TestStringSplice extends Test {
+    public function run() {
       self::assertEqual(splice("abc", 1, 1), "ac");
       self::assertEqual(splice("abc", 1, 1, "lol"), "alolc");
-      self::log("slice");
+    }
+  }
+  class TestStringSlice extends Test {
+    public function run() {
       self::assertEqual(slice("abc", 1, 1), "b");
       self::assertEqual(slice("abc", -1, 1), "c");
       self::assertEqual(slice("abc", 1, -1), "b");
       self::assertEqual(slice("abc", 1), "bc");
       self::assertEqual(slice("abc", -1), "c");
-      self::log("pad");
+    }
+  }
+  class TestStringPad extends Test {
+    public function run() {
       self::assertEqual(pad("abc", 3), "abc");
       self::assertEqual(pad("abc", 4), "abc ");
       self::assertEqual(pad("abc", 5), " abc ");
       self::assertEqual(pad("abc", 6), " abc  ");
       self::assertEqual(pad("1", 3, "ab"), "a1a");
       self::assertEqual(pad("1", 4, "ab"), "a1ab");
-      self::log("pad_left");
       self::assertEqual(pad_left("abc", 3), "abc");
       self::assertEqual(pad_left("abc", 4), " abc");
       self::assertEqual(pad_left("abc", 5), "  abc");
       self::assertEqual(pad_left("abc", 6), "   abc");
       self::assertEqual(pad_left("1", 3, "ab"), "ab1");
       self::assertEqual(pad_left("1", 4, "ab"), "aba1");
-      self::log("pad_right");
       self::assertEqual(pad_right("abc", 3), "abc");
       self::assertEqual(pad_right("abc", 4), "abc ");
       self::assertEqual(pad_right("abc", 5), "abc  ");
       self::assertEqual(pad_right("abc", 6), "abc   ");
       self::assertEqual(pad_right("1", 3, "ab"), "1ab");
       self::assertEqual(pad_right("1", 4, "ab"), "1aba");
-      self::log("repeat_string");
+    }
+  }
+  class TestStringRepeat extends Test {
+    public function run() {
       self::assertEqual(repeat_string("123", 3), "123123123");
-      self::log("from_char_code");
+    }
+  }
+  class TestStringCharCode extends Test {
+    public function run() {
       self::assertEqual(from_char_code(128), "\200");
       self::assertEqual(from_char_code(0), "\000");
       self::assertEqual(from_char_code(255), "\377");
-      self::log("char_code_at");
       self::assertEqual(char_code_at("a"), 97);
       self::assertEqual(char_code_at("a99"), 97);
-      self::log("str_cmp");
+    }
+  }
+  class TestStringCompare extends Test {
+    public function run() {
       self::assertEqual(str_cmp("a", "a"), 0);
       self::assertEqual(str_cmp("a", "A"), 1);
       self::assertEqual(str_cmp("", ""), 0);
@@ -197,7 +298,6 @@ namespace HackUtils {
       self::assertEqual(str_cmp("", "", true), 0);
       self::assertEqual(str_cmp("", "a", true), -1);
       self::assertEqual(str_cmp("a", "", true), 1);
-      self::log("str_eq");
       self::assertEqual(str_eq("a", "a"), true);
       self::assertEqual(str_eq("a", "A"), false);
       self::assertEqual(str_eq("", ""), true);
@@ -208,7 +308,10 @@ namespace HackUtils {
       self::assertEqual(str_eq("", "", true), true);
       self::assertEqual(str_eq("", "a", true), false);
       self::assertEqual(str_eq("a", "", true), false);
-      self::log("find");
+    }
+  }
+  class TestStringSearch extends Test {
+    public function run() {
       self::assertEqual(find("a", "a"), 0);
       self::assertEqual(find("a", "a", 1), NULL_INT);
       self::assertEqual(find("a", "a", -1), 0);
@@ -220,7 +323,6 @@ namespace HackUtils {
       self::assertEqual(find("abc", "c", -2), 2);
       self::assertEqual(find("abbb", "bb"), 1);
       self::assertEqual(find("abbb", "bb", 2), 2);
-      self::log("find_last");
       self::assertEqual(find_last("a", "a"), 0);
       self::assertEqual(find_last("a", "a", 1), NULL_INT);
       self::assertEqual(find_last("a", "a", -1), 0);
@@ -232,19 +334,28 @@ namespace HackUtils {
       self::assertEqual(find_last("aba", "c", -2), NULL_INT);
       self::assertEqual(find_last("abbb", "bb"), 2);
       self::assertEqual(find_last("abbb", "bb", 2), 2);
-      self::log("ends_with");
+    }
+  }
+  class TestStringEndsWith extends Test {
+    public function run() {
       self::assertEqual(ends_with("abbb", "bb"), true);
       self::assertEqual(ends_with("abbb", "ba"), false);
       self::assertEqual(ends_with("abbb", ""), true);
       self::assertEqual(ends_with("", ""), true);
       self::assertEqual(ends_with("", "a"), false);
-      self::log("starts_with");
+    }
+  }
+  class TestStringStartsWith extends Test {
+    public function run() {
       self::assertEqual(starts_with("abbb", "ab"), true);
       self::assertEqual(starts_with("abbb", "bb"), false);
       self::assertEqual(starts_with("abbb", ""), true);
       self::assertEqual(starts_with("", ""), true);
       self::assertEqual(starts_with("", "a"), false);
-      self::log("round_half_down");
+    }
+  }
+  class TestFloatRounding extends Test {
+    public function run() {
       self::assertEqual(round_half_down(0.5), 0.0);
       self::assertEqual(round_half_down(1.5), 1.0);
       self::assertEqual(round_half_down(-0.5), -1.0);
@@ -252,7 +363,6 @@ namespace HackUtils {
       self::assertEqual(round_half_down(INF), INF);
       self::assertEqual(round_half_down(-INF), -INF);
       self::assertEqual(round_half_down(NAN), NAN);
-      self::log("round_half_up");
       self::assertEqual(round_half_up(0.5), 1.0);
       self::assertEqual(round_half_up(1.5), 2.0);
       self::assertEqual(round_half_up(-0.5), 0.0);
@@ -260,7 +370,6 @@ namespace HackUtils {
       self::assertEqual(round_half_up(INF), INF);
       self::assertEqual(round_half_up(-INF), -INF);
       self::assertEqual(round_half_up(NAN), NAN);
-      self::log("round_half_to_inf");
       self::assertEqual(round_half_to_inf(0.5), 1.0);
       self::assertEqual(round_half_to_inf(1.5), 2.0);
       self::assertEqual(round_half_to_inf(-0.5), -1.0);
@@ -268,7 +377,6 @@ namespace HackUtils {
       self::assertEqual(round_half_to_inf(INF), INF);
       self::assertEqual(round_half_to_inf(-INF), -INF);
       self::assertEqual(round_half_to_inf(NAN), NAN);
-      self::log("round_half_to_zero");
       self::assertEqual(round_half_to_zero(0.5), 0.0);
       self::assertEqual(round_half_to_zero(1.5), 1.0);
       self::assertEqual(round_half_to_zero(-0.5), 0.0);
@@ -276,7 +384,6 @@ namespace HackUtils {
       self::assertEqual(round_half_to_zero(INF), INF);
       self::assertEqual(round_half_to_zero(-INF), -INF);
       self::assertEqual(round_half_to_zero(NAN), NAN);
-      self::log("round_half_to_even");
       self::assertEqual(round_half_to_even(0.5), 0.0);
       self::assertEqual(round_half_to_even(1.5), 2.0);
       self::assertEqual(round_half_to_even(-0.5), 0.0);
@@ -284,7 +391,6 @@ namespace HackUtils {
       self::assertEqual(round_half_to_even(INF), INF);
       self::assertEqual(round_half_to_even(-INF), -INF);
       self::assertEqual(round_half_to_even(NAN), NAN);
-      self::log("round_half_to_odd");
       self::assertEqual(round_half_to_odd(0.5), 1.0);
       self::assertEqual(round_half_to_odd(1.5), 1.0);
       self::assertEqual(round_half_to_odd(-0.5), -1.0);
@@ -292,7 +398,10 @@ namespace HackUtils {
       self::assertEqual(round_half_to_odd(INF), INF);
       self::assertEqual(round_half_to_odd(-INF), -INF);
       self::assertEqual(round_half_to_odd(NAN), NAN);
-      self::log("set_length");
+    }
+  }
+  class TestStringSetLength extends Test {
+    public function run() {
       self::assertEqual(set_length("ab", -3), "");
       self::assertEqual(set_length("ab", -2), "");
       self::assertEqual(set_length("ab", -1), "a");
@@ -305,7 +414,10 @@ namespace HackUtils {
       self::assertEqual(set_length("ab", 4, "12"), "ab12");
       self::assertEqual(set_length("ab", 5, "12"), "ab121");
       self::assertEqual(set_length("ab", 6, "12"), "ab1212");
-      self::log("split_at");
+    }
+  }
+  class TestStringSplitAt extends Test {
+    public function run() {
       self::assertEqual(split_at("abc", -4), array("", "abc"));
       self::assertEqual(split_at("abc", -3), array("", "abc"));
       self::assertEqual(split_at("abc", -2), array("a", "bc"));
@@ -315,7 +427,10 @@ namespace HackUtils {
       self::assertEqual(split_at("abc", 2), array("ab", "c"));
       self::assertEqual(split_at("abc", 3), array("abc", ""));
       self::assertEqual(split_at("abc", 4), array("abc", ""));
-      self::log("is_leap_year");
+    }
+  }
+  class TestLeapYear extends Test {
+    public function run() {
       self::assertEqual(is_leap_year(2016), true);
       self::assertEqual(is_leap_year(2015), false);
       self::assertEqual(is_leap_year(2000), true);
@@ -327,7 +442,10 @@ namespace HackUtils {
       self::assertEqual(is_leap_year(1900), false);
       self::assertEqual(is_leap_year(2100), false);
       self::assertEqual(is_leap_year(2104), true);
-      self::log("days_in_month");
+    }
+  }
+  class TestDaysInMonth extends Test {
+    public function run() {
       self::assertEqual(days_in_month(2016, 1), 31);
       self::assertEqual(days_in_month(2016, 2), 29);
       self::assertEqual(days_in_month(2016, 3), 31);
@@ -342,7 +460,10 @@ namespace HackUtils {
       self::assertEqual(days_in_month(2016, 12), 31);
       self::assertEqual(days_in_month(2015, 2), 28);
       self::assertEqual(days_in_month(2012, 2), 29);
-      self::log("overflow_date");
+    }
+  }
+  class TestOverflowDate extends Test {
+    public function run() {
       self::assertEqual(
         overflow_date(array(2015, 1, 0)),
         array(2014, 12, 31)
@@ -372,7 +493,10 @@ namespace HackUtils {
         overflow_date(array(2016, -3, -8)),
         array(2015, 8, 23)
       );
-      self::log("is_valid_date");
+    }
+  }
+  class TestValidDate extends Test {
+    public function run() {
       self::assertEqual(is_valid_date(array(2016, 2, 29)), true);
       self::assertEqual(is_valid_date(array(2015, 2, 29)), false);
       self::assertEqual(is_valid_date(array(2016, 11, 23)), true);
@@ -389,7 +513,10 @@ namespace HackUtils {
       self::assertEqual(is_valid_date(array(0, 1, 1)), true);
       self::assertEqual(is_valid_date(array(INT_MAX, 1, 1)), true);
       self::assertEqual(is_valid_date(array(INT_MIN, 1, 1)), true);
-      self::log("quot/rem/div/mod");
+    }
+  }
+  class TestQuotRemDivMod extends Test {
+    public function run() {
       self::assertEqual(quot(-20, 3), -6);
       self::assertEqual(rem(-20, 3), -2);
       self::assertEqual(div(-20, 3), -7);
@@ -410,12 +537,14 @@ namespace HackUtils {
       self::assertEqual(rem(-5, 3), -2);
       self::assertEqual(mod(-5, -3), -2);
       self::assertEqual(rem(-5, -3), -2);
-      self::log("div_mod/quot_rem");
       self::assertEqual(div_mod(-20, 3), array(-7, 1));
       self::assertEqual(div_mod(-20, -3), array(6, -2));
       self::assertEqual(quot_rem(-20, 3), array(-6, -2));
       self::assertEqual(quot_rem(-20, -3), array(6, -2));
-      self::log("concat_map");
+    }
+  }
+  class TestConcatMap extends Test {
+    public function run() {
       self::assertEqual(
         concat_map(
           array(1, 5),
@@ -425,7 +554,10 @@ namespace HackUtils {
         ),
         array(2, 3, 6, 7)
       );
-      self::log("frac");
+    }
+  }
+  class TestFrac extends Test {
+    public function run() {
       self::assertEqual(frac(0.1), 0.1);
       self::assertEqual(frac(0.9), 0.9);
       self::assertEqual(frac(0.5), 0.5);
@@ -442,7 +574,10 @@ namespace HackUtils {
       self::assertEqual(frac(-5.1), (-5.1) + 5.0);
       self::assertEqual(frac(-5.9), (-5.9) + 5.0);
       self::assertEqual(frac(-5.5), (-5.5) + 5.0);
-      self::log("typeof");
+    }
+  }
+  class TestTypeof extends Test {
+    public function run() {
       self::assertEqual(typeof(NULL_INT), "null");
       self::assertEqual(typeof(true), "bool");
       self::assertEqual(typeof(false), "bool");
@@ -456,19 +591,10 @@ namespace HackUtils {
       self::assertEqual(typeof(new \stdClass()), "stdClass");
       self::assertEqual(typeof(function() {}), "Closure");
       self::assertEqual(typeof(\fopen("php://memory", "rb")), "resource");
-      self::log("LocalFileSystem");
-      $fs = new LocalFileSystem();
-      $path = "/tmp/hufs-test-".\mt_rand();
-      self::testFilesystem($fs, $path);
-      $fs = new FileSystemStreamWrapper($fs);
-      self::testFilesystem($fs, $path);
-      self::log("ArrayIterator");
-      self::testArrayIterator();
-      self::log("DateTime");
-      self::testDateTime();
-      self::log("done");
     }
-    private static function testDateTime() {
+  }
+  class TestDateTime extends Test {
+    public function run() {
       $utc = TimeZone::UTC();
       $melb = TimeZone::create("Australia/Melbourne");
       self::assertEqual($utc->getName(), "UTC");
@@ -600,7 +726,9 @@ namespace HackUtils {
         "DateTimeImmutable::__construct(): Failed to parse time string (99999999999999999) at position 16 (9): Unexpected character"
       );
     }
-    private static function testArrayIterator() {
+  }
+  class TestArrayIterator extends Test {
+    public function run() {
       $a = new ArrayIterator(array("a" => 1, "b" => 2));
       self::assertEqual($a->count(), 2);
       self::assertEqual($a->unwrap(), array("a" => 1, "b" => 2));
@@ -654,6 +782,15 @@ namespace HackUtils {
       self::assertEqual($a->next(), "car");
       self::assertEqual($a->prev(), "bike");
       self::assertEqual($a->end(), "plane");
+    }
+  }
+  class TestFileSystem extends Test {
+    public function run() {
+      $fs = new LocalFileSystem();
+      $path = "/tmp/hufs-test-".\mt_rand();
+      self::testFilesystem($fs, $path);
+      $fs = new FileSystemStreamWrapper($fs);
+      self::testFilesystem($fs, $path);
     }
     private static function testFilesystem($fs, $base) {
       self::assertEqual($fs->trystat($base), NULL_INT);
@@ -711,11 +848,18 @@ namespace HackUtils {
       self::assertEqual($open->__toString(), "he__o");
       self::assertEqual($open->tell(), 5);
       self::assertEqual($open->eof(), true);
+      if ($fs instanceof SymlinkFileSystemInterface) {
+        $fs->symlink($file."2", $file);
+        self::assertEqual($fs->stat($file)->modeSymbolic(), "-rw-r--r--");
+        self::assertEqual($fs->stat($file."2")->modeSymbolic(), "-rw-r--r--");
+        self::assertEqual($fs->lstat($file)->modeSymbolic(), "-rw-r--r--");
+        self::assertEqual(
+          $fs->lstat($file."2")->modeSymbolic(),
+          "lrwxrwxrwx"
+        );
+      }
       $fs->unlink($file);
       $fs->rmdirRec($base);
-    }
-    private static function log($message) {
-      echo ($message."\n");
     }
   }
 }
