@@ -39,6 +39,7 @@ final class _Tests {
       TestFileSystem::class_(),
       TestArrayIterator::class_(),
       TestDateTime::class_(),
+      TestException::class_(),
     ];
   }
 
@@ -103,6 +104,16 @@ abstract class Test {
     }
 
     return $a === $b;
+  }
+
+  public final static function assertException(
+    fn0<void> $f,
+    string $message = '',
+    int $code = 0,
+  ): void {
+    $e = self::getException($f);
+    self::assertEqual($e->getMessage(), $message);
+    self::assertEqual($e->getCode(), $code);
   }
 
   public final static function getException(fn0<void> $f): \Exception {

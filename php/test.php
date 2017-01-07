@@ -37,7 +37,8 @@ namespace HackUtils {
         TestTypeof::class_(),
         TestFileSystem::class_(),
         TestArrayIterator::class_(),
-        TestDateTime::class_()
+        TestDateTime::class_(),
+        TestException::class_()
       );
     }
     public static function main() {
@@ -99,6 +100,15 @@ namespace HackUtils {
         return true;
       }
       return $a === $b;
+    }
+    public final static function assertException(
+      $f,
+      $message = "",
+      $code = 0
+    ) {
+      $e = self::getException($f);
+      self::assertEqual($e->getMessage(), $message);
+      self::assertEqual($e->getCode(), $code);
     }
     public final static function getException($f) {
       try {

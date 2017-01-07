@@ -2,6 +2,68 @@
 
 namespace HackUtils;
 
+class TestException extends Test {
+  public function run(): void {
+    Exception::assertEqual(1, 1);
+    Exception::assertZero(0);
+    Exception::assertArray([]);
+    Exception::assertString('1');
+    Exception::assertInt(1);
+    Exception::assertTrue(true);
+    Exception::assertResource(\fopen('php://memory', 'w+b'));
+    Exception::assertBool(false);
+
+    self::assertException(
+      function() {
+        Exception::assertEqual(1, 0);
+      },
+      'Expected 0, got 1',
+    );
+    self::assertException(
+      function() {
+        Exception::assertZero('hello');
+      },
+      'Expected 0, got "hello"',
+    );
+    self::assertException(
+      function() {
+        Exception::assertArray(1.4);
+      },
+      'Expected array, got float',
+    );
+    self::assertException(
+      function() {
+        Exception::assertString(1);
+      },
+      'Expected string, got int',
+    );
+    self::assertException(
+      function() {
+        Exception::assertInt(1.0);
+      },
+      'Expected int, got float',
+    );
+    self::assertException(
+      function() {
+        Exception::assertTrue(1.0);
+      },
+      'Expected true, got 1.0',
+    );
+    self::assertException(
+      function() {
+        Exception::assertResource('1.0');
+      },
+      'Expected resource, got string',
+    );
+    self::assertException(
+      function() {
+        Exception::assertBool(new \stdClass());
+      },
+      'Expected bool, got stdClass',
+    );
+  }
+}
+
 <<__ConsistentConstruct>>
 class Exception extends \Exception {
   public final static function assertEqual<T>(mixed $a, T $b): T {
@@ -52,6 +114,6 @@ class Exception extends \Exception {
     string $actual,
     string $expected,
   ): \Exception {
-    throw new static('Expected '.$expected.', got '.$actual.'.');
+    throw new static('Expected '.$expected.', got '.$actual);
   }
 }
