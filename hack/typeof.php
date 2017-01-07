@@ -2,6 +2,24 @@
 
 namespace HackUtils;
 
+class TestTypeof extends Test {
+  public function run(): void {
+    self::assertEqual(typeof(NULL_INT), 'null');
+    self::assertEqual(typeof(true), 'bool');
+    self::assertEqual(typeof(false), 'bool');
+    self::assertEqual(typeof(0.0), 'float');
+    self::assertEqual(typeof(PI), 'float');
+    self::assertEqual(typeof(0), 'int');
+    self::assertEqual(typeof(129837), 'int');
+    self::assertEqual(typeof([]), 'array');
+    self::assertEqual(typeof([[]]), 'array');
+    self::assertEqual(typeof([1]), 'array');
+    self::assertEqual(typeof(new \stdClass()), 'stdClass');
+    self::assertEqual(typeof(function() {}), 'Closure');
+    self::assertEqual(typeof(\fopen('php://memory', 'rb')), 'resource');
+  }
+}
+
 function typeof(mixed $x): string {
   if (\is_int($x))
     return 'int';

@@ -1,6 +1,84 @@
 <?php
 namespace HackUtils {
   require_once ($GLOBALS["HACKLIB_ROOT"]);
+  class TestFileSystem extends Test {
+    public function run() {
+      $fs = new LocalFileSystem();
+      $path = "/tmp/hufs-test-".\mt_rand();
+      self::testFilesystem($fs, $path);
+      $fs = new FileSystemStreamWrapper($fs);
+      self::testFilesystem($fs, $path);
+    }
+    private static function testFilesystem($fs, $base) {
+      self::assertEqual($fs->trystat($base), NULL_INT);
+      $fs->mkdir($base);
+      self::assertEqual($fs->stat($base)->modeSymbolic(), "drwxr-xr-x");
+      $file = $fs->join($base, "foo");
+      $fs->writeFile($file, "contents");
+      self::assertEqual($fs->readFile($file), "contents");
+      $open = $fs->open($file, "rb");
+      self::assertEqual($open->eof(), false);
+      self::assertEqual($open->tell(), 0);
+      self::assertEqual($open->read(4), "cont");
+      self::assertEqual($open->eof(), false);
+      self::assertEqual($open->tell(), 4);
+      $open->seek(2);
+      self::assertEqual($open->tell(), 2);
+      $open->seek(2, \SEEK_CUR);
+      self::assertEqual($open->tell(), 4);
+      self::assertEqual($open->eof(), false);
+      self::assertEqual($open->read(100), "ents");
+      self::assertEqual($open->read(100), "");
+      self::assertEqual($open->eof(), true);
+      self::assertEqual($open->getSize(), 8);
+      self::assertEqual($open->stat()->modeSymbolic(), "-rw-r--r--");
+      self::assertEqual($open->getContents(), "");
+      self::assertEqual($open->__toString(), "contents");
+      self::assertEqual($open->getContents(), "");
+      $open->rewind();
+      self::assertEqual($open->getContents(), "contents");
+      self::assertEqual($open->tell(), 8);
+      self::assertEqual($open->isReadable(), true);
+      self::assertEqual($open->isWritable(), false);
+      self::assertEqual($open->isSeekable(), true);
+      $open->close();
+      $open = $fs->open($file, "wb+");
+      self::assertEqual($open->tell(), 0);
+      self::assertEqual($open->eof(), false);
+      self::assertEqual($open->getSize(), 0);
+      self::assertEqual($open->getContents(), "");
+      self::assertEqual($open->__toString(), "");
+      self::assertEqual($open->write("hello"), 5);
+      self::assertEqual($open->tell(), 5);
+      self::assertEqual($open->eof(), true);
+      self::assertEqual($open->getContents(), "");
+      self::assertEqual($open->__toString(), "hello");
+      $open->rewind();
+      self::assertEqual($open->getContents(), "hello");
+      self::assertEqual($open->getContents(), "");
+      $open->seek(2);
+      self::assertEqual($open->tell(), 2);
+      self::assertEqual($open->write("__"), 2);
+      self::assertEqual($open->tell(), 4);
+      self::assertEqual($open->getContents(), "o");
+      self::assertEqual($open->tell(), 5);
+      self::assertEqual($open->__toString(), "he__o");
+      self::assertEqual($open->tell(), 5);
+      self::assertEqual($open->eof(), true);
+      if ($fs instanceof SymlinkFileSystemInterface) {
+        $fs->symlink($file."2", $file);
+        self::assertEqual($fs->stat($file)->modeSymbolic(), "-rw-r--r--");
+        self::assertEqual($fs->stat($file."2")->modeSymbolic(), "-rw-r--r--");
+        self::assertEqual($fs->lstat($file)->modeSymbolic(), "-rw-r--r--");
+        self::assertEqual(
+          $fs->lstat($file."2")->modeSymbolic(),
+          "lrwxrwxrwx"
+        );
+      }
+      $fs->unlink($file);
+      $fs->rmdirRec($base);
+    }
+  }
   interface FileSystemPathInterface {
     public function split($path, $i);
     public function join($path1, $path2);

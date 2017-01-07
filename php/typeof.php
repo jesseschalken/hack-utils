@@ -1,6 +1,23 @@
 <?php
 namespace HackUtils {
   require_once ($GLOBALS["HACKLIB_ROOT"]);
+  class TestTypeof extends Test {
+    public function run() {
+      self::assertEqual(typeof(NULL_INT), "null");
+      self::assertEqual(typeof(true), "bool");
+      self::assertEqual(typeof(false), "bool");
+      self::assertEqual(typeof(0.0), "float");
+      self::assertEqual(typeof(PI), "float");
+      self::assertEqual(typeof(0), "int");
+      self::assertEqual(typeof(129837), "int");
+      self::assertEqual(typeof(array()), "array");
+      self::assertEqual(typeof(array(array())), "array");
+      self::assertEqual(typeof(array(1)), "array");
+      self::assertEqual(typeof(new \stdClass()), "stdClass");
+      self::assertEqual(typeof(function() {}), "Closure");
+      self::assertEqual(typeof(\fopen("php://memory", "rb")), "resource");
+    }
+  }
   function typeof($x) {
     if (\hacklib_cast_as_boolean(\is_int($x))) {
       return "int";

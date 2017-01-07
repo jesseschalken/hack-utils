@@ -167,6 +167,15 @@ function map_keys<Tk1, Tk2, Tv>(
   return $ret;
 }
 
+class TestConcatMap extends Test {
+  public function run(): void {
+    self::assertEqual(
+      concat_map([1, 5], $x ==> [$x + 1, $x + 2]),
+      [2, 3, 6, 7],
+    );
+  }
+}
+
 function concat_map<Tin, Tout>(
   array<Tin> $array,
   (function(Tin): array<Tout>) $f,
@@ -635,8 +644,21 @@ function shuffle<T>(array<T> $array): array<T> {
   return $array;
 }
 
+class TestStringShuffle extends Test {
+  public function run(): void {
+    self::assertEqual(length(shuffle_string("abc")), 3);
+  }
+}
+
 function shuffle_string(string $string): string {
   return \str_shuffle($string);
+}
+
+class TestReverseString extends Test {
+  public function run(): void {
+    self::assertEqual(reverse_string("abc"), 'cba');
+    self::assertEqual(reverse_string(""), '');
+  }
 }
 
 function reverse<T>(array<T> $array): array<T> {
@@ -668,11 +690,25 @@ function chunk_assoc<Tk, Tv>(
   return \array_chunk($array, $size, true);
 }
 
+class TestStringChunk extends Test {
+  public function run(): void {
+    self::assertEqual(chunk_string('abc', 1), ['a', 'b', 'c']);
+    self::assertEqual(chunk_string('abc', 2), ['ab', 'c']);
+    self::assertEqual(chunk_string('abc', 3), ['abc']);
+  }
+}
+
 function chunk_string(string $string, int $size): array<string> {
   if ($size < 1) {
     throw new \Exception("Chunk size must be >= 1");
   }
   return Exception::assertArray(\str_split($string, $size));
+}
+
+class TestStringRepeat extends Test {
+  public function run(): void {
+    self::assertEqual(repeat_string('123', 3), '123123123');
+  }
 }
 
 function repeat<T>(T $value, int $count): array<T> {
@@ -683,6 +719,16 @@ function repeat<T>(T $value, int $count): array<T> {
 
 function repeat_string(string $string, int $count): string {
   return \str_repeat($string, $count);
+}
+
+class TestStringSlice extends Test {
+  public function run(): void {
+    self::assertEqual(slice('abc', 1, 1), 'b');
+    self::assertEqual(slice('abc', -1, 1), 'c');
+    self::assertEqual(slice('abc', 1, -1), 'b');
+    self::assertEqual(slice('abc', 1), 'bc');
+    self::assertEqual(slice('abc', -1), 'c');
+  }
 }
 
 function slice(string $string, int $offset, ?int $length = NULL_INT): string {
@@ -705,6 +751,13 @@ function slice_assoc<Tk, Tv>(
   ?int $length = NULL_INT,
 ): array<Tk, Tv> {
   return \array_slice($array, $offset, $length, true);
+}
+
+class TestStringSplice extends Test {
+  public function run(): void {
+    self::assertEqual(splice('abc', 1, 1), 'ac');
+    self::assertEqual(splice('abc', 1, 1, 'lol'), 'alolc');
+  }
 }
 
 function splice(
@@ -732,6 +785,34 @@ function splice_array<T>(
 ): (array<T>, array<T>) {
   $removed = \array_splice($array, $offset, $length, $replacement);
   return tuple($array, $removed);
+}
+
+class TestStringSearch extends Test {
+  public function run(): void {
+    self::assertEqual(find('a', 'a'), 0);
+    self::assertEqual(find('a', 'a', 1), NULL_INT);
+    self::assertEqual(find('a', 'a', -1), 0);
+    self::assertEqual(find('abc', 'a'), 0);
+    self::assertEqual(find('abc', 'b'), 1);
+    self::assertEqual(find('abc', 'c'), 2);
+    self::assertEqual(find('abc', 'a', -2), NULL_INT);
+    self::assertEqual(find('abc', 'b', -2), 1);
+    self::assertEqual(find('abc', 'c', -2), 2);
+    self::assertEqual(find('abbb', 'bb'), 1);
+    self::assertEqual(find('abbb', 'bb', 2), 2);
+
+    self::assertEqual(find_last('a', 'a'), 0);
+    self::assertEqual(find_last('a', 'a', 1), NULL_INT);
+    self::assertEqual(find_last('a', 'a', -1), 0);
+    self::assertEqual(find_last('aba', 'a'), 2);
+    self::assertEqual(find_last('aba', 'b'), 1);
+    self::assertEqual(find_last('aba', 'c'), NULL_INT);
+    self::assertEqual(find_last('aba', 'a', -2), 0);
+    self::assertEqual(find_last('aba', 'b', -2), 1);
+    self::assertEqual(find_last('aba', 'c', -2), NULL_INT);
+    self::assertEqual(find_last('abbb', 'bb'), 2);
+    self::assertEqual(find_last('abbb', 'bb', 2), 2);
+  }
 }
 
 function find(
@@ -813,16 +894,41 @@ function in<T>(T $value, array<mixed, T> $array): bool {
   return \in_array($value, $array, true);
 }
 
+class TestToHex extends Test {
+  public function run(): void {
+    self::assertEqual(to_hex("\x00\xff\x20"), "00ff20");
+  }
+}
+
 function to_hex(string $string): string {
   return \bin2hex($string);
+}
+
+class TestFromHex extends Test {
+  public function run(): void {
+    self::assertEqual(from_hex("00ff20"), "\x00\xff\x20");
+    self::assertEqual(from_hex("00Ff20"), "\x00\xff\x20");
+  }
 }
 
 function from_hex(string $string): string {
   return Exception::assertString(\hex2bin($string));
 }
 
+class TestToLower extends Test {
+  public function run(): void {
+    self::assertEqual(to_lower("ABC.1.2.3"), "abc.1.2.3");
+  }
+}
+
 function to_lower(string $string): string {
   return \strtolower($string);
+}
+
+class TestToUpper extends Test {
+  public function run(): void {
+    self::assertEqual(to_upper("abc.1.2.3"), "ABC.1.2.3");
+  }
 }
 
 function to_upper(string $string): string {
@@ -889,6 +995,26 @@ function strip_slashes(string $s): string {
   return \stripslashes($s);
 }
 
+class TestStringSplit extends Test {
+  public function run(): void {
+    self::assertEqual(split(''), []);
+    self::assertEqual(split('a'), ['a']);
+    self::assertEqual(split('abc'), ['a', 'b', 'c']);
+
+    self::assertEqual(split('', '', 1), []);
+    self::assertEqual(split('a', '', 1), ['a']);
+    self::assertEqual(split('abc', '', 1), ['abc']);
+    self::assertEqual(split('abc', '', 2), ['a', 'bc']);
+    self::assertEqual(split('abc', '', 3), ['a', 'b', 'c']);
+
+    self::assertEqual(split('', 'b'), ['']);
+    self::assertEqual(split('abc', 'b'), ['a', 'c']);
+
+    self::assertEqual(split('abc', 'b', 1), ['abc']);
+    self::assertEqual(split('abc', 'b', 2), ['a', 'c']);
+  }
+}
+
 /**
  * Split a string on a delimiter. If the delimiter is the empty string, splits
  * the string into individual characters. $limit will limit the number of
@@ -947,6 +1073,20 @@ function split_lines(string $string): array<string> {
   return $lines;
 }
 
+class TestStringSplitAt extends Test {
+  public function run(): void {
+    self::assertEqual(split_at('abc', -4), tuple('', 'abc'));
+    self::assertEqual(split_at('abc', -3), tuple('', 'abc'));
+    self::assertEqual(split_at('abc', -2), tuple('a', 'bc'));
+    self::assertEqual(split_at('abc', -1), tuple('ab', 'c'));
+    self::assertEqual(split_at('abc', 0), tuple('', 'abc'));
+    self::assertEqual(split_at('abc', 1), tuple('a', 'bc'));
+    self::assertEqual(split_at('abc', 2), tuple('ab', 'c'));
+    self::assertEqual(split_at('abc', 3), tuple('abc', ''));
+    self::assertEqual(split_at('abc', 4), tuple('abc', ''));
+  }
+}
+
 /**
  * Split the string in two at the specified offset.
  * Negative offsets are supported.
@@ -966,6 +1106,18 @@ function split_array_at<T>(
   return tuple(slice_array($array, 0, $offset), slice_array($array, $offset));
 }
 
+class TestStringJoin extends Test {
+  public function run(): void {
+    self::assertEqual(join([]), '');
+    self::assertEqual(join(['abc']), 'abc');
+    self::assertEqual(join(['a', 'bc']), 'abc');
+
+    self::assertEqual(join([], ','), '');
+    self::assertEqual(join(['abc'], ','), 'abc');
+    self::assertEqual(join(['a', 'bc'], ','), 'a,bc');
+  }
+}
+
 function join(array<string> $strings, string $delimiter = ''): string {
   return \implode($delimiter, $strings);
 }
@@ -976,6 +1128,17 @@ function join(array<string> $strings, string $delimiter = ''): string {
  */
 function join_lines(array<string> $lines, string $nl = "\n"): string {
   return $lines ? join($lines, $nl).$nl : '';
+}
+
+class TestStringReplace extends Test {
+  public function run(): void {
+    self::assertEqual(replace_count('abc', 'b', 'lol'), tuple('alolc', 1));
+    self::assertEqual(replace_count('abc', 'B', 'lol'), tuple('abc', 0));
+    self::assertEqual(
+      replace_count('abc', 'B', 'lol', true),
+      tuple('alolc', 1),
+    );
+  }
 }
 
 function replace(
@@ -1006,6 +1169,31 @@ function replace_count(
   return tuple($result, $count);
 }
 
+class TestStringPad extends Test {
+  public function run(): void {
+    self::assertEqual(pad('abc', 3), 'abc');
+    self::assertEqual(pad('abc', 4), 'abc ');
+    self::assertEqual(pad('abc', 5), ' abc ');
+    self::assertEqual(pad('abc', 6), ' abc  ');
+    self::assertEqual(pad('1', 3, 'ab'), 'a1a');
+    self::assertEqual(pad('1', 4, 'ab'), 'a1ab');
+
+    self::assertEqual(pad_left('abc', 3), 'abc');
+    self::assertEqual(pad_left('abc', 4), ' abc');
+    self::assertEqual(pad_left('abc', 5), '  abc');
+    self::assertEqual(pad_left('abc', 6), '   abc');
+    self::assertEqual(pad_left('1', 3, 'ab'), 'ab1');
+    self::assertEqual(pad_left('1', 4, 'ab'), 'aba1');
+
+    self::assertEqual(pad_right('abc', 3), 'abc');
+    self::assertEqual(pad_right('abc', 4), 'abc ');
+    self::assertEqual(pad_right('abc', 5), 'abc  ');
+    self::assertEqual(pad_right('abc', 6), 'abc   ');
+    self::assertEqual(pad_right('1', 3, 'ab'), '1ab');
+    self::assertEqual(pad_right('1', 4, 'ab'), '1aba');
+  }
+}
+
 function pad(string $string, int $length, string $pad = ' '): string {
   return \str_pad($string, $length, $pad, \STR_PAD_BOTH);
 }
@@ -1022,6 +1210,23 @@ function pad_right(string $string, int $length, string $pad = ' '): string {
   return \str_pad($string, $length, $pad, \STR_PAD_RIGHT);
 }
 
+class TestStringSetLength extends Test {
+  public function run(): void {
+    self::assertEqual(set_length('ab', -3), '');
+    self::assertEqual(set_length('ab', -2), '');
+    self::assertEqual(set_length('ab', -1), 'a');
+    self::assertEqual(set_length('ab', 0), '');
+    self::assertEqual(set_length('ab', 1), 'a');
+    self::assertEqual(set_length('ab', 2), 'ab');
+    self::assertEqual(set_length('ab', 3), 'ab ');
+    self::assertEqual(set_length('ab', 4), 'ab  ');
+    self::assertEqual(set_length('ab', 3, '12'), 'ab1');
+    self::assertEqual(set_length('ab', 4, '12'), 'ab12');
+    self::assertEqual(set_length('ab', 5, '12'), 'ab121');
+    self::assertEqual(set_length('ab', 6, '12'), 'ab1212');
+  }
+}
+
 /**
  * Set a string's length, padding with the specified pad string and discarding
  * bytes in excess. If length is negative, that many characters will be removed
@@ -1031,6 +1236,17 @@ function set_length(string $string, int $length, string $pad = ' '): string {
   $string = slice($string, 0, $length);
   $string = pad_right($string, $length, $pad);
   return $string;
+}
+
+class TestStringCharCode extends Test {
+  public function run(): void {
+    self::assertEqual(from_char_code(128), "\x80");
+    self::assertEqual(from_char_code(0), "\x00");
+    self::assertEqual(from_char_code(255), "\xFF");
+
+    self::assertEqual(char_code_at('a'), 97);
+    self::assertEqual(char_code_at('a99'), 97);
+  }
 }
 
 function from_char_code(int $ascii): string {
@@ -1062,6 +1278,34 @@ function char_code_at(string $string, int $offset = 0): int {
   return \ord(char_at($string, $offset));
 }
 
+class TestStringCompare extends Test {
+  public function run(): void {
+    self::assertEqual(str_cmp('a', 'a'), 0);
+    self::assertEqual(str_cmp('a', 'A'), 1);
+    self::assertEqual(str_cmp('', ''), 0);
+    self::assertEqual(str_cmp('', 'a'), -1);
+    self::assertEqual(str_cmp('a', ''), 1);
+
+    self::assertEqual(str_cmp('a', 'a', true), 0);
+    self::assertEqual(str_cmp('a', 'A', true), 0);
+    self::assertEqual(str_cmp('', '', true), 0);
+    self::assertEqual(str_cmp('', 'a', true), -1);
+    self::assertEqual(str_cmp('a', '', true), 1);
+
+    self::assertEqual(str_eq('a', 'a'), true);
+    self::assertEqual(str_eq('a', 'A'), false);
+    self::assertEqual(str_eq('', ''), true);
+    self::assertEqual(str_eq('', 'a'), false);
+    self::assertEqual(str_eq('a', ''), false);
+
+    self::assertEqual(str_eq('a', 'a', true), true);
+    self::assertEqual(str_eq('a', 'A', true), true);
+    self::assertEqual(str_eq('', '', true), true);
+    self::assertEqual(str_eq('', 'a', true), false);
+    self::assertEqual(str_eq('a', '', true), false);
+  }
+}
+
 function str_cmp(
   string $a,
   string $b,
@@ -1084,8 +1328,28 @@ function str_eq(
   return str_cmp($a, $b, $caseInsensitive, $natural) == 0;
 }
 
+class TestStringStartsWith extends Test {
+  public function run(): void {
+    self::assertEqual(starts_with('abbb', 'ab'), true);
+    self::assertEqual(starts_with('abbb', 'bb'), false);
+    self::assertEqual(starts_with('abbb', ''), true);
+    self::assertEqual(starts_with('', ''), true);
+    self::assertEqual(starts_with('', 'a'), false);
+  }
+}
+
 function starts_with(string $string, string $prefix): bool {
   return slice($string, 0, length($prefix)) === $prefix;
+}
+
+class TestStringEndsWith extends Test {
+  public function run(): void {
+    self::assertEqual(ends_with('abbb', 'bb'), true);
+    self::assertEqual(ends_with('abbb', 'ba'), false);
+    self::assertEqual(ends_with('abbb', ''), true);
+    self::assertEqual(ends_with('', ''), true);
+    self::assertEqual(ends_with('', 'a'), false);
+  }
 }
 
 function ends_with(string $string, string $suffix): bool {

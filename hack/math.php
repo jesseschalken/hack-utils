@@ -64,8 +64,81 @@ function trunc(float $x): float {
   return $x < 0.0 ? ceil($x) : floor($x);
 }
 
+class TestFrac extends Test {
+  public function run(): void {
+    self::assertEqual(frac(0.1), 0.1);
+    self::assertEqual(frac(0.9), 0.9);
+    self::assertEqual(frac(0.5), 0.5);
+    self::assertEqual(frac(0.0), 0.0);
+    self::assertEqual(frac(5.0), 5.0 - 5.0);
+    self::assertEqual(frac(5.1), 5.1 - 5.0);
+    self::assertEqual(frac(5.9), 5.9 - 5.0);
+    self::assertEqual(frac(5.5), 5.5 - 5.0);
+    self::assertEqual(frac(-0.1), -0.1);
+    self::assertEqual(frac(-0.9), -0.9);
+    self::assertEqual(frac(-0.5), -0.5);
+    self::assertEqual(frac(-0.0), 0.0);
+    self::assertEqual(frac(-5.0), -5.0 + 5.0);
+    self::assertEqual(frac(-5.1), -5.1 + 5.0);
+    self::assertEqual(frac(-5.9), -5.9 + 5.0);
+    self::assertEqual(frac(-5.5), -5.5 + 5.0);
+  }
+}
+
 function frac(float $x): float {
   return $x - trunc($x);
+}
+
+class TestFloatRounding extends Test {
+  public function run(): void {
+    self::assertEqual(round_half_down(0.5), 0.0);
+    self::assertEqual(round_half_down(1.5), 1.0);
+    self::assertEqual(round_half_down(-0.5), -1.0);
+    self::assertEqual(round_half_down(-1.5), -2.0);
+    self::assertEqual(round_half_down(INF), INF);
+    self::assertEqual(round_half_down(-INF), -INF);
+    self::assertEqual(round_half_down(NAN), NAN);
+
+    self::assertEqual(round_half_up(0.5), 1.0);
+    self::assertEqual(round_half_up(1.5), 2.0);
+    self::assertEqual(round_half_up(-0.5), 0.0);
+    self::assertEqual(round_half_up(-1.5), -1.0);
+    self::assertEqual(round_half_up(INF), INF);
+    self::assertEqual(round_half_up(-INF), -INF);
+    self::assertEqual(round_half_up(NAN), NAN);
+
+    self::assertEqual(round_half_to_inf(0.5), 1.0);
+    self::assertEqual(round_half_to_inf(1.5), 2.0);
+    self::assertEqual(round_half_to_inf(-0.5), -1.0);
+    self::assertEqual(round_half_to_inf(-1.5), -2.0);
+    self::assertEqual(round_half_to_inf(INF), INF);
+    self::assertEqual(round_half_to_inf(-INF), -INF);
+    self::assertEqual(round_half_to_inf(NAN), NAN);
+
+    self::assertEqual(round_half_to_zero(0.5), 0.0);
+    self::assertEqual(round_half_to_zero(1.5), 1.0);
+    self::assertEqual(round_half_to_zero(-0.5), 0.0);
+    self::assertEqual(round_half_to_zero(-1.5), -1.0);
+    self::assertEqual(round_half_to_zero(INF), INF);
+    self::assertEqual(round_half_to_zero(-INF), -INF);
+    self::assertEqual(round_half_to_zero(NAN), NAN);
+
+    self::assertEqual(round_half_to_even(0.5), 0.0);
+    self::assertEqual(round_half_to_even(1.5), 2.0);
+    self::assertEqual(round_half_to_even(-0.5), 0.0);
+    self::assertEqual(round_half_to_even(-1.5), -2.0);
+    self::assertEqual(round_half_to_even(INF), INF);
+    self::assertEqual(round_half_to_even(-INF), -INF);
+    self::assertEqual(round_half_to_even(NAN), NAN);
+
+    self::assertEqual(round_half_to_odd(0.5), 1.0);
+    self::assertEqual(round_half_to_odd(1.5), 1.0);
+    self::assertEqual(round_half_to_odd(-0.5), -1.0);
+    self::assertEqual(round_half_to_odd(-1.5), -1.0);
+    self::assertEqual(round_half_to_odd(INF), INF);
+    self::assertEqual(round_half_to_odd(-INF), -INF);
+    self::assertEqual(round_half_to_odd(NAN), NAN);
+  }
 }
 
 function round_half_up(float $x): float {
@@ -226,6 +299,37 @@ function to_int(num $x): int {
   }
 
   unreachable();
+}
+
+class TestQuotRemDivMod extends Test {
+  public function run(): void {
+    self::assertEqual(quot(-20, 3), -6);
+    self::assertEqual(rem(-20, 3), -2);
+    self::assertEqual(div(-20, 3), -7);
+    self::assertEqual(mod(-20, 3), 1);
+    self::assertEqual(mod(2, 3), 2);
+    self::assertEqual(rem(2, 3), 2);
+    self::assertEqual(mod(10, 5), 0);
+    self::assertEqual(rem(10, 5), 0);
+    self::assertEqual(mod(1, -1), 0);
+    self::assertEqual(rem(1, -1), 0);
+    self::assertEqual(mod(2, -3), -1);
+    self::assertEqual(rem(2, -3), 2);
+
+    self::assertEqual(mod(5, 3), 2);
+    self::assertEqual(rem(5, 3), 2);
+    self::assertEqual(mod(5, -3), -1);
+    self::assertEqual(rem(5, -3), 2);
+    self::assertEqual(mod(-5, 3), 1);
+    self::assertEqual(rem(-5, 3), -2);
+    self::assertEqual(mod(-5, -3), -2);
+    self::assertEqual(rem(-5, -3), -2);
+
+    self::assertEqual(div_mod(-20, 3), tuple(-7, 1));
+    self::assertEqual(div_mod(-20, -3), tuple(6, -2));
+    self::assertEqual(quot_rem(-20, 3), tuple(-6, -2));
+    self::assertEqual(quot_rem(-20, -3), tuple(6, -2));
+  }
 }
 
 /** Integer division, rounding to zero */

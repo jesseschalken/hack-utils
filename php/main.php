@@ -110,6 +110,19 @@ namespace HackUtils {
     }
     return $ret;
   }
+  class TestConcatMap extends Test {
+    public function run() {
+      self::assertEqual(
+        concat_map(
+          array(1, 5),
+          function($x) {
+            return array($x + 1, $x + 2);
+          }
+        ),
+        array(2, 3, 6, 7)
+      );
+    }
+  }
   function concat_map($array, $f) {
     $ret = array();
     foreach ($array as $x) {
@@ -410,8 +423,19 @@ namespace HackUtils {
     \shuffle($array);
     return $array;
   }
+  class TestStringShuffle extends Test {
+    public function run() {
+      self::assertEqual(length(shuffle_string("abc")), 3);
+    }
+  }
   function shuffle_string($string) {
     return \str_shuffle($string);
+  }
+  class TestReverseString extends Test {
+    public function run() {
+      self::assertEqual(reverse_string("abc"), "cba");
+      self::assertEqual(reverse_string(""), "");
+    }
   }
   function reverse($array) {
     return \array_reverse($array, false);
@@ -434,11 +458,23 @@ namespace HackUtils {
     }
     return \array_chunk($array, $size, true);
   }
+  class TestStringChunk extends Test {
+    public function run() {
+      self::assertEqual(chunk_string("abc", 1), array("a", "b", "c"));
+      self::assertEqual(chunk_string("abc", 2), array("ab", "c"));
+      self::assertEqual(chunk_string("abc", 3), array("abc"));
+    }
+  }
   function chunk_string($string, $size) {
     if ($size < 1) {
       throw new \Exception("Chunk size must be >= 1");
     }
     return Exception::assertArray(\str_split($string, $size));
+  }
+  class TestStringRepeat extends Test {
+    public function run() {
+      self::assertEqual(repeat_string("123", 3), "123123123");
+    }
   }
   function repeat($value, $count) {
     if (!\hacklib_cast_as_boolean($count)) {
@@ -449,6 +485,15 @@ namespace HackUtils {
   function repeat_string($string, $count) {
     return \str_repeat($string, $count);
   }
+  class TestStringSlice extends Test {
+    public function run() {
+      self::assertEqual(slice("abc", 1, 1), "b");
+      self::assertEqual(slice("abc", -1, 1), "c");
+      self::assertEqual(slice("abc", 1, -1), "b");
+      self::assertEqual(slice("abc", 1), "bc");
+      self::assertEqual(slice("abc", -1), "c");
+    }
+  }
   function slice($string, $offset, $length = NULL_INT) {
     $ret = \substr($string, $offset, if_null($length, 0x7FFFFFFF));
     return ($ret === false) ? "" : $ret;
@@ -458,6 +503,12 @@ namespace HackUtils {
   }
   function slice_assoc($array, $offset, $length = NULL_INT) {
     return \array_slice($array, $offset, $length, true);
+  }
+  class TestStringSplice extends Test {
+    public function run() {
+      self::assertEqual(splice("abc", 1, 1), "ac");
+      self::assertEqual(splice("abc", 1, 1, "lol"), "alolc");
+    }
   }
   function splice($string, $offset, $length = NULL_INT, $replacement = "") {
     return \substr_replace(
@@ -475,6 +526,32 @@ namespace HackUtils {
   ) {
     $removed = \array_splice($array, $offset, $length, $replacement);
     return array($array, $removed);
+  }
+  class TestStringSearch extends Test {
+    public function run() {
+      self::assertEqual(find("a", "a"), 0);
+      self::assertEqual(find("a", "a", 1), NULL_INT);
+      self::assertEqual(find("a", "a", -1), 0);
+      self::assertEqual(find("abc", "a"), 0);
+      self::assertEqual(find("abc", "b"), 1);
+      self::assertEqual(find("abc", "c"), 2);
+      self::assertEqual(find("abc", "a", -2), NULL_INT);
+      self::assertEqual(find("abc", "b", -2), 1);
+      self::assertEqual(find("abc", "c", -2), 2);
+      self::assertEqual(find("abbb", "bb"), 1);
+      self::assertEqual(find("abbb", "bb", 2), 2);
+      self::assertEqual(find_last("a", "a"), 0);
+      self::assertEqual(find_last("a", "a", 1), NULL_INT);
+      self::assertEqual(find_last("a", "a", -1), 0);
+      self::assertEqual(find_last("aba", "a"), 2);
+      self::assertEqual(find_last("aba", "b"), 1);
+      self::assertEqual(find_last("aba", "c"), NULL_INT);
+      self::assertEqual(find_last("aba", "a", -2), 0);
+      self::assertEqual(find_last("aba", "b", -2), 1);
+      self::assertEqual(find_last("aba", "c", -2), NULL_INT);
+      self::assertEqual(find_last("abbb", "bb"), 2);
+      self::assertEqual(find_last("abbb", "bb", 2), 2);
+    }
   }
   function find($haystack, $needle, $offset = 0, $caseInsensitive = false) {
     if ((\PHP_VERSION_ID < 70100) && ($offset < 0)) {
@@ -539,14 +616,35 @@ namespace HackUtils {
   function in($value, $array) {
     return \in_array($value, $array, true);
   }
+  class TestToHex extends Test {
+    public function run() {
+      self::assertEqual(to_hex("\000\377 "), "00ff20");
+    }
+  }
   function to_hex($string) {
     return \bin2hex($string);
+  }
+  class TestFromHex extends Test {
+    public function run() {
+      self::assertEqual(from_hex("00ff20"), "\000\377 ");
+      self::assertEqual(from_hex("00Ff20"), "\000\377 ");
+    }
   }
   function from_hex($string) {
     return Exception::assertString(\hex2bin($string));
   }
+  class TestToLower extends Test {
+    public function run() {
+      self::assertEqual(to_lower("ABC.1.2.3"), "abc.1.2.3");
+    }
+  }
   function to_lower($string) {
     return \strtolower($string);
+  }
+  class TestToUpper extends Test {
+    public function run() {
+      self::assertEqual(to_upper("abc.1.2.3"), "ABC.1.2.3");
+    }
   }
   function to_upper($string) {
     return \strtoupper($string);
@@ -576,6 +674,22 @@ namespace HackUtils {
   }
   function strip_slashes($s) {
     return \stripslashes($s);
+  }
+  class TestStringSplit extends Test {
+    public function run() {
+      self::assertEqual(split(""), array());
+      self::assertEqual(split("a"), array("a"));
+      self::assertEqual(split("abc"), array("a", "b", "c"));
+      self::assertEqual(split("", "", 1), array());
+      self::assertEqual(split("a", "", 1), array("a"));
+      self::assertEqual(split("abc", "", 1), array("abc"));
+      self::assertEqual(split("abc", "", 2), array("a", "bc"));
+      self::assertEqual(split("abc", "", 3), array("a", "b", "c"));
+      self::assertEqual(split("", "b"), array(""));
+      self::assertEqual(split("abc", "b"), array("a", "c"));
+      self::assertEqual(split("abc", "b", 1), array("abc"));
+      self::assertEqual(split("abc", "b", 2), array("a", "c"));
+    }
   }
   function split($string, $delimiter = "", $limit = NULL_INT) {
     $limit = if_null($limit, 0x7FFFFFFF);
@@ -612,6 +726,19 @@ namespace HackUtils {
     }
     return $lines;
   }
+  class TestStringSplitAt extends Test {
+    public function run() {
+      self::assertEqual(split_at("abc", -4), array("", "abc"));
+      self::assertEqual(split_at("abc", -3), array("", "abc"));
+      self::assertEqual(split_at("abc", -2), array("a", "bc"));
+      self::assertEqual(split_at("abc", -1), array("ab", "c"));
+      self::assertEqual(split_at("abc", 0), array("", "abc"));
+      self::assertEqual(split_at("abc", 1), array("a", "bc"));
+      self::assertEqual(split_at("abc", 2), array("ab", "c"));
+      self::assertEqual(split_at("abc", 3), array("abc", ""));
+      self::assertEqual(split_at("abc", 4), array("abc", ""));
+    }
+  }
   function split_at($string, $offset) {
     return array(slice($string, 0, $offset), slice($string, $offset));
   }
@@ -621,11 +748,31 @@ namespace HackUtils {
       slice_array($array, $offset)
     );
   }
+  class TestStringJoin extends Test {
+    public function run() {
+      self::assertEqual(join(array()), "");
+      self::assertEqual(join(array("abc")), "abc");
+      self::assertEqual(join(array("a", "bc")), "abc");
+      self::assertEqual(join(array(), ","), "");
+      self::assertEqual(join(array("abc"), ","), "abc");
+      self::assertEqual(join(array("a", "bc"), ","), "a,bc");
+    }
+  }
   function join($strings, $delimiter = "") {
     return \implode($delimiter, $strings);
   }
   function join_lines($lines, $nl = "\n") {
     return \hacklib_cast_as_boolean($lines) ? (join($lines, $nl).$nl) : "";
+  }
+  class TestStringReplace extends Test {
+    public function run() {
+      self::assertEqual(replace_count("abc", "b", "lol"), array("alolc", 1));
+      self::assertEqual(replace_count("abc", "B", "lol"), array("abc", 0));
+      self::assertEqual(
+        replace_count("abc", "B", "lol", true),
+        array("alolc", 1)
+      );
+    }
   }
   function replace($subject, $search, $replace, $caseInsensitive = false) {
     return Exception::assertString(
@@ -648,6 +795,28 @@ namespace HackUtils {
     );
     return array($result, $count);
   }
+  class TestStringPad extends Test {
+    public function run() {
+      self::assertEqual(pad("abc", 3), "abc");
+      self::assertEqual(pad("abc", 4), "abc ");
+      self::assertEqual(pad("abc", 5), " abc ");
+      self::assertEqual(pad("abc", 6), " abc  ");
+      self::assertEqual(pad("1", 3, "ab"), "a1a");
+      self::assertEqual(pad("1", 4, "ab"), "a1ab");
+      self::assertEqual(pad_left("abc", 3), "abc");
+      self::assertEqual(pad_left("abc", 4), " abc");
+      self::assertEqual(pad_left("abc", 5), "  abc");
+      self::assertEqual(pad_left("abc", 6), "   abc");
+      self::assertEqual(pad_left("1", 3, "ab"), "ab1");
+      self::assertEqual(pad_left("1", 4, "ab"), "aba1");
+      self::assertEqual(pad_right("abc", 3), "abc");
+      self::assertEqual(pad_right("abc", 4), "abc ");
+      self::assertEqual(pad_right("abc", 5), "abc  ");
+      self::assertEqual(pad_right("abc", 6), "abc   ");
+      self::assertEqual(pad_right("1", 3, "ab"), "1ab");
+      self::assertEqual(pad_right("1", 4, "ab"), "1aba");
+    }
+  }
   function pad($string, $length, $pad = " ") {
     return \str_pad($string, $length, $pad, \STR_PAD_BOTH);
   }
@@ -660,10 +829,35 @@ namespace HackUtils {
   function pad_right($string, $length, $pad = " ") {
     return \str_pad($string, $length, $pad, \STR_PAD_RIGHT);
   }
+  class TestStringSetLength extends Test {
+    public function run() {
+      self::assertEqual(set_length("ab", -3), "");
+      self::assertEqual(set_length("ab", -2), "");
+      self::assertEqual(set_length("ab", -1), "a");
+      self::assertEqual(set_length("ab", 0), "");
+      self::assertEqual(set_length("ab", 1), "a");
+      self::assertEqual(set_length("ab", 2), "ab");
+      self::assertEqual(set_length("ab", 3), "ab ");
+      self::assertEqual(set_length("ab", 4), "ab  ");
+      self::assertEqual(set_length("ab", 3, "12"), "ab1");
+      self::assertEqual(set_length("ab", 4, "12"), "ab12");
+      self::assertEqual(set_length("ab", 5, "12"), "ab121");
+      self::assertEqual(set_length("ab", 6, "12"), "ab1212");
+    }
+  }
   function set_length($string, $length, $pad = " ") {
     $string = slice($string, 0, $length);
     $string = pad_right($string, $length, $pad);
     return $string;
+  }
+  class TestStringCharCode extends Test {
+    public function run() {
+      self::assertEqual(from_char_code(128), "\200");
+      self::assertEqual(from_char_code(0), "\000");
+      self::assertEqual(from_char_code(255), "\377");
+      self::assertEqual(char_code_at("a"), 97);
+      self::assertEqual(char_code_at("a99"), 97);
+    }
   }
   function from_char_code($ascii) {
     if (($ascii < 0) || ($ascii >= 256)) {
@@ -688,6 +882,30 @@ namespace HackUtils {
   function char_code_at($string, $offset = 0) {
     return \ord(char_at($string, $offset));
   }
+  class TestStringCompare extends Test {
+    public function run() {
+      self::assertEqual(str_cmp("a", "a"), 0);
+      self::assertEqual(str_cmp("a", "A"), 1);
+      self::assertEqual(str_cmp("", ""), 0);
+      self::assertEqual(str_cmp("", "a"), -1);
+      self::assertEqual(str_cmp("a", ""), 1);
+      self::assertEqual(str_cmp("a", "a", true), 0);
+      self::assertEqual(str_cmp("a", "A", true), 0);
+      self::assertEqual(str_cmp("", "", true), 0);
+      self::assertEqual(str_cmp("", "a", true), -1);
+      self::assertEqual(str_cmp("a", "", true), 1);
+      self::assertEqual(str_eq("a", "a"), true);
+      self::assertEqual(str_eq("a", "A"), false);
+      self::assertEqual(str_eq("", ""), true);
+      self::assertEqual(str_eq("", "a"), false);
+      self::assertEqual(str_eq("a", ""), false);
+      self::assertEqual(str_eq("a", "a", true), true);
+      self::assertEqual(str_eq("a", "A", true), true);
+      self::assertEqual(str_eq("", "", true), true);
+      self::assertEqual(str_eq("", "a", true), false);
+      self::assertEqual(str_eq("a", "", true), false);
+    }
+  }
   function str_cmp($a, $b, $caseInsensitive = false, $natural = false) {
     $ret =
       \hacklib_cast_as_boolean($caseInsensitive)
@@ -702,8 +920,26 @@ namespace HackUtils {
   function str_eq($a, $b, $caseInsensitive = false, $natural = false) {
     return \hacklib_equals(str_cmp($a, $b, $caseInsensitive, $natural), 0);
   }
+  class TestStringStartsWith extends Test {
+    public function run() {
+      self::assertEqual(starts_with("abbb", "ab"), true);
+      self::assertEqual(starts_with("abbb", "bb"), false);
+      self::assertEqual(starts_with("abbb", ""), true);
+      self::assertEqual(starts_with("", ""), true);
+      self::assertEqual(starts_with("", "a"), false);
+    }
+  }
   function starts_with($string, $prefix) {
     return slice($string, 0, length($prefix)) === $prefix;
+  }
+  class TestStringEndsWith extends Test {
+    public function run() {
+      self::assertEqual(ends_with("abbb", "bb"), true);
+      self::assertEqual(ends_with("abbb", "ba"), false);
+      self::assertEqual(ends_with("abbb", ""), true);
+      self::assertEqual(ends_with("", ""), true);
+      self::assertEqual(ends_with("", "a"), false);
+    }
   }
   function ends_with($string, $suffix) {
     $length = length($suffix);
