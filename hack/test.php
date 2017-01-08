@@ -139,6 +139,18 @@ abstract class Test {
   public abstract function run(): void;
 }
 
+abstract class SampleTest<Tin, Tout> extends Test {
+  public final function run(): void {
+    foreach ($this->getData() as $v) {
+      list($in, $out) = $v;
+      self::assertEqual($this->evaluate($in), $out);
+    }
+  }
+
+  public abstract function getData(): array<(Tin, Tout)>;
+  public abstract function evaluate(Tin $in): Tout;
+}
+
 class TestTests extends Test {
   public function run(): void {
     self::assertEqual(

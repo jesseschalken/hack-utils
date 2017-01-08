@@ -64,24 +64,29 @@ function trunc(float $x): float {
   return $x < 0.0 ? ceil($x) : floor($x);
 }
 
-class TestFrac extends Test {
-  public function run(): void {
-    self::assertEqual(frac(0.1), 0.1);
-    self::assertEqual(frac(0.9), 0.9);
-    self::assertEqual(frac(0.5), 0.5);
-    self::assertEqual(frac(0.0), 0.0);
-    self::assertEqual(frac(5.0), 5.0 - 5.0);
-    self::assertEqual(frac(5.1), 5.1 - 5.0);
-    self::assertEqual(frac(5.9), 5.9 - 5.0);
-    self::assertEqual(frac(5.5), 5.5 - 5.0);
-    self::assertEqual(frac(-0.1), -0.1);
-    self::assertEqual(frac(-0.9), -0.9);
-    self::assertEqual(frac(-0.5), -0.5);
-    self::assertEqual(frac(-0.0), 0.0);
-    self::assertEqual(frac(-5.0), -5.0 + 5.0);
-    self::assertEqual(frac(-5.1), -5.1 + 5.0);
-    self::assertEqual(frac(-5.9), -5.9 + 5.0);
-    self::assertEqual(frac(-5.5), -5.5 + 5.0);
+class TestFrac extends SampleTest<float, float> {
+  public function evaluate(float $in): float {
+    return frac($in);
+  }
+  public function getData(): array<(float, float)> {
+    return [
+      tuple(0.1, 0.1),
+      tuple(0.9, 0.9),
+      tuple(0.5, 0.5),
+      tuple(0.0, 0.0),
+      tuple(5.0, 5.0 - 5.0),
+      tuple(5.1, 5.1 - 5.0),
+      tuple(5.9, 5.9 - 5.0),
+      tuple(5.5, 5.5 - 5.0),
+      tuple(-0.1, -0.1),
+      tuple(-0.9, -0.9),
+      tuple(-0.5, -0.5),
+      tuple(-0.0, 0.0),
+      tuple(-5.0, -5.0 + 5.0),
+      tuple(-5.1, -5.1 + 5.0),
+      tuple(-5.9, -5.9 + 5.0),
+      tuple(-5.5, -5.5 + 5.0),
+    ];
   }
 }
 

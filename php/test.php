@@ -129,6 +129,16 @@ namespace HackUtils {
     }
     public abstract function run();
   }
+  abstract class SampleTest extends Test {
+    public final function run() {
+      foreach ($this->getData() as $v) {
+        list($in, $out) = $v;
+        self::assertEqual($this->evaluate($in), $out);
+      }
+    }
+    public abstract function getData();
+    public abstract function evaluate($in);
+  }
   class TestTests extends Test {
     public function run() {
       self::assertEqual(

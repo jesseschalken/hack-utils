@@ -52,24 +52,29 @@ namespace HackUtils {
   function trunc($x) {
     return ($x < 0.0) ? ceil($x) : floor($x);
   }
-  class TestFrac extends Test {
-    public function run() {
-      self::assertEqual(frac(0.1), 0.1);
-      self::assertEqual(frac(0.9), 0.9);
-      self::assertEqual(frac(0.5), 0.5);
-      self::assertEqual(frac(0.0), 0.0);
-      self::assertEqual(frac(5.0), 5.0 - 5.0);
-      self::assertEqual(frac(5.1), 5.1 - 5.0);
-      self::assertEqual(frac(5.9), 5.9 - 5.0);
-      self::assertEqual(frac(5.5), 5.5 - 5.0);
-      self::assertEqual(frac(-0.1), -0.1);
-      self::assertEqual(frac(-0.9), -0.9);
-      self::assertEqual(frac(-0.5), -0.5);
-      self::assertEqual(frac(-0.0), 0.0);
-      self::assertEqual(frac(-5.0), (-5.0) + 5.0);
-      self::assertEqual(frac(-5.1), (-5.1) + 5.0);
-      self::assertEqual(frac(-5.9), (-5.9) + 5.0);
-      self::assertEqual(frac(-5.5), (-5.5) + 5.0);
+  class TestFrac extends SampleTest {
+    public function evaluate($in) {
+      return frac($in);
+    }
+    public function getData() {
+      return array(
+        array(0.1, 0.1),
+        array(0.9, 0.9),
+        array(0.5, 0.5),
+        array(0.0, 0.0),
+        array(5.0, 5.0 - 5.0),
+        array(5.1, 5.1 - 5.0),
+        array(5.9, 5.9 - 5.0),
+        array(5.5, 5.5 - 5.0),
+        array(-0.1, -0.1),
+        array(-0.9, -0.9),
+        array(-0.5, -0.5),
+        array(-0.0, 0.0),
+        array(-5.0, (-5.0) + 5.0),
+        array(-5.1, (-5.1) + 5.0),
+        array(-5.9, (-5.9) + 5.0),
+        array(-5.5, (-5.5) + 5.0)
+      );
     }
   }
   function frac($x) {
