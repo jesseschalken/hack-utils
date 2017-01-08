@@ -43,6 +43,9 @@ final class _Tests {
       PCRE\Test::class_(),
       TestCtype::class_(),
       TestOverflowDateTime::class_(),
+      TestJSONEncode::class_(),
+      TestJSONDecode::class_(),
+      TestJSONError::class_(),
     ];
   }
 

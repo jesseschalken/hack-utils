@@ -41,7 +41,10 @@ namespace HackUtils {
         TestException::class_(),
         PCRE\Test::class_(),
         TestCtype::class_(),
-        TestOverflowDateTime::class_()
+        TestOverflowDateTime::class_(),
+        TestJSONEncode::class_(),
+        TestJSONDecode::class_(),
+        TestJSONError::class_()
       );
     }
     public static function main() {
