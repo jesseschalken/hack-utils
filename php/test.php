@@ -40,7 +40,8 @@ namespace HackUtils {
         TestDateTime::class_(),
         TestException::class_(),
         PCRE\Test::class_(),
-        TestCtype::class_()
+        TestCtype::class_(),
+        TestOverflowDateTime::class_()
       );
     }
     public static function main() {

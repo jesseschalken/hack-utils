@@ -45,6 +45,42 @@ namespace HackUtils {
     $l = array(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31);
     return $l[$m - 1];
   }
+  class TestOverflowDateTime extends Test {
+    public function run() {
+      self::assertEqual(
+        overflow_datetime(array(2017, 1, 8, 17, 14, 6, 957416)),
+        array(2017, 1, 8, 17, 14, 6, 957416)
+      );
+      self::assertEqual(
+        overflow_datetime(array(2017, 1, 8, 17, 14, 6, 1957416)),
+        array(2017, 1, 8, 17, 14, 7, 957416)
+      );
+      self::assertEqual(
+        overflow_datetime(array(2017, 1, 8, 17, 14, 66, 957416)),
+        array(2017, 1, 8, 17, 15, 6, 957416)
+      );
+      self::assertEqual(
+        overflow_datetime(array(2017, 1, 8, 17, 74, 6, 957416)),
+        array(2017, 1, 8, 18, 14, 6, 957416)
+      );
+      self::assertEqual(
+        overflow_datetime(array(2017, 1, 8, 49, 14, 6, 957416)),
+        array(2017, 1, 10, 1, 14, 6, 957416)
+      );
+      self::assertEqual(
+        overflow_datetime(array(2017, 1, 40, 17, 14, 6, 957416)),
+        array(2017, 2, 9, 17, 14, 6, 957416)
+      );
+      self::assertEqual(
+        overflow_datetime(array(2017, 0, 8, 17, 14, 6, 957416)),
+        array(2016, 12, 8, 17, 14, 6, 957416)
+      );
+      self::assertEqual(
+        overflow_datetime(array(234, 234, -235, 1234, -2354, 123, -1274682)),
+        array(252, 11, 26, 18, 48, 1, 725318)
+      );
+    }
+  }
   function overflow_datetime($datetime) {
     list($y, $m, $d, $h, $i, $s, $u) = $datetime;
     list($h, $i, $s, $u) = overflow_time(array($h, $i, $s, $u));

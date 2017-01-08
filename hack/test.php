@@ -42,6 +42,7 @@ final class _Tests {
       TestException::class_(),
       PCRE\Test::class_(),
       TestCtype::class_(),
+      TestOverflowDateTime::class_(),
     ];
   }
 

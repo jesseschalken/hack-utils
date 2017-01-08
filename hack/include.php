@@ -53,6 +53,7 @@
   'HackUtils\\TestFromHex' => 'main.php',
   'HackUtils\\TestLeapYear' => 'date_utils.php',
   'HackUtils\\TestOverflowDate' => 'date_utils.php',
+  'HackUtils\\TestOverflowDateTime' => 'date_utils.php',
   'HackUtils\\TestQuotRemDivMod' => 'math.php',
   'HackUtils\\TestReverseString' => 'main.php',
   'HackUtils\\TestStringCharCode' => 'main.php',

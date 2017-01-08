@@ -52,6 +52,43 @@ type date_parts = (int, int, int);
 type time_parts = (int, int, int, int);
 type datetime_parts = (int, int, int, int, int, int, int);
 
+class TestOverflowDateTime extends Test {
+  public function run(): void {
+    self::assertEqual(
+      overflow_datetime(tuple(2017, 1, 8, 17, 14, 6, 957416)),
+      tuple(2017, 1, 8, 17, 14, 6, 957416),
+    );
+    self::assertEqual(
+      overflow_datetime(tuple(2017, 1, 8, 17, 14, 6, 1957416)),
+      tuple(2017, 1, 8, 17, 14, 7, 957416),
+    );
+    self::assertEqual(
+      overflow_datetime(tuple(2017, 1, 8, 17, 14, 66, 957416)),
+      tuple(2017, 1, 8, 17, 15, 6, 957416),
+    );
+    self::assertEqual(
+      overflow_datetime(tuple(2017, 1, 8, 17, 74, 6, 957416)),
+      tuple(2017, 1, 8, 18, 14, 6, 957416),
+    );
+    self::assertEqual(
+      overflow_datetime(tuple(2017, 1, 8, 49, 14, 6, 957416)),
+      tuple(2017, 1, 10, 1, 14, 6, 957416),
+    );
+    self::assertEqual(
+      overflow_datetime(tuple(2017, 1, 40, 17, 14, 6, 957416)),
+      tuple(2017, 2, 9, 17, 14, 6, 957416),
+    );
+    self::assertEqual(
+      overflow_datetime(tuple(2017, 0, 8, 17, 14, 6, 957416)),
+      tuple(2016, 12, 8, 17, 14, 6, 957416),
+    );
+    self::assertEqual(
+      overflow_datetime(tuple(234, 234, -235, 1234, -2354, 123, -1274682)),
+      tuple(252, 11, 26, 18, 48, 1, 725318),
+    );
+  }
+}
+
 function overflow_datetime(datetime_parts $datetime): datetime_parts {
   list($y, $m, $d, $h, $i, $s, $u) = $datetime;
 
