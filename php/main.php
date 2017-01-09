@@ -7,23 +7,91 @@ namespace HackUtils {
   const NULL_RESOURCE = null;
   const NULL_BOOL = null;
   const NULL_MIXED = null;
+  class TestNewNull extends Test {
+    public function run() {
+      self::assertEqual(new_null(), null);
+    }
+  }
   function new_null() {
     return null;
+  }
+  class TestNullThrows extends Test {
+    public function run() {
+      self::assertEqual(null_throws("foo"), "foo");
+      self::assertException(
+        function() {
+          null_throws(null);
+        },
+        "Unexpected null"
+      );
+      self::assertException(
+        function() {
+          null_throws(null, "foo");
+        },
+        "foo"
+      );
+    }
   }
   function null_throws($value, $message = "Unexpected null") {
     return ($value === null) ? throw_(new \Exception($message)) : $value;
   }
+  class TestThrow extends Test {
+    public function run() {
+      self::assertException(
+        function() {
+          $a = throw_(new \Exception("lol", 2));
+          echo ($a);
+        },
+        "lol",
+        2
+      );
+    }
+  }
   function throw_($e) {
     throw $e;
+  }
+  class TestUnreachable extends Test {
+    public function run() {
+      self::assertException(
+        function() {
+          unreachable();
+        },
+        "This code should be unreachable"
+      );
+      self::assertException(
+        function() {
+          unreachable("foo");
+        },
+        "foo"
+      );
+    }
   }
   function unreachable($message = "This code should be unreachable") {
     throw new \Exception($message);
   }
+  class TestIfNull extends Test {
+    public function run() {
+      self::assertEqual(if_null("a", "b"), "a");
+      self::assertEqual(if_null("a", null), "a");
+      self::assertEqual(if_null(null, "b"), "b");
+      self::assertEqual(if_null(null, null), null);
+    }
+  }
   function if_null($x, $y) {
     return ($x === null) ? $y : $x;
   }
+  class TestFst extends Test {
+    public function run() {
+      self::assertEqual(fst(array("a", "b")), "a");
+    }
+  }
   function fst($t) {
     return $t[0];
+  }
+  class TestSnd extends Test {
+    public function run() {
+      self::assertEqual(snd(array("a", "b")), "b");
+    }
   }
   function snd($t) {
     return $t[1];
@@ -33,6 +101,14 @@ namespace HackUtils {
   }
   interface Settable {
     public function set($value);
+  }
+  class TestRef extends Test {
+    public function run() {
+      $ref = new Ref("x");
+      self::assertEqual($ref->get(), "x");
+      $ref->set("y");
+      self::assertEqual($ref->get(), "y");
+    }
   }
   final class Ref implements Gettable, Settable {
     private $value;
@@ -46,6 +122,20 @@ namespace HackUtils {
       $this->value = $value;
     }
   }
+  class TestIsAssoc extends SampleTest {
+    public function evaluate($in) {
+      return is_assoc($in);
+    }
+    public function getData() {
+      return array(
+        array(array(), false),
+        array(array("a"), false),
+        array(array("a", "b"), false),
+        array(array(1 => "a", 0 => "b"), true),
+        array(array("c" => "a", "d" => "b"), true)
+      );
+    }
+  }
   function is_assoc($x) {
     $i = 0;
     foreach ($x as $k => $v) {
@@ -55,8 +145,44 @@ namespace HackUtils {
     }
     return false;
   }
+  class TestConcat extends Test {
+    public function run() {
+      self::assertEqual(concat(array(), array()), array());
+      self::assertEqual(concat(array("a"), array()), array("a"));
+      self::assertEqual(concat(array(), array("a")), array("a"));
+      self::assertEqual(concat(array("a"), array("b")), array("a", "b"));
+      self::assertEqual(
+        concat(array("a", "c"), array("b")),
+        array("a", "c", "b")
+      );
+      self::assertEqual(
+        concat(array("a", "c"), array("b", "d")),
+        array("a", "c", "b", "d")
+      );
+    }
+  }
   function concat($a, $b) {
     return \array_merge($a, $b);
+  }
+  class TestConcatAll extends Test {
+    public function run() {
+      self::assertEqual(concat_all(array()), array());
+      self::assertEqual(concat_all(array(array("a", "b"))), array("a", "b"));
+      self::assertEqual(concat_all(array(array("a"), array())), array("a"));
+      self::assertEqual(concat_all(array(array(), array("a"))), array("a"));
+      self::assertEqual(
+        concat_all(array(array("a"), array("b"))),
+        array("a", "b")
+      );
+      self::assertEqual(
+        concat_all(array(array("a"), array("b"), array("c"))),
+        array("a", "b", "c")
+      );
+      self::assertEqual(
+        concat_all(array(array("a", "d"), array("b", "e"), array("c", "f"))),
+        array("a", "d", "b", "e", "c", "f")
+      );
+    }
   }
   function concat_all($vectors) {
     return
@@ -64,9 +190,28 @@ namespace HackUtils {
         ? \call_user_func_array("array_merge", $vectors)
         : array();
   }
+  class TestPush extends Test {
+    public function run() {
+      self::assertEqual(push(array(), "x"), array("x"));
+      self::assertEqual(push(array("y"), "x"), array("y", "x"));
+      self::assertEqual(push(array("y", "z"), "x"), array("y", "z", "x"));
+    }
+  }
   function push($v, $x) {
     \array_push($v, $x);
     return $v;
+  }
+  class TestPop extends Test {
+    public function run() {
+      self::assertEqual(pop(array(0)), array(array(), 0));
+      self::assertEqual(pop(array("a", "b")), array(array("a"), "b"));
+      self::assertException(
+        function() {
+          pop(array());
+        },
+        "Cannot pop last element: Array is empty"
+      );
+    }
   }
   function pop($v) {
     if (!\hacklib_cast_as_boolean($v)) {
@@ -75,9 +220,28 @@ namespace HackUtils {
     $x = \array_pop($v);
     return array($v, $x);
   }
+  class TestUnshift extends Test {
+    public function run() {
+      self::assertEqual(unshift("x", array()), array("x"));
+      self::assertEqual(unshift("x", array("y")), array("x", "y"));
+      self::assertEqual(unshift("x", array("y", "z")), array("x", "y", "z"));
+    }
+  }
   function unshift($x, $v) {
     \array_unshift($v, $x);
     return $v;
+  }
+  class TestShift extends Test {
+    public function run() {
+      self::assertEqual(shift(array(0)), array(0, array()));
+      self::assertEqual(shift(array("a", "b")), array("a", array("b")));
+      self::assertException(
+        function() {
+          shift(array());
+        },
+        "Cannot shift first element: Array is empty"
+      );
+    }
   }
   function shift($v) {
     if (!\hacklib_cast_as_boolean($v)) {
@@ -86,22 +250,116 @@ namespace HackUtils {
     $x = \array_shift($v);
     return array($x, $v);
   }
+  class TestRange extends Test {
+    public function run() {
+      self::assertEqual(range(0, 5), array(0, 1, 2, 3, 4, 5));
+      self::assertEqual(range(-3, 3), array(-3, -2, -1, 0, 1, 2, 3));
+      self::assertEqual(range(3, -3), array(3, 2, 1, 0, -1, -2, -3));
+      self::assertEqual(range(3, -3, 2), array(3, 1, -1, -3));
+      self::assertEqual(range(3, -3, -3), array(3, 0, -3));
+      self::assertEqual(range(3, -3, 4), array(3, -1));
+    }
+  }
   function range($start, $end, $step = 1) {
     return \range($start, $end, $step);
+  }
+  class TestFilter extends Test {
+    public function run() {
+      self::assertEqual(
+        filter(
+          array(6, 7, 8, 9, 10, 11, 12),
+          function($x) {
+            return (bool) ($x & 1);
+          }
+        ),
+        array(7, 9, 11)
+      );
+      self::assertEqual(
+        filter(
+          array(6, 7, 8, 9, 10, 11, 12),
+          function($x) {
+            return !((bool) ($x & 1));
+          }
+        ),
+        array(6, 8, 10, 12)
+      );
+    }
   }
   function filter($array, $f) {
     $ret = filter_assoc($array, $f);
     return
       \hacklib_not_equals(count($ret), count($array)) ? values($ret) : $array;
   }
+  class TestFilterAssoc extends Test {
+    public function run() {
+      self::assertEqual(
+        filter_assoc(
+          array("a" => 1, "b" => 2, "c" => 3, "d" => 4, "e" => 5),
+          function($x) {
+            return (bool) ($x & 1);
+          }
+        ),
+        array("a" => 1, "c" => 3, "e" => 5)
+      );
+    }
+  }
   function filter_assoc($array, $f) {
     return \array_filter($array, $f);
+  }
+  class TestMap extends Test {
+    public function run() {
+      self::assertEqual(
+        map(
+          array(1, 2, 3, 4, 5),
+          function($x) {
+            return ($x * $x) * $x;
+          }
+        ),
+        array(1, 8, 27, 64, 125)
+      );
+      self::assertEqual(
+        map(
+          range(1, 5),
+          function($x) {
+            return $x * 2;
+          }
+        ),
+        array(2, 4, 6, 8, 10)
+      );
+    }
   }
   function map($array, $f) {
     return \array_map($f, $array);
   }
+  class TestMapAssoc extends Test {
+    public function run() {
+      self::assertEqual(
+        map_assoc(
+          array("stringkey" => "value"),
+          function($x) {
+            Test::assertEqual($x, "value");
+            return "value2";
+          }
+        ),
+        array("stringkey" => "value2")
+      );
+    }
+  }
   function map_assoc($array, $f) {
     return \array_map($f, $array);
+  }
+  class TestMapKeys extends Test {
+    public function run() {
+      self::assertEqual(
+        map_keys(
+          array(9 => "a", -8 => "c"),
+          function($x) {
+            return $x * 2;
+          }
+        ),
+        array(18 => "a", -16 => "c")
+      );
+    }
   }
   function map_keys($array, $f) {
     $ret = array();
@@ -132,8 +390,53 @@ namespace HackUtils {
     }
     return $ret;
   }
+  class TestReduce extends Test {
+    public function run() {
+      $sum = function($x, $y) {
+        return $x + $y;
+      };
+      $product = function($x, $y) {
+        return $x * $y;
+      };
+      $push = function($x, $y) {
+        return push($x, $y);
+      };
+      $unshift = function($x, $y) {
+        return unshift($y, $x);
+      };
+      self::assertEqual(reduce(array(1, 2, 3, 4, 5), $sum, 0), 15);
+      self::assertEqual(reduce(array(1, 2, 3, 4, 5), $sum, -5), 10);
+      self::assertEqual(reduce(array(1, 2, 3, 4, 5), $product, 10), 1200);
+      self::assertEqual(
+        reduce(array(1, 2, 3, 4, 5), $push, array()),
+        array(1, 2, 3, 4, 5)
+      );
+      self::assertEqual(
+        reduce(array(1, 2, 3, 4, 5), $unshift, array()),
+        array(5, 4, 3, 2, 1)
+      );
+    }
+  }
   function reduce($array, $f, $initial) {
     return \array_reduce($array, $f, $initial);
+  }
+  class TestReduceRight extends Test {
+    public function run() {
+      $push = function($x, $y) {
+        return push($x, $y);
+      };
+      $unshift = function($x, $y) {
+        return unshift($y, $x);
+      };
+      self::assertEqual(
+        reduce_right(array(1, 2, 3, 4, 5), $push, array()),
+        array(5, 4, 3, 2, 1)
+      );
+      self::assertEqual(
+        reduce_right(array(1, 2, 3, 4, 5), $unshift, array()),
+        array(1, 2, 3, 4, 5)
+      );
+    }
   }
   function reduce_right($array, $f, $value) {
     $iter = new ArrayIterator($array);

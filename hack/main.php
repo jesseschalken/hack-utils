@@ -9,6 +9,12 @@ const ?resource NULL_RESOURCE = null;
 const ?bool NULL_BOOL = null;
 const mixed NULL_MIXED = null;
 
+class TestNewNull extends Test {
+  public function run(): void {
+    self::assertEqual(new_null(), null);
+  }
+}
+
 /**
  * The Hack typechecker reports "null" as "Partially type checked code.
  * Consider adding type annotations". To avoid that, you can replace it with
@@ -16,6 +22,24 @@ const mixed NULL_MIXED = null;
  */
 function new_null<T>(): ?T {
   return null;
+}
+
+class TestNullThrows extends Test {
+  public function run(): void {
+    self::assertEqual(null_throws('foo'), 'foo');
+    self::assertException(
+      function() {
+        null_throws(null);
+      },
+      'Unexpected null',
+    );
+    self::assertException(
+      function() {
+        null_throws(null, 'foo');
+      },
+      'foo',
+    );
+  }
 }
 
 /**
@@ -26,6 +50,19 @@ function null_throws<T>(?T $value, string $message = "Unexpected null"): T {
   return $value === null ? throw_(new \Exception($message)) : $value;
 }
 
+class TestThrow extends Test {
+  public function run(): void {
+    self::assertException(
+      function() {
+        $a = throw_(new \Exception('lol', 2));
+        print $a;
+      },
+      'lol',
+      2,
+    );
+  }
+}
+
 /**
  * Throw an exception in the context of an expression.
  */
@@ -33,10 +70,36 @@ function throw_<T>(\Exception $e): T {
   throw $e;
 }
 
+class TestUnreachable extends Test {
+  public function run(): void {
+    self::assertException(
+      function() {
+        unreachable();
+      },
+      'This code should be unreachable',
+    );
+    self::assertException(
+      function() {
+        unreachable('foo');
+      },
+      'foo',
+    );
+  }
+}
+
 function unreachable(
   string $message = 'This code should be unreachable',
 ): noreturn {
   throw new \Exception($message);
+}
+
+class TestIfNull extends Test {
+  public function run(): void {
+    self::assertEqual(if_null('a', 'b'), 'a');
+    self::assertEqual(if_null('a', null), 'a');
+    self::assertEqual(if_null(null, 'b'), 'b');
+    self::assertEqual(if_null(null, null), null);
+  }
 }
 
 /**
@@ -46,8 +109,20 @@ function if_null<T>(?T $x, T $y): T {
   return $x === null ? $y : $x;
 }
 
+class TestFst extends Test {
+  public function run(): void {
+    self::assertEqual(fst(tuple('a', 'b')), 'a');
+  }
+}
+
 function fst<T>((T, mixed) $t): T {
   return $t[0];
+}
+
+class TestSnd extends Test {
+  public function run(): void {
+    self::assertEqual(snd(tuple('a', 'b')), 'b');
+  }
 }
 
 function snd<T>((mixed, T) $t): T {
@@ -60,6 +135,15 @@ interface Gettable<+T> {
 
 interface Settable<-T> {
   public function set(T $value): void;
+}
+
+class TestRef extends Test {
+  public function run(): void {
+    $ref = new Ref('x');
+    self::assertEqual($ref->get(), 'x');
+    $ref->set('y');
+    self::assertEqual($ref->get(), 'y');
+  }
 }
 
 /**
@@ -78,6 +162,21 @@ final class Ref<T> implements Gettable<T>, Settable<T> {
   }
 }
 
+class TestIsAssoc extends SampleTest<array<mixed, mixed>, bool> {
+  public function evaluate(array<mixed, mixed> $in): bool {
+    return is_assoc($in);
+  }
+  public function getData(): array<(array<mixed, mixed>, bool)> {
+    return [
+      tuple([], false),
+      tuple(['a'], false),
+      tuple(['a', 'b'], false),
+      tuple([1 => 'a', 0 => 'b'], true),
+      tuple(['c' => 'a', 'd' => 'b'], true),
+    ];
+  }
+}
+
 /**
  * Returns true if the array is associative. False if not.
  */
@@ -91,17 +190,64 @@ function is_assoc(array<mixed, mixed> $x): bool {
   return false;
 }
 
+class TestConcat extends Test {
+  public function run(): void {
+    self::assertEqual(concat([], []), []);
+    self::assertEqual(concat(['a'], []), ['a']);
+    self::assertEqual(concat([], ['a']), ['a']);
+    self::assertEqual(concat(['a'], ['b']), ['a', 'b']);
+    self::assertEqual(concat(['a', 'c'], ['b']), ['a', 'c', 'b']);
+    self::assertEqual(concat(['a', 'c'], ['b', 'd']), ['a', 'c', 'b', 'd']);
+  }
+}
+
 function concat<T>(array<T> $a, array<T> $b): array<T> {
   return \array_merge($a, $b);
+}
+
+class TestConcatAll extends Test {
+  public function run(): void {
+    self::assertEqual(concat_all([]), []);
+    self::assertEqual(concat_all([['a', 'b']]), ['a', 'b']);
+    self::assertEqual(concat_all([['a'], []]), ['a']);
+    self::assertEqual(concat_all([[], ['a']]), ['a']);
+    self::assertEqual(concat_all([['a'], ['b']]), ['a', 'b']);
+    self::assertEqual(concat_all([['a'], ['b'], ['c']]), ['a', 'b', 'c']);
+    self::assertEqual(
+      concat_all([['a', 'd'], ['b', 'e'], ['c', 'f']]),
+      ['a', 'd', 'b', 'e', 'c', 'f'],
+    );
+  }
 }
 
 function concat_all<T>(array<array<T>> $vectors): array<T> {
   return $vectors ? \call_user_func_array('array_merge', $vectors) : [];
 }
 
+class TestPush extends Test {
+  public function run(): void {
+    self::assertEqual(push([], 'x'), ['x']);
+    self::assertEqual(push(['y'], 'x'), ['y', 'x']);
+    self::assertEqual(push(['y', 'z'], 'x'), ['y', 'z', 'x']);
+  }
+}
+
 function push<T>(array<T> $v, T $x): array<T> {
   \array_push($v, $x);
   return $v;
+}
+
+class TestPop extends Test {
+  public function run(): void {
+    self::assertEqual(pop([0]), tuple([], 0));
+    self::assertEqual(pop(['a', 'b']), tuple(['a'], 'b'));
+    self::assertException(
+      function() {
+        pop([]);
+      },
+      'Cannot pop last element: Array is empty',
+    );
+  }
 }
 
 function pop<T>(array<T> $v): (array<T>, T) {
@@ -112,9 +258,30 @@ function pop<T>(array<T> $v): (array<T>, T) {
   return tuple($v, $x);
 }
 
+class TestUnshift extends Test {
+  public function run(): void {
+    self::assertEqual(unshift('x', []), ['x']);
+    self::assertEqual(unshift('x', ['y']), ['x', 'y']);
+    self::assertEqual(unshift('x', ['y', 'z']), ['x', 'y', 'z']);
+  }
+}
+
 function unshift<T>(T $x, array<T> $v): array<T> {
   \array_unshift($v, $x);
   return $v;
+}
+
+class TestShift extends Test {
+  public function run(): void {
+    self::assertEqual(shift([0]), tuple(0, []));
+    self::assertEqual(shift(['a', 'b']), tuple('a', ['b']));
+    self::assertException(
+      function() {
+        shift([]);
+      },
+      'Cannot shift first element: Array is empty',
+    );
+  }
 }
 
 function shift<T>(array<T> $v): (T, array<T>) {
@@ -125,8 +292,42 @@ function shift<T>(array<T> $v): (T, array<T>) {
   return tuple($x, $v);
 }
 
+class TestRange extends Test {
+  public function run(): void {
+    self::assertEqual(range(0, 5), [0, 1, 2, 3, 4, 5]);
+    self::assertEqual(range(-3, 3), [-3, -2, -1, 0, 1, 2, 3]);
+    self::assertEqual(range(3, -3), [3, 2, 1, 0, -1, -2, -3]);
+    self::assertEqual(range(3, -3, 2), [3, 1, -1, -3]);
+    self::assertEqual(range(3, -3, -3), [3, 0, -3]);
+    self::assertEqual(range(3, -3, 4), [3, -1]);
+  }
+}
+
 function range(int $start, int $end, int $step = 1): array<int> {
   return \range($start, $end, $step);
+}
+
+class TestFilter extends Test {
+  public function run(): void {
+    self::assertEqual(
+      filter(
+        [6, 7, 8, 9, 10, 11, 12],
+        function($x) {
+          return (bool) ($x & 1);
+        },
+      ),
+      [7, 9, 11],
+    );
+    self::assertEqual(
+      filter(
+        [6, 7, 8, 9, 10, 11, 12],
+        function($x) {
+          return !(bool) ($x & 1);
+        },
+      ),
+      [6, 8, 10, 12],
+    );
+  }
 }
 
 function filter<T>(array<T> $array, (function(T): bool) $f): array<T> {
@@ -136,11 +337,49 @@ function filter<T>(array<T> $array, (function(T): bool) $f): array<T> {
   return count($ret) != count($array) ? values($ret) : $array;
 }
 
+class TestFilterAssoc extends Test {
+  public function run(): void {
+    self::assertEqual(
+      filter_assoc(
+        ["a" => 1, "b" => 2, "c" => 3, "d" => 4, "e" => 5],
+        function($x) {
+          return (bool) ($x & 1);
+        },
+      ),
+      ['a' => 1, 'c' => 3, 'e' => 5],
+    );
+  }
+}
+
 function filter_assoc<Tk, Tv>(
   array<Tk, Tv> $array,
   (function(Tv): bool) $f,
 ): array<Tk, Tv> {
   return \array_filter($array, $f);
+}
+
+class TestMap extends Test {
+  public function run(): void {
+    self::assertEqual(
+      map(
+        [1, 2, 3, 4, 5],
+        function($x) {
+          return $x * $x * $x;
+        },
+      ),
+      [1, 8, 27, 64, 125],
+    );
+
+    self::assertEqual(
+      map(
+        range(1, 5),
+        function($x) {
+          return $x * 2;
+        },
+      ),
+      [2, 4, 6, 8, 10],
+    );
+  }
 }
 
 function map<Tin, Tout>(
@@ -150,11 +389,40 @@ function map<Tin, Tout>(
   return \array_map($f, $array);
 }
 
+class TestMapAssoc extends Test {
+  public function run(): void {
+    self::assertEqual(
+      map_assoc(
+        ["stringkey" => "value"],
+        function($x) {
+          Test::assertEqual($x, 'value');
+          return 'value2';
+        },
+      ),
+      ["stringkey" => "value2"],
+    );
+  }
+}
+
 function map_assoc<Tk, Tv1, Tv2>(
   array<Tk, Tv1> $array,
   (function(Tv1): Tv2) $f,
 ): array<Tk, Tv2> {
   return \array_map($f, $array);
+}
+
+class TestMapKeys extends Test {
+  public function run(): void {
+    self::assertEqual(
+      map_keys(
+        [9 => 'a', -8 => 'c'],
+        function($x) {
+          return $x * 2;
+        },
+      ),
+      [18 => 'a', -16 => 'c'],
+    );
+  }
 }
 
 function map_keys<Tk1, Tk2, Tv>(
@@ -193,12 +461,53 @@ function concat_map<Tin, Tout>(
   return $ret;
 }
 
+class TestReduce extends Test {
+  public function run(): void {
+    $sum = function($x, $y) {
+      return $x + $y;
+    };
+    $product = function($x, $y) {
+      return $x * $y;
+    };
+    $push = function($x, $y) {
+      return push($x, $y);
+    };
+    $unshift = function($x, $y) {
+      return unshift($y, $x);
+    };
+    self::assertEqual(reduce([1, 2, 3, 4, 5], $sum, 0), 15);
+    self::assertEqual(reduce([1, 2, 3, 4, 5], $sum, -5), 10);
+    self::assertEqual(reduce([1, 2, 3, 4, 5], $product, 10), 1200);
+    self::assertEqual(reduce([1, 2, 3, 4, 5], $push, []), [1, 2, 3, 4, 5]);
+    self::assertEqual(reduce([1, 2, 3, 4, 5], $unshift, []), [5, 4, 3, 2, 1]);
+  }
+}
+
 function reduce<Tin, Tout>(
   array<arraykey, Tin> $array,
   (function(Tout, Tin): Tout) $f,
   Tout $initial,
 ): Tout {
   return \array_reduce($array, $f, $initial);
+}
+
+class TestReduceRight extends Test {
+  public function run(): void {
+    $push = function($x, $y) {
+      return push($x, $y);
+    };
+    $unshift = function($x, $y) {
+      return unshift($y, $x);
+    };
+    self::assertEqual(
+      reduce_right([1, 2, 3, 4, 5], $push, []),
+      [5, 4, 3, 2, 1],
+    );
+    self::assertEqual(
+      reduce_right([1, 2, 3, 4, 5], $unshift, []),
+      [1, 2, 3, 4, 5],
+    );
+  }
 }
 
 function reduce_right<Tin, Tout>(

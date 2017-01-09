@@ -44,7 +44,30 @@ namespace HackUtils {
         TestOverflowDateTime::class_(),
         TestJSONEncode::class_(),
         TestJSONDecode::class_(),
-        TestJSONError::class_()
+        TestJSONError::class_(),
+        TestConcat::class_(),
+        TestConcatAll::class_(),
+        TestFilter::class_(),
+        TestFilterAssoc::class_(),
+        TestFst::class_(),
+        TestSnd::class_(),
+        TestIfNull::class_(),
+        TestIsAssoc::class_(),
+        TestMap::class_(),
+        TestMapAssoc::class_(),
+        TestMapKeys::class_(),
+        TestNewNull::class_(),
+        TestNullThrows::class_(),
+        TestPop::class_(),
+        TestPush::class_(),
+        TestShift::class_(),
+        TestUnshift::class_(),
+        TestRange::class_(),
+        TestReduce::class_(),
+        TestReduceRight::class_(),
+        TestRef::class_(),
+        TestThrow::class_(),
+        TestUnreachable::class_()
       );
     }
     public static function main() {
