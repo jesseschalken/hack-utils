@@ -522,6 +522,40 @@ function reduce_right<Tin, Tout>(
   return $value;
 }
 
+class TestGroupBy extends Test {
+  public function run(): void {
+    self::assertEqual(
+      group_by(
+        [
+          'a' => 12,
+          'asdf' => 4,
+          'etr' => 3,
+          '' => 24,
+          'efw' => 23,
+          'x' => 23,
+          '23' => 3423,
+          'sd' => 54,
+          'ergerg' => 53,
+          '+(' => 43445,
+          ']123' => 45,
+        ],
+        function($x) {
+          return quot($x, 10);
+        },
+      ),
+      [
+        1 => [12],
+        0 => [4, 3],
+        2 => [24, 23, 23],
+        342 => [3423],
+        5 => [54, 53],
+        4344 => [43445],
+        4 => [45],
+      ],
+    );
+  }
+}
+
 function group_by<Tk as arraykey, Tv>(
   array<mixed, Tv> $a,
   (function(Tv): Tk) $f,
@@ -531,6 +565,49 @@ function group_by<Tk as arraykey, Tv>(
     $res[$f($v)][] = $v;
   }
   return $res;
+}
+
+class TestAnyAll extends Test {
+  public function run(): void {
+    $count = new Ref(0);
+    $list = [9, 4, 1, 3, 4, 345, 2342, 3434, 34];
+    $moreThan100 = function($x) use ($count) {
+      $count->set($count->get() + 1);
+      return $x > 100;
+    };
+    $lessThan0 = function($x) use ($count) {
+      $count->set($count->get() + 1);
+      return $x < 0;
+    };
+    $moreThan0 = function($x) use ($count) {
+      $count->set($count->get() + 1);
+      return $x > 0;
+    };
+
+    $count->set(0);
+    self::assertEqual(any($list, $moreThan100), true);
+    self::assertEqual($count->get(), 6);
+
+    $count->set(0);
+    self::assertEqual(all($list, $moreThan100), false);
+    self::assertEqual($count->get(), 1);
+
+    $count->set(0);
+    self::assertEqual(any($list, $lessThan0), false);
+    self::assertEqual($count->get(), 9);
+
+    $count->set(0);
+    self::assertEqual(all($list, $lessThan0), false);
+    self::assertEqual($count->get(), 1);
+
+    $count->set(0);
+    self::assertEqual(any($list, $moreThan0), true);
+    self::assertEqual($count->get(), 1);
+
+    $count->set(0);
+    self::assertEqual(all($list, $moreThan0), true);
+    self::assertEqual($count->get(), 9);
+  }
 }
 
 function any<T>(array<mixed, T> $a, (function(T): bool) $f): bool {
@@ -551,12 +628,85 @@ function all<T>(array<mixed, T> $a, (function(T): bool) $f): bool {
   return true;
 }
 
-function keys_to_lower<Tk, Tv>(array<Tk, Tv> $array): array<Tk, Tv> {
+class TestKeysToLower extends Test {
+  public function run(): void {
+    self::assertEqual(
+      keys_to_lower(
+        [
+          'fer' => 4,
+          'SADFf' => 9,
+          ':}{ADSjj}' => 6,
+          'foo BAR baz' => 97674,
+          'KEK' => 1,
+        ],
+      ),
+      [
+        'fer' => 4,
+        'sadff' => 9,
+        ':}{adsjj}' => 6,
+        'foo bar baz' => 97674,
+        'kek' => 1,
+      ],
+    );
+  }
+}
+
+function keys_to_lower<Tk as arraykey, Tv>(
+  array<Tk, Tv> $array,
+): array<Tk, Tv> {
   return \array_change_key_case($array, \CASE_LOWER);
 }
 
-function keys_to_uppper<Tk, Tv>(array<Tk, Tv> $array): array<Tk, Tv> {
+class TestKeysToUpper extends Test {
+  public function run(): void {
+    self::assertEqual(
+      keys_to_uppper(
+        [
+          'fer' => 4,
+          'SADFf' => 9,
+          ':}{ADSjj}' => 6,
+          'foo BAR baz' => 97674,
+          'KEK' => 1,
+        ],
+      ),
+      [
+        'FER' => 4,
+        'SADFF' => 9,
+        ':}{ADSJJ}' => 6,
+        'FOO BAR BAZ' => 97674,
+        'KEK' => 1,
+      ],
+    );
+  }
+}
+
+function keys_to_uppper<Tk as arraykey, Tv>(
+  array<Tk, Tv> $array,
+): array<Tk, Tv> {
   return \array_change_key_case($array, \CASE_UPPER);
+}
+
+class TestToPairs extends Test {
+  public function run(): void {
+    self::assertEqual(
+      to_pairs(
+        [
+          'fer' => 4,
+          'SADFf' => 9,
+          ':}{ADSjj}' => 6,
+          'foo BAR baz' => 97674,
+          'KEK' => 1,
+        ],
+      ),
+      [
+        tuple('fer', 4),
+        tuple('SADFf', 9),
+        tuple(':}{ADSjj}', 6),
+        tuple('foo BAR baz', 97674),
+        tuple('KEK', 1),
+      ],
+    );
+  }
 }
 
 function to_pairs<Tk, Tv>(array<Tk, Tv> $array): array<(Tk, Tv)> {
@@ -565,6 +715,30 @@ function to_pairs<Tk, Tv>(array<Tk, Tv> $array): array<(Tk, Tv)> {
     $r[] = tuple($k, $v);
   }
   return $r;
+}
+
+class TestFromPairs extends Test {
+  public function run(): void {
+    self::assertEqual(
+      from_pairs(
+        [
+          tuple('fer', 4),
+          tuple('SADFf', 9),
+          tuple(':}{ADSjj}', 6),
+          tuple('foo BAR baz', 97674),
+          tuple('KEK', 1),
+          tuple('fer', 9),
+        ],
+      ),
+      [
+        'fer' => 9,
+        'SADFf' => 9,
+        ':}{ADSjj}' => 6,
+        'foo BAR baz' => 97674,
+        'KEK' => 1,
+      ],
+    );
+  }
 }
 
 function from_pairs<Tk as arraykey, Tv>(

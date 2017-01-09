@@ -312,7 +312,7 @@ namespace HackUtils {
         map(
           array(1, 2, 3, 4, 5),
           function($x) {
-            return ($x * $x) * $x;
+            return $x * $x * $x;
           }
         ),
         array(1, 8, 27, 64, 125)
@@ -449,12 +449,81 @@ namespace HackUtils {
     }
     return $value;
   }
+  class TestGroupBy extends Test {
+    public function run() {
+      self::assertEqual(
+        group_by(
+          array(
+            "a" => 12,
+            "asdf" => 4,
+            "etr" => 3,
+            "" => 24,
+            "efw" => 23,
+            "x" => 23,
+            "23" => 3423,
+            "sd" => 54,
+            "ergerg" => 53,
+            "+(" => 43445,
+            "]123" => 45
+          ),
+          function($x) {
+            return quot($x, 10);
+          }
+        ),
+        array(
+          1 => array(12),
+          0 => array(4, 3),
+          2 => array(24, 23, 23),
+          342 => array(3423),
+          5 => array(54, 53),
+          4344 => array(43445),
+          4 => array(45)
+        )
+      );
+    }
+  }
   function group_by($a, $f) {
     $res = array();
     foreach ($a as $v) {
       $res[$f($v)][] = $v;
     }
     return $res;
+  }
+  class TestAnyAll extends Test {
+    public function run() {
+      $count = new Ref(0);
+      $list = array(9, 4, 1, 3, 4, 345, 2342, 3434, 34);
+      $moreThan100 = function($x) use ($count) {
+        $count->set($count->get() + 1);
+        return $x > 100;
+      };
+      $lessThan0 = function($x) use ($count) {
+        $count->set($count->get() + 1);
+        return $x < 0;
+      };
+      $moreThan0 = function($x) use ($count) {
+        $count->set($count->get() + 1);
+        return $x > 0;
+      };
+      $count->set(0);
+      self::assertEqual(any($list, $moreThan100), true);
+      self::assertEqual($count->get(), 6);
+      $count->set(0);
+      self::assertEqual(all($list, $moreThan100), false);
+      self::assertEqual($count->get(), 1);
+      $count->set(0);
+      self::assertEqual(any($list, $lessThan0), false);
+      self::assertEqual($count->get(), 9);
+      $count->set(0);
+      self::assertEqual(all($list, $lessThan0), false);
+      self::assertEqual($count->get(), 1);
+      $count->set(0);
+      self::assertEqual(any($list, $moreThan0), true);
+      self::assertEqual($count->get(), 1);
+      $count->set(0);
+      self::assertEqual(all($list, $moreThan0), true);
+      self::assertEqual($count->get(), 9);
+    }
   }
   function any($a, $f) {
     foreach ($a as $x) {
@@ -472,11 +541,77 @@ namespace HackUtils {
     }
     return true;
   }
+  class TestKeysToLower extends Test {
+    public function run() {
+      self::assertEqual(
+        keys_to_lower(
+          array(
+            "fer" => 4,
+            "SADFf" => 9,
+            ":}{ADSjj}" => 6,
+            "foo BAR baz" => 97674,
+            "KEK" => 1
+          )
+        ),
+        array(
+          "fer" => 4,
+          "sadff" => 9,
+          ":}{adsjj}" => 6,
+          "foo bar baz" => 97674,
+          "kek" => 1
+        )
+      );
+    }
+  }
   function keys_to_lower($array) {
     return \array_change_key_case($array, \CASE_LOWER);
   }
+  class TestKeysToUpper extends Test {
+    public function run() {
+      self::assertEqual(
+        keys_to_uppper(
+          array(
+            "fer" => 4,
+            "SADFf" => 9,
+            ":}{ADSjj}" => 6,
+            "foo BAR baz" => 97674,
+            "KEK" => 1
+          )
+        ),
+        array(
+          "FER" => 4,
+          "SADFF" => 9,
+          ":}{ADSJJ}" => 6,
+          "FOO BAR BAZ" => 97674,
+          "KEK" => 1
+        )
+      );
+    }
+  }
   function keys_to_uppper($array) {
     return \array_change_key_case($array, \CASE_UPPER);
+  }
+  class TestToPairs extends Test {
+    public function run() {
+      self::assertEqual(
+        to_pairs(
+          array(
+            "fer" => 4,
+            "SADFf" => 9,
+            ":}{ADSjj}" => 6,
+            "foo BAR baz" => 97674,
+            "KEK" => 1
+          )
+        ),
+        array(
+          array("fer", 4),
+          array("SADFf", 9),
+          array(":}{ADSjj}", 6),
+          array("foo BAR baz", 97674),
+          array("KEK", 1)
+        )
+      );
+    }
   }
   function to_pairs($array) {
     $r = array();
@@ -484,6 +619,29 @@ namespace HackUtils {
       $r[] = array($k, $v);
     }
     return $r;
+  }
+  class TestFromPairs extends Test {
+    public function run() {
+      self::assertEqual(
+        from_pairs(
+          array(
+            array("fer", 4),
+            array("SADFf", 9),
+            array(":}{ADSjj}", 6),
+            array("foo BAR baz", 97674),
+            array("KEK", 1),
+            array("fer", 9)
+          )
+        ),
+        array(
+          "fer" => 9,
+          "SADFf" => 9,
+          ":}{ADSjj}" => 6,
+          "foo BAR baz" => 97674,
+          "KEK" => 1
+        )
+      );
+    }
   }
   function from_pairs($pairs) {
     $r = array();

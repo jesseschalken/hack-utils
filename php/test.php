@@ -67,7 +67,13 @@ namespace HackUtils {
         TestReduceRight::class_(),
         TestRef::class_(),
         TestThrow::class_(),
-        TestUnreachable::class_()
+        TestUnreachable::class_(),
+        TestAnyAll::class_(),
+        TestFromPairs::class_(),
+        TestToPairs::class_(),
+        TestGroupBy::class_(),
+        TestKeysToLower::class_(),
+        TestKeysToUpper::class_()
       );
     }
     public static function main() {
