@@ -751,12 +751,64 @@ function from_pairs<Tk as arraykey, Tv>(
   return $r;
 }
 
+class TestGet extends Test {
+  public function run(): void {
+    self::assertEqual(get(['a' => 5], 'a'), 5);
+    self::assertEqual(get(['c' => 1, 'a' => 5], 'a'), 5);
+    self::assertEqual(get(['c' => 1, 'a' => null], 'a'), null);
+
+    $this->testErrors();
+  }
+
+  private function testErrors(): void {
+    $errors = CaptureErrors::start();
+    self::assertException(
+      function() {
+        get([], 'key');
+      },
+      "Key 'key' does not exist in array",
+    );
+    $errors->finish();
+
+    // Make sure a PHP errors was emitted
+    $errors = $errors->getErrors();
+    self::assertEqual(\count($errors), 1);
+    self::assertEqual($errors[0]->getMessage(), 'Undefined index: key');
+    self::assertEqual($errors[0]->getCode(), 0);
+    self::assertEqual($errors[0]->getSeverity(), \E_NOTICE);
+  }
+}
+
 function get<Tk as arraykey, Tv>(array<Tk, Tv> $array, Tk $key): Tv {
   $res = $array[$key];
   if ($res === null && !key_exists($array, $key)) {
     throw new Exception("Key '$key' does not exist in array");
   }
   return $res;
+}
+
+class TestGetPair extends Test {
+  public function run(): void {
+    $array = ['a' => 'b', 'c' => 'd', 'e' => 'f'];
+    self::assertEqual(get_pair($array, 0), tuple('a', 'b'));
+    self::assertEqual(get_pair($array, 1), tuple('c', 'd'));
+    self::assertEqual(get_pair($array, 2), tuple('e', 'f'));
+    self::assertEqual(get_pair($array, -1), tuple('e', 'f'));
+    self::assertEqual(get_pair($array, -2), tuple('c', 'd'));
+    self::assertEqual(get_pair($array, -3), tuple('a', 'b'));
+    self::assertException(
+      function() use ($array) {
+        get_pair($array, 3);
+      },
+      'Offset 3 is out of bounds in array of size 3',
+    );
+    self::assertException(
+      function() use ($array) {
+        get_pair($array, -4);
+      },
+      'Offset -4 is out of bounds in array of size 3',
+    );
+  }
 }
 
 /**
@@ -769,12 +821,26 @@ function get<Tk as arraykey, Tv>(array<Tk, Tv> $array, Tk $key): Tv {
  * get_pair($map, -1)[1] // last value
  */
 function get_pair<Tk, Tv>(array<Tk, Tv> $array, int $offset): (Tk, Tv) {
-  foreach (slice_assoc($array, $offset, 1) as $k => $v) {
-    return tuple($k, $v);
+  $count = size($array);
+  if ($offset < $count && $offset >= -$count) {
+    foreach (slice_assoc($array, $offset, 1) as $k => $v) {
+      return tuple($k, $v);
+    }
   }
   throw new Exception(
-    "Offset $offset is out of bounds in array of size ".size($array),
+    "Offset $offset is out of bounds in array of size $count",
   );
+}
+
+class TestSet extends Test {
+  public function run(): void {
+    $array = ['a' => 'b', 'c' => 'd'];
+    self::assertEqual(set($array, 'a', 9), ['a' => 9, 'c' => 'd']);
+    self::assertEqual(
+      set($array, 'e', 9),
+      ['a' => 'b', 'c' => 'd', 'e' => 9],
+    );
+  }
 }
 
 function set<Tk, Tv>(array<Tk, Tv> $array, Tk $key, Tv $val): array<Tk, Tv> {
@@ -782,8 +848,25 @@ function set<Tk, Tv>(array<Tk, Tv> $array, Tk $key, Tv $val): array<Tk, Tv> {
   return $array;
 }
 
+class TestGetOrNull extends Test {
+  public function run(): void {
+    $array = ['a' => 'b'];
+    self::assertEqual(get_or_null($array, 'a'), 'b');
+    self::assertEqual(get_or_null($array, 'c'), null);
+  }
+}
+
 function get_or_null<Tk, Tv>(array<Tk, Tv> $array, Tk $key): ?Tv {
   return _idx_isset($array, $key, null);
+}
+
+class TestGetOrDefault extends Test {
+  public function run(): void {
+    $array = ['a' => 'b', 'c' => null];
+    self::assertEqual(get_or_default($array, 'a', 1), 'b');
+    self::assertEqual(get_or_default($array, 'c', 1), null);
+    self::assertEqual(get_or_default($array, 'e', 1), 1);
+  }
 }
 
 function get_or_default<Tk, Tv>(
@@ -792,6 +875,15 @@ function get_or_default<Tk, Tv>(
   Tv $default,
 ): Tv {
   return _idx($array, $key, $default);
+}
+
+class TestGetIssetDefault extends Test {
+  public function run(): void {
+    $array = ['a' => 'b', 'c' => null];
+    self::assertEqual(get_isset_default($array, 'a', 1), 'b');
+    self::assertEqual(get_isset_default($array, 'c', 1), 1);
+    self::assertEqual(get_isset_default($array, 'e', 1), 1);
+  }
 }
 
 /**
@@ -805,8 +897,26 @@ function get_isset_default<Tk, Tv>(
   return _idx_isset($array, $key, $default);
 }
 
+class TestKeyExists extends Test {
+  public function run(): void {
+    $array = ['a' => 'b', 'c' => null];
+    self::assertEqual(key_exists($array, 'a'), true);
+    self::assertEqual(key_exists($array, 'c'), true);
+    self::assertEqual(key_exists($array, 'e'), false);
+  }
+}
+
 function key_exists<Tk>(array<Tk, mixed> $array, Tk $key): bool {
   return \array_key_exists($key, $array);
+}
+
+class TestKeyIsset extends Test {
+  public function run(): void {
+    $array = ['a' => 'b', 'c' => null];
+    self::assertEqual(key_isset($array, 'a'), true);
+    self::assertEqual(key_isset($array, 'c'), false);
+    self::assertEqual(key_isset($array, 'e'), false);
+  }
 }
 
 /**
@@ -814,6 +924,27 @@ function key_exists<Tk>(array<Tk, mixed> $array, Tk $key): bool {
  */
 function key_isset<Tk>(array<Tk, mixed> $array, Tk $key): bool {
   return get_or_null($array, $key) !== null;
+}
+
+class TestGetOffset extends Test {
+  public function run(): void {
+    $array = ['a', 'b', 'c', null];
+    self::assertEqual(get_offset($array, 0), 'a');
+    self::assertEqual(get_offset($array, 1), 'b');
+    self::assertEqual(get_offset($array, 2), 'c');
+    self::assertEqual(get_offset($array, 3), null);
+    self::assertEqual(get_offset($array, -4), 'a');
+    self::assertEqual(get_offset($array, -3), 'b');
+    self::assertEqual(get_offset($array, -2), 'c');
+    self::assertEqual(get_offset($array, -1), null);
+
+    self::assertException(
+      function() use ($array) {
+        get_offset($array, 8);
+      },
+      'Index 8 out of bounds in array of length 4',
+    );
+  }
 }
 
 function get_offset<T>(array<T> $v, int $i): T {
@@ -825,6 +956,25 @@ function get_offset<T>(array<T> $v, int $i): T {
     throw new Exception("Index $i out of bounds in array of length $l");
   }
   return $v[$i];
+}
+
+class TestSetOffset extends Test {
+  public function run(): void {
+    $array = ['a', 'c', null];
+    self::assertEqual(set_offset($array, 0, 'kek'), ['kek', 'c', null]);
+    self::assertEqual(set_offset($array, 1, 'kek'), ['a', 'kek', null]);
+    self::assertEqual(set_offset($array, 2, 'kek'), ['a', 'c', 'kek']);
+    self::assertEqual(set_offset($array, -3, 'kek'), ['kek', 'c', null]);
+    self::assertEqual(set_offset($array, -2, 'kek'), ['a', 'kek', null]);
+    self::assertEqual(set_offset($array, -1, 'kek'), ['a', 'c', 'kek']);
+
+    self::assertException(
+      function() use ($array) {
+        set_offset($array, 8, 'kek');
+      },
+      'Index 8 out of bounds in array of length 3',
+    );
+  }
 }
 
 function set_offset<T>(array<T> $v, int $i, T $x): array<T> {

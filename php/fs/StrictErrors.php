@@ -1,53 +1,71 @@
 <?php
 namespace HackUtils {
   require_once ($GLOBALS["HACKLIB_ROOT"]);
-  final class StrictErrors {
-    private static $handler;
+  abstract class Errors {
     public static function start() {
-      \set_error_handler(
-        (self::$handler !== null)
-          ? self::$handler
-          : (self::$handler = function($type, $message, $file, $line) {
-               throw new \ErrorException($message, 0, $type, $file, $line);
-             })
-      );
-      return new self();
+      return new static();
     }
-    private $bound = true;
-    private function __construct() {}
+    private $bound = false;
+    public function __construct() {
+      $self = $this;
+      $func = function($type, $message, $file, $line) use ($self) {
+        $e = new \ErrorException($message, 0, $type, $file, $line);
+        $self->handleError($e);
+      };
+      \set_error_handler($func);
+      $this->bound = true;
+    }
     public function __destruct() {
       $this->finish();
     }
-    public function finish() {
+    public abstract function handleError($e);
+    public final function finish() {
       if (\hacklib_cast_as_boolean($this->bound)) {
         \restore_error_handler();
         $this->bound = false;
       }
     }
-    public function finishAny($x) {
+    public final function finishAny($x) {
       $this->finish();
       return $x;
     }
-    public function finishZero($x) {
+    public final function finishZero($x) {
       return $this->finishAny(Exception::assertZero($x));
     }
-    public function finishArray($x) {
+    public final function finishArray($x) {
       return $this->finishAny(Exception::assertArray($x));
     }
-    public function finishString($x) {
+    public final function finishString($x) {
       return $this->finishAny(Exception::assertString($x));
     }
-    public function finishInt($x) {
+    public final function finishInt($x) {
       return $this->finishAny(Exception::assertInt($x));
     }
-    public function finishTrue($x) {
+    public final function finishTrue($x) {
       return $this->finishAny(Exception::assertTrue($x));
     }
-    public function finishResource($x) {
+    public final function finishResource($x) {
       return $this->finishAny(Exception::assertResource($x));
     }
-    public function finishBool($x) {
+    public final function finishBool($x) {
       return $this->finishAny(Exception::assertBool($x));
+    }
+  }
+  final class StrictErrors extends Errors {
+    public function handleError($e) {
+      throw $e;
+    }
+  }
+  final class IgnoreErrors extends Errors {
+    public function handleError($e) {}
+  }
+  final class CaptureErrors extends Errors {
+    private $errors = array();
+    public function handleError($e) {
+      $this->errors[] = $e;
+    }
+    public function getErrors() {
+      return $this->errors;
     }
   }
 }

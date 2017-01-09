@@ -73,14 +73,26 @@ namespace HackUtils {
         TestToPairs::class_(),
         TestGroupBy::class_(),
         TestKeysToLower::class_(),
-        TestKeysToUpper::class_()
+        TestKeysToUpper::class_(),
+        TestGet::class_(),
+        TestGetPair::class_(),
+        TestSet::class_(),
+        TestGetOrNull::class_(),
+        TestGetOrDefault::class_(),
+        TestGetIssetDefault::class_(),
+        TestKeyExists::class_(),
+        TestKeyIsset::class_(),
+        TestGetOffset::class_(),
+        TestSetOffset::class_()
       );
     }
     public static function main() {
+      $errors = StrictErrors::start();
       foreach (self::getTests() as $test) {
         echo ("  ".$test::name()."\n");
         $test::runStatic();
       }
+      $errors->finish();
       echo ("done\n");
     }
   }
