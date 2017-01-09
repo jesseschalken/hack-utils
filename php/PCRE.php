@@ -22,8 +22,7 @@ namespace HackUtils\PCRE {
       );
       self::assertException(
         function() {
-          Pattern::create("b.*b")
-            ->match("baab".HU\repeat_string("a", 10002400));
+          Pattern::create("(x*)*y")->match(HU\repeat_string("x", 10002400));
         },
         "Backtrack limit (pcre.backtrack_limit) was exhausted",
         \PREG_BACKTRACK_LIMIT_ERROR
